@@ -1,0 +1,51 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.PatrimonioMv" parent="Theme.MaterialComponents.DayNight">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/teal_500</item>
+        <item name="colorPrimaryVariant">@color/teal_800</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/purple_500</item>
+        <item name="colorSecondaryVariant">@color/purple_700</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Navigation bar color (if applicable) -->
+        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorSecondary">@color/white</item>
+        <!-- Style for toolbar -->
+        <item name="toolbarStyle">@style/Widget.PatrimonioMv.Toolbar</item>
+        <!-- Style for floating action button -->
+        <item name="floatingActionButtonStyle">@style/Widget.PatrimonioMv.FloatingActionButton</item>
+    </style>
+
+    <style name="Theme.PatrimonioMv.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.PatrimonioMv.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar" />
+
+    <style name="Theme.PatrimonioMv.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light" />
+
+    <!-- Style for toolbar -->
+    <style name="Widget.PatrimonioMv.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
+        <item name="android:background">@color/teal_500</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="titleTextColor">@color/white</item>
+        <item name="android:elevation">8dp</item>
+    </style>
+
+    <!-- Style for floating action button -->
+    <style name="Widget.PatrimonioMv.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">@color/teal_500</item>
+        <item name="rippleColor">@color/teal_800</item>
+        <item name="android:translationZ">4dp</item>
+        <item name="iconTint">@color/white</item>
+        <item name="tint">@color/white</item>
+    </style>
+</resources>
+

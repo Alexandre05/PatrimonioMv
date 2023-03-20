@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="Atividades.AtualizarActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/EditarTipo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tipo do item"
+            android:inputType="text"
+            android:padding="8dp" />
+
+        <EditText
+            android:id="@+id/Edit_localizacao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Localização"
+            android:inputType="text"
+            android:padding="8dp" />
+
+        <EditText
+            android:id="@+id/Edit_nome_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nome do item"
+            android:inputType="text"
+            android:padding="8dp" />
+
+        <EditText
+            android:id="@+id/Edit_outras_informacoes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Outras informações"
+            android:inputType="textMultiLine"
+            android:padding="8dp" />
+
+        <EditText
+            android:id="@+id/Edit_placa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Placa"
+            android:inputType="text"
+            android:padding="8dp" />
+
+        <Button
+            android:id="@+id/btn_salvar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="Salvar" />
+    </LinearLayout>
+</ScrollView>

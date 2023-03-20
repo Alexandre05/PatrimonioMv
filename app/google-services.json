@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "574693873845",
+    "project_id": "ppmv-78b65",
+    "storage_bucket": "ppmv-78b65.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:574693873845:android:37ef39fee1f6dac7c186fc",
+        "android_client_info": {
+          "package_name": "br.com.patrimoniomv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "574693873845-k0f9jqi0omcimav9ar8niua0m388ar4r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.patrimoniomv",
+            "certificate_hash": "f8c7dcb288d0336ab3048aa15511880a6e3bd530"
+          }
+        },
+        {
+          "client_id": "574693873845-30eje40ib13gd9ric954b6kodgkmfi0u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGbZBDyvPD7VjVmuCI6HJwl4l7EXFu1b0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "574693873845-30eje40ib13gd9ric954b6kodgkmfi0u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

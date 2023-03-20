@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="6dp"
+    android:paddingRight="16dp"
+    app:layout_marginBaseline="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="77dp"
+        android:layout_marginBottom="6dp"
+        android:orientation="horizontal">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/imageContato"
+            android:layout_width="62dp"
+            android:layout_height="60dp"
+            android:src="@drawable/c_pessoa" />
+
+        <LinearLayout
+            android:layout_width="317dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/nomeContato"
+                android:layout_width="287dp"
+                android:layout_height="wrap_content"
+                android:text="Nome" />
+
+            <TextView
+                android:id="@+id/ultimaContato"
+                android:layout_width="289dp"
+                android:layout_height="30dp"
+                android:text="email" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <include
+        layout="@layout/di"
+        android:layout_width="381dp"
+        android:layout_height="13dp" />
+
+</LinearLayout>

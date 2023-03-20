@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="#E4EFEF"
+    android:orientation="vertical"
+    android:layout_gravity="center|center_horizontal"
+    android:layout_height="match_parent"
+    tools:context="Atividades.Login" >
+
+    <TextView
+
+        android:id="@+id/imageView"
+        android:layout_width="375dp"
+        android:layout_height="285dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+
+        android:textColor="#0E0E0E"
+        android:textSize="50dp" />
+
+
+    <EditText
+        android:id="@+id/emialLog"
+        android:layout_width="347dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/custon_text"
+        android:drawableLeft="@drawable/email"
+        android:gravity="center|center_horizontal"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:padding="10dp"
+        android:textColor="#04000B" />
+
+    <EditText
+        android:id="@+id/senhaLog"
+        android:layout_width="345dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/custon_text"
+        android:drawableLeft="@drawable/senha"
+
+        android:ems="10"
+        android:gravity="center"
+        android:hint="Senha"
+        android:inputType="textPassword"
+        android:padding="10dp"
+        android:textColor="@color/black" />
+
+    <Button
+        android:id="@+id/botaoEntrar"
+
+        android:layout_width="345dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+
+        android:background="@drawable/custonboentrar"
+
+        android:text="ACESSAR" />
+
+    <Button
+        android:id="@+id/btnCadastrar"
+        android:layout_width="345dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/custoncadastra"
+        android:onClick="cadastroChamaAt"
+        android:text="Cadastre-se"
+        android:textColor="#0C0000"
+        app:rippleColor="@color/white" />
+
+    <Button
+        android:layout_width="345dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/custoncadastra"
+        android:gravity="center"
+
+        android:onClick="recuperarSenha"
+        android:text="Esqueci Senha"
+        android:textColor="#9C2905" />
+
+</LinearLayout>

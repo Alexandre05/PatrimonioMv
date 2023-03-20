@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context="Atividades.Relatorios">
+
+    <!-- Adicione esse código após o EditText da localização -->
+    <EditText
+        android:id="@+id/editText_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Localização"
+        android:inputType="text"
+        android:maxLines="1"
+        android:textColor="#000"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/editText_licensePlate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Número da placa"
+        android:inputType="number"
+        android:maxLines="1"
+        android:maxLength="7"
+        android:textColor="#000"
+        android:textSize="16sp" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup_searchCriteria"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radioButton_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Localização"
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/radioButton_licensePlate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Número da placa" />
+    </RadioGroup>
+    <Button
+        android:id="@+id/button_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pesquisar" />
+    <Button
+        android:id="@+id/button_generate_pdf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gerar PDF" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView_results"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+</LinearLayout>

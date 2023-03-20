@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#C2F1C4">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        tools:context="Atividades.CadastrarItens">
+
+        <HorizontalScrollView
+            android:id="@+id/imageContainer"
+            android:layout_width="373dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/imageCada1"
+                    android:layout_width="56dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/camera"
+                    app:civ_border_color="#FF000000" />
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+
+        <Spinner
+            android:id="@+id/cidade"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/editNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/custonnoecao"
+            android:ems="10"
+            android:hint="Nome Iten"
+            android:inputType="textPersonName"
+            android:padding="10dp" />
+
+        <EditText
+            android:id="@+id/editPlaca"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/custonnoecao"
+            android:ems="10"
+            android:inputType="number"
+            android:padding="10dp"
+            android:hint="Nº Placa" />
+
+        <EditText
+            android:id="@+id/editObs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/custonnoecao"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:padding="10dp"
+            android:hint="Observações" />
+
+        <TextView
+            android:id="@+id/editNomeRes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/custonnoecao"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:padding="10dp"
+            android:hint="Nome" />
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/fone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/custonnoecao"
+            android:inputType="datetime"
+            android:padding="10dp"
+            app:maskStyle="completable"/>
+        <Button
+            android:id="@+id/SalvarA"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/botoaentrar"
+            android:onClick="validarAnuncio"
+            android:text="Cadastrar Iten"
+            android:theme="@style/Theme.AppCompat.Dialog.MinWidth"
+            tools:ignore="OnClick" />
+
+    </LinearLayout>
+</ScrollView>

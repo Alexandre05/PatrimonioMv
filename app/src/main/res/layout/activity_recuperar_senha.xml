@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:layout_height="match_parent"
+    tools:context="Atividades.RecuperarSenha">
+
+    <EditText
+        android:layout_gravity="center_vertical"
+        android:layout_marginTop="20dp"
+        android:id="@+id/RecuEmail"
+        android:layout_width="401dp"
+        android:layout_height="61dp"
+        android:layout_marginBottom="10dp"
+        android:ems="20"
+        android:textColor="#0E0000"
+        android:hint="Email"
+
+        android:inputType="textEmailAddress"
+
+        android:padding="10dp"
+        android:textSize="20dp" />
+
+    <Button
+        android:layout_width="match_parent"
+
+        android:layout_height="wrap_content"
+
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/bg_edit_text"
+        android:onClick="reset"
+        android:text="Recuperar Senha"
+        android:textColor="#0C0101"
+        android:textSize="20dp" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center_horizontal"
+        android:textSize="20dp"
+        android:padding="20dp"
+        android:onClick="callReset"
+        android:text="Voltar"
+        android:textColor="#0707AA" />
+</LinearLayout>
+
+
