@@ -22,7 +22,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
 
     private List<String> imageUrls;
     private Context context;
-    private ItensVistorias anuncioSele; // adicione essa variável
+    private ItensVistorias anuncioSele;
 
     public ViewPagerAdapter(Context context, List<String> imageUrls, ItensVistorias anuncioSele) {
         this.context = context;
@@ -30,37 +30,39 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         this.anuncioSele = anuncioSele;
     }
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        context = parent.getContext();
-        View view = LayoutInflater.from(context).inflate(R.layout.view_pager_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_pager_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Picasso.get().load(imageUrls.get(position)).into(holder.imageView);
-        holder.itemView.setOnClickListener(new View.OnClickListener() { // adicione um listener de click na imagem
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, DetalhesAc.class);
-                intent.putExtra("animalSelecionado", anuncioSele);
-                context.startActivity(intent);
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            String imageUrl = imageUrls.get(position);
+            if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                Picasso.get().load(imageUrl).into(holder.imageView);
+            } else {
+                // Carregue uma imagem padrão ou faça alguma outra ação em caso de URL inválido
             }
-        });
+        }
+
     }
+
+
 
     @Override
     public int getItemCount() {
         return imageUrls.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.image_view);
+            imageView = itemView.findViewById(R.id.viewPager);
         }
     }
 }

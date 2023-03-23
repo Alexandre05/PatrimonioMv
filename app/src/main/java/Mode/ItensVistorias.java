@@ -22,8 +22,39 @@ public class ItensVistorias implements Serializable {
   private  String tipoItem;
   private String localizacao;
   private String nomeItem;
+    private String placa;
+    private String data;
+    private int buttonColor;
+    private Double latitude,longetude;
+    private  String nomePerfilU;
+    private boolean concluida;
+    private boolean excluidaVistoria;
 
-  private String outrasInformacoes;
+    public boolean isExcluidaVistoria() {
+        return excluidaVistoria;
+    }
+
+    public void setExcluidaVistoria(boolean excluidaVistoria) {
+        this.excluidaVistoria = excluidaVistoria;
+    }
+
+    public int getButtonColor() {
+        return buttonColor;
+    }
+
+    public void setButtonColor(int buttonColor) {
+        this.buttonColor = buttonColor;
+    }
+
+    public boolean isConcluida() {
+        return concluida;
+    }
+
+    public void setConcluida(boolean concluida) {
+        this.concluida = concluida;
+    }
+
+    private String outrasInformacoes;
 
 
 
@@ -37,11 +68,7 @@ public class ItensVistorias implements Serializable {
         this.idAnuncio = idAnuncio;
     }
 
-    private String placa;
-  private String data;
 
-  private Double latitude,longetude;
-    private  String nomePerfilU;
 
     public Double getLatitude() {
         return latitude;
@@ -88,6 +115,7 @@ public class ItensVistorias implements Serializable {
             .setValue(this);
   salvarAnuncioPublico();
   }
+
   public  void remover(){
     String idiUsuario= ConFirebase.getIdUsuario();
     DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
@@ -195,6 +223,16 @@ public class ItensVistorias implements Serializable {
 
 
 
+    public static Task<Void> concluirVistoria(ItensVistorias vistoria, String idUsuario) {
+        // Recupera a referência do nó da vistoria
+        DatabaseReference vistoriasRef = ConFirebase.getFirebaseDatabase().child("anuncios").child(idUsuario).child(vistoria.getIdAnuncio());
+
+        // Atualiza o status da vistoria para "concluída"
+        vistoria.setConcluida(true);
+
+        // Atualiza os dados da vistoria no Firebase
+        return vistoriasRef.setValue(vistoria);
+    }
 
 
 
@@ -206,6 +244,33 @@ public class ItensVistorias implements Serializable {
               .child(getIdAnuncio());
     anuncioRefe.removeValue();
   }
+
+    public static Task<List<ItensVistorias>> recuperarVistoriasEmAndamento(String localizacao) {
+        TaskCompletionSource<List<ItensVistorias>> taskCompletionSource = new TaskCompletionSource<>();
+
+        DatabaseReference anunciosPuRef = FirebaseDatabase.getInstance().getReference().child("anunciosPu").child(localizacao);
+
+        anunciosPuRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<ItensVistorias> anunciosList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    ItensVistorias anuncio = snapshot.getValue(ItensVistorias.class);
+                    if (!anuncio.isConcluida()) {
+                        anunciosList.add(anuncio);
+                    }
+                }
+                taskCompletionSource.setResult(anunciosList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                taskCompletionSource.setException(databaseError.toException());
+            }
+        });
+
+        return taskCompletionSource.getTask();
+    }
 
 
 // SALVA ANUNCIOS PARA TODOS

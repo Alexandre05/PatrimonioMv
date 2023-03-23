@@ -45,7 +45,7 @@ public class Cadastrar extends AppCompatActivity {
     private CheckBox campoIsAdmin;
     private EditText campoEmail, campoSenha, campoNome, campoEndereco, campoConfirmaSenha;
     private FirebaseAuth autenticacao;
-
+    private EditText campoCodigoEspecial;
     private DatabaseReference refe;
 
     private String[] permissoes = new String[]{
@@ -179,8 +179,9 @@ public class Cadastrar extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                     ConFirebase.AtualizarNomeUsuario(usuario.getNome());
                     usuario.setIdU(idU);
-
-                    usuario.salvarUsuario();
+                    String codigoEspecial = campoCodigoEspecial.getText().toString();
+                    usuario.salvarUsuario(codigoEspecial);
+                    usuario.salvarUsuario(codigoEspecial);
                     Log.d("Cadastro", "Usuário salvo no Firebase");
                     Usuario.getUsuarioAutal();
 
@@ -225,6 +226,7 @@ public class Cadastrar extends AppCompatActivity {
 
 
     private void IniciConpo() {
+        campoCodigoEspecial = findViewById(R.id.codigoEspecial);
         campoIsAdmin = findViewById(R.id.campoIsAdmin);
         jatenhoC = findViewById(R.id.jatenhoCota);
         campoNome = findViewById(R.id.camPNome);

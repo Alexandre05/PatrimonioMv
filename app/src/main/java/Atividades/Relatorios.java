@@ -1,9 +1,12 @@
 package Atividades;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +16,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -36,8 +40,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import Adapter.AdapterAnuncios;
 import Helper.ConFirebase;
@@ -45,6 +53,7 @@ import Mode.ItensVistorias;
 import br.com.patrimoniomv.R;
 
 public class Relatorios extends AppCompatActivity {
+    private static final int PERMISSION_REQUEST_STORAGE = 100;
     private EditText editTextLocation;
     private Button buttonSearch;
     private RecyclerView recyclerView;
@@ -58,6 +67,7 @@ public class Relatorios extends AppCompatActivity {
     private RadioButton radioButtonLicensePlate;
     private Button buttonGeneratePdf;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    private static final int CREATE_FILE_REQUEST = 1;
 
 
     @Override
@@ -84,31 +94,7 @@ public class Relatorios extends AppCompatActivity {
         editTextLocation.setVisibility(View.GONE);
         radioButtonLicensePlate.setChecked(true);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
 
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-
-                // MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-        }
         radioGroupSearchCriteria.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
@@ -150,13 +136,18 @@ public class Relatorios extends AppCompatActivity {
         buttonGeneratePdf.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                createPdf(anuncios);
+                checkWriteStoragePermission();
+// Exemplo de datas de início e término para filtrar os anúncios
+                String startDate = "01/01/2023";
+                String endDate = "31/12/2023";
+
+                List<ItensVistorias> filteredAnuncios = filterByDate(anuncios, startDate, endDate);
+                createPdf(filteredAnuncios);
             }
         });
 
 
     }
-
 
 
     public void searchByCategory(String category) {
@@ -198,95 +189,129 @@ public class Relatorios extends AppCompatActivity {
         });
     }
 
+    public List<ItensVistorias> filterByDate(List<ItensVistorias> anuncios, String startDate, String endDate) {
+        List<ItensVistorias> filteredAnuncios = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        try {
+            Date start = dateFormat.parse(startDate);
+            Date end = dateFormat.parse(endDate);
+
+            for (ItensVistorias anuncio : anuncios) {
+                Date anuncioDate = dateFormat.parse(anuncio.getData());
+
+                if ((anuncioDate.equals(start) || anuncioDate.after(start)) && (anuncioDate.equals(end) || anuncioDate.before(end))) {
+                    filteredAnuncios.add(anuncio);
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao filtrar por data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        return filteredAnuncios;
+    }
+
+    private void createFile() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/pdf");
+        intent.putExtra(Intent.EXTRA_TITLE, "relatorio.pdf");
+        startActivityForResult(intent, CREATE_FILE_REQUEST);
+    }
+
     private void createPdf(List<ItensVistorias> anuncios) {
         if (anuncios.isEmpty()) {
             Toast.makeText(this, "Não há dados para gerar o PDF!", Toast.LENGTH_SHORT).show();
             return;
         }
+       createFile();
+    }
+
+    private void checkWriteStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            createPdf(anuncios);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+        }
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CREATE_FILE_REQUEST && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri uri = data.getData();
+                savePdfToFile(uri);
+            }
+        }
+    }
+
+    private void savePdfToFile(Uri uri) {
         Document document = new Document();
         try {
-            String fileName = "relatorio.pdf";
-            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + fileName);
-            OutputStream outputStream = new FileOutputStream(file);
-            PdfWriter.getInstance(document, outputStream);
-            document.open();
+            ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+            if (pfd != null) {
+                FileOutputStream fos = new FileOutputStream(pfd.getFileDescriptor());
+                PdfWriter.getInstance(document, fos);
+                document.open();
 
 
+                // Adicionando título e subtítulo
+                Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
+                Paragraph title = new Paragraph("Relatório de Vistoria de Patrimônio da Comissão", titleFont);
+                title.setAlignment(Element.ALIGN_CENTER);
+                document.add(title);
 
+                Font subtitleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+                Paragraph subtitle = new Paragraph("Detalhes da Vistoria", subtitleFont);
+                subtitle.setAlignment(Element.ALIGN_CENTER);
+                subtitle.setSpacingAfter(10f);
+                document.add(subtitle);
+                // Criação da tabela
+                PdfPTable table = new PdfPTable(6);
+                table.setWidthPercentage(100);
+                table.setSpacingBefore(10f);
+                table.setSpacingAfter(10f);
 
-            // Adicionando título e subtítulo
-            Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
-            Paragraph title = new Paragraph("Relatório de Vistoria de Patrimônio da Comissão", titleFont);
-            title.setAlignment(Element.ALIGN_CENTER);
-            document.add(title);
+                // Adicionando cabeçalho da tabela
+                table.addCell("Item");
+                table.addCell("Nº Patrimonio");
+                table.addCell("Ob.");
+                table.addCell("Vistoriado.");
+                table.addCell("Data Vistoria");
+                table.addCell("Localização");
 
-            Font subtitleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
-            Paragraph subtitle = new Paragraph("Detalhes da Vistoria", subtitleFont);
-            subtitle.setAlignment(Element.ALIGN_CENTER);
-            subtitle.setSpacingAfter(10f);
-            document.add(subtitle);
-            // Criação da tabela
-            PdfPTable table = new PdfPTable(5);
-            table.setWidthPercentage(100);
-            table.setSpacingBefore(10f);
-            table.setSpacingAfter(10f);
+                // Adicionando dados à tabela
+                for (ItensVistorias anuncio : anuncios) {
+                    table.addCell(anuncio.getNomeItem());
+                    table.addCell(anuncio.getPlaca());
+                    table.addCell(anuncio.getOutrasInformacoes());
+                    table.addCell(anuncio.getNomePerfilU());
+                    table.addCell(anuncio.getData());
+                    table.addCell(anuncio.getLocalizacao());
+                }
 
-            // Adicionando cabeçalho da tabela
-            table.addCell("Item");
-            table.addCell("Nº Patrimonio");
-            table.addCell("Ob.");
-            table.addCell("Vistoriado.");
-            table.addCell("Data Vistoria");
+                // Adicionando tabela ao documento
+                document.add(table);
 
-            // Adicionando dados à tabela
-            for (ItensVistorias anuncio : anuncios) {
-                table.addCell(anuncio.getNomeItem());
-                table.addCell(anuncio.getPlaca());
-                table.addCell(anuncio.getOutrasInformacoes());
-                table.addCell(anuncio.getNomePerfilU());
-                table.addCell(anuncio.getData());
+                document.close();
+
+                fos.close();
+                pfd.close();
+                Toast.makeText(this, "PDF criado com sucesso!", Toast.LENGTH_SHORT).show();
             }
-
-            // Adicionando tabela ao documento
-            document.add(table);
-
-            document.close();
-            Toast.makeText(this, "PDF criado com sucesso!", Toast.LENGTH_SHORT).show();
-        } catch (DocumentException | IOException e) {
+        } catch (IOException | DocumentException e) {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao criar o PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // storage-related task you need to do.
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-
-
-
-
 }
+
+
+
+
+
+
+

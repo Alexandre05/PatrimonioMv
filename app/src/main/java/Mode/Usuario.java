@@ -27,6 +27,15 @@ public class Usuario implements Serializable {
     private String email;
     private String senha;
     private  String status;
+    private String role;
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     private boolean isAdmin;
 
@@ -78,11 +87,21 @@ public class Usuario implements Serializable {
 
 
     }
+    public boolean isUserAdmin() {
+        return "admin".equals(role);
+    }
 
-    public void salvarUsuario() {
+    public void salvarUsuario(String codigoEspecial) {
         String idU = ConFirebase.getIdUsuario();
         if (idU != null) {
             DatabaseReference refe = ConFirebase.getFirebaseDatabase();
+
+            // Verifique se o código especial corresponde ao valor predefinido
+            if (ConFirebase.CODIGO_ESPECIAL.equals(codigoEspecial)) {
+                setRole("admin");
+            } else {
+                setRole("user");
+            }
 
             refe.child("usuarios")
                     .child(idU)
@@ -93,6 +112,8 @@ public class Usuario implements Serializable {
             // Trate o caso em que o usuário não está autenticado
         }
     }
+
+
 
 
 
@@ -114,7 +135,7 @@ public class Usuario implements Serializable {
         usuaruiMap.put("email", getEmail());
         usuaruiMap.put("nome", getNome());
         usuaruiMap.put("foto", getFoto());
-
+        usuaruiMap.put("role", getRole());
 
         return usuaruiMap;
 

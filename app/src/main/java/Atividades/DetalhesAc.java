@@ -6,14 +6,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,20 +30,21 @@ public class DetalhesAc extends AppCompatActivity {
 
     private TextView nome, ob, porte, localiza, nomeVistoriador, latitudeTextView, longitudeTextView;
     private ItensVistorias anuncioSele;
-    private FirebaseUser usuarioAtual;
     private ViewPager2 viewPager;
-
+    private TabLayout tabLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalhes);
         iniciarComponentesUI();
+
         Intent intent = getIntent();
-        // Obtém o id do anúncio da Activity anterior
         String idAnuncio = getIntent().getStringExtra("idAnuncio");
         Log.e("DETAILED_ACTIVITY", "IdAnu." + idAnuncio);
 
         String localizacao = intent.getStringExtra("localizacao");
+
+
 
         if (idAnuncio == null) {
             Log.e("DETAILED_ACTIVITY", "idAnuncio não foi passado para a Activity");
@@ -79,13 +79,13 @@ public class DetalhesAc extends AppCompatActivity {
             return;
         }
 
-        DatabaseReference anunciosRef = FirebaseDatabase.getInstance()
-                .getReference("anuncios")
-                .child(localizacao)
+        DatabaseReference anunciosPuRef = FirebaseDatabase.getInstance()
+                .getReference("anunciosPu")
+                .child(localizacao) // cai aqui o erro
                 .child(idAnuncio);
 
-        Log.d("DETAILED_ACTIVITY", "caminho da consulta: " + anunciosRef.toString());
-        anunciosRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        Log.d("DETAILED_ACTIVITY", "caminho da consulta: " + anunciosPuRef.toString());
+        anunciosPuRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -104,16 +104,16 @@ public class DetalhesAc extends AppCompatActivity {
         });
     }
 
-
     private void exibirDados(ItensVistorias anuncioSele) {
         if (anuncioSele != null) {
             Log.d("DETAILED_ACTIVITY", "Anuncio: " + anuncioSele.toString());
-// Definir o nome, outras informações, placa, nome do perfil do usuário e localização nos TextViews
+            // Definir o nome, outras informações, placa, nome do perfil do usuário e localização nos TextViews
             nome.setText(anuncioSele.getNomeItem());
             ob.setText(anuncioSele.getOutrasInformacoes());
             porte.setText(anuncioSele.getPlaca());
             nomeVistoriador.setText(anuncioSele.getNomePerfilU());
             localiza.setText(anuncioSele.getLocalizacao());
+
             // Definir a latitude e longitude nos TextViews correspondentes
             String latitudeString = String.format(Locale.getDefault(), "%.6f", anuncioSele.getLatitude());
             latitudeTextView.setText(getString(R.string.latitude_value, latitudeString));
@@ -126,11 +126,14 @@ public class DetalhesAc extends AppCompatActivity {
             // Definir as imagens no ViewPager
             ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(this, imageUrls, anuncioSele);
             viewPager.setAdapter(viewPagerAdapter);
+            new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {}).attach();
         }
     }
 
     private void iniciarComponentesUI() {
-        viewPager = findViewById(R.id.viewPager);
+        viewPager = findViewById(R.id.view_pager3);
+        tabLayout = findViewById(R.id.tab_layout);
+        viewPager = findViewById(R.id.view_pager3);
         nome = findViewById(R.id.textView4);
         localiza = findViewById(R.id.textView5);
         ob = findViewById(R.id.textView6);

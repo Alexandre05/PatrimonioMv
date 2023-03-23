@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/nomePerfilUTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nome do Vistoriador"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/dataTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/nomePerfilUTextView"
+        android:text="Data da Vistoria"
+        android:textSize="14sp"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:id="@+id/localizacaoTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/dataTextView"
+        android:text="Localização da Vistoria"
+        android:textSize="14sp"
+        android:layout_marginTop="5dp" />
+
+    <Button
+        android:id="@+id/concluirVistoriaButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:backgroundTint="@color/accentColor"
+        android:layout_below="@+id/localizacaoTextView"
+        android:text="Concluir Vistoria"
+        android:layout_marginTop="10dp" />
+
+</RelativeLayout>

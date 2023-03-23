@@ -12,6 +12,9 @@
     <string name="previous">Previous</string>
     <string name="latitude_value">Latitude: %s</string>
     <string name="longitude_value">Longitude: %s</string>
+    <string name="vistoria_finalizada">Vistoria Finalizada</string>
+    <string name="concluir_vistoria">Vistoria Finalizada</string>
+
     <string name="fullscreen_image_description">Imagem em tela cheia</string>
 
 

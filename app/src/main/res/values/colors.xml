@@ -9,5 +9,7 @@
     <color name="white">#FDF6EC</color>
     <color name="teal_500">#00796B</color>
     <color name="teal_800">#00796B</color>
-
+    <color name="accentColor">#FF183B</color>
+    <color name="green">#04D871</color>
+    <color name="red">#E70505</color>
 </resources>

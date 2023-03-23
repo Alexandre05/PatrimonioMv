@@ -11,6 +11,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -107,32 +111,38 @@ public class Login extends AppCompatActivity {
         ).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
+                    String userId = ConFirebase.getIdUsuario();
+                    DatabaseReference userRef = ConFirebase.getFirebaseDatabase().getDatabase().getReference("usuarios").child(userId);
+                    userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            Usuario user = dataSnapshot.getValue(Usuario.class);
+                            if (user != null && "admin".equals(user.getRole())) {
+                                abrirTelaAdmin();
+                            } else {
+                                abrirTelaAni();
+                            }
+                        }
 
-
-                        abrirTelaAni();
-
-
-
-
-
-
-
-
-
-
-                    String erroExe="";
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            Toast.makeText(Login.this,
+                                    "Erro ao verificar função do usuário.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    String erroExe = "";
                     try {
                         throw task.getException();
-
-                    }catch (FirebaseAuthInvalidUserException e) {
+                    } catch (FirebaseAuthInvalidUserException e) {
                         erroExe = "Usuario não cadastrado";
-                    }catch (FirebaseAuthInvalidCredentialsException e){
-                        erroExe="E-mail e senha não corresponde ao usuario";
-                    }catch (Exception e){
-                        erroExe =" cadastrar usuário" +e.getMessage();
+                    } catch (FirebaseAuthInvalidCredentialsException e) {
+                        erroExe = "E-mail e senha não corresponde ao usuario";
+                    } catch (Exception e) {
+                        erroExe = " cadastrar usuário" + e.getMessage();
                         e.printStackTrace();
-
                     }
                     Toast.makeText(Login.this,
                             erroExe,
@@ -142,9 +152,13 @@ public class Login extends AppCompatActivity {
         });
 
 
+
     }
 
 
+    public void abrirTelaAdmin() {
+        startActivity(new Intent(this, AdminActivity.class));
+    }
 
 
     public void cadastroChamaAt(View v){

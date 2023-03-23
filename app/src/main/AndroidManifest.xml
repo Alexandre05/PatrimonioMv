@@ -4,8 +4,7 @@
     <!-- Permissoes internet -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- Permissoes galeria / camera -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -25,8 +24,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PatrimonioMv"
         tools:targetApi="31">
+        <activity
+            android:name="Atividades.VistoriasEmAndamentoActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
 
-        <!-- Adicione a chave da API do Google Maps aqui -->
+        <activity
+            android:name="Atividades.AdminActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity> <!-- Adicione a chave da API do Google Maps aqui -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDEVgFpMD1usBrmGdBvHLf7a2U3tSvA2Ek" />
@@ -63,7 +75,7 @@
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
-            android:grantUriPermissions="true"></provider>
+            android:grantUriPermissions="true" />
 
         <activity
             android:name="Atividades.Relatorios"

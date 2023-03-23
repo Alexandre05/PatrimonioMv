@@ -22,7 +22,7 @@ public class ConFirebase {
     public static DatabaseReference referenciaFarebase;
     private   static FirebaseAuth referenciaAutencicacao;
     public static StorageReference referenciaStorage;
-
+    public static final String CODIGO_ESPECIAL = "123";
     public static String getIdUsuario() {
         // pega o id que foi criando ao cadastrar o usuario
         FirebaseAuth aut = getReferenciaAutencicacao();
