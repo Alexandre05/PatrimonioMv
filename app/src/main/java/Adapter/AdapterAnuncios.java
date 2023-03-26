@@ -53,12 +53,11 @@ public class AdapterAnuncios extends RecyclerView.Adapter<AdapterAnuncios.MyView
         List<String> urlFtos = anuncio.getFotos();
 
 
-        String urlCapa= urlFtos.get(0);
-        Picasso.get().load(urlCapa).into(holder.foto);
-
-          Log.i("foto","men"+urlCapa);
-
-
+        if (urlFtos != null && urlFtos.size() > 0) {
+            String urlCapa = urlFtos.get(0);
+            Picasso.get().load(urlCapa).into(holder.foto);
+            Log.i("foto", "men" + urlCapa);
+        }
 
     }
 

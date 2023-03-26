@@ -22,7 +22,13 @@
             android:scaleType="centerCrop"
             app:srcCompat="@drawable/padrao"
             android:padding="8dp"/>
-
+        <!-- Campo de conclusão -->
+        <ImageView
+            android:id="@+id/concluidaImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/chek"
+            android:visibility="gone" />
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"

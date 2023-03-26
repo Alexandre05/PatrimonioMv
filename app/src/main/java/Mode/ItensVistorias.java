@@ -244,6 +244,14 @@ public class ItensVistorias implements Serializable {
               .child(getIdAnuncio());
     anuncioRefe.removeValue();
   }
+    public void salvarVistoriaConcluida() {
+        String idUsuario = ConFirebase.getIdUsuario();
+        DatabaseReference vistoriaConcluidaRef = ConFirebase.getFirebaseDatabase()
+                .child("vistoriasConcluidas");
+        vistoriaConcluidaRef.child(idUsuario)
+                .child(getIdAnuncio())
+                .setValue(this);
+    }
 
     public static Task<List<ItensVistorias>> recuperarVistoriasEmAndamento(String localizacao) {
         TaskCompletionSource<List<ItensVistorias>> taskCompletionSource = new TaskCompletionSource<>();

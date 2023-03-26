@@ -3,6 +3,7 @@ package Atividades;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ public class AdminActivity extends AppCompatActivity {
     private EditText novoCodigoEspecial;
     private Button botaoAlterarCodigoEspecial;
     private DatabaseReference firebaseRef;
+    private Button editCompanyInfoButton;
     private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +50,7 @@ public class AdminActivity extends AppCompatActivity {
         vistorias = new ArrayList<>();
         vistoriaAdapter = new VistoriaAdapter(this, R.layout.itensvistoria, vistorias);
         listViewVistorias.setAdapter(vistoriaAdapter);
-
+        editCompanyInfoButton = findViewById(R.id.edit_company_info_button);
         buscarVistorias();
         botaoAlterarCodigoEspecial.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,8 +64,21 @@ public class AdminActivity extends AppCompatActivity {
                 }
             }
         });
-    }
+        editCompanyInfoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openEditCompanyInfoActivity();
+            }
+        });
 
+    }
+    private void openEditCompanyInfoActivity() {
+        Intent intent = new Intent(AdminActivity.this, CompanyInfoActivity.class);
+        startActivity(intent);
+
+
+
+}
     private void buscarVistorias() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("vistorias");
         databaseReference.addValueEventListener(new ValueEventListener() {

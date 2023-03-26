@@ -55,7 +55,7 @@ import br.com.patrimoniomv.R;
 public class Relatorios extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_STORAGE = 100;
     private EditText editTextLocation;
-    private Button buttonSearch;
+    private Button buttonSearch,btn_imprimir;
     private RecyclerView recyclerView;
     private List<ItensVistorias> anuncios = new ArrayList<>();
     private AdapterAnuncios adapterAnuncios;
@@ -148,6 +148,32 @@ public class Relatorios extends AppCompatActivity {
 
 
     }
+    public List<ItensVistorias> filterByInspectorDate(List<ItensVistorias> anuncios, String inspectorId, String startDate, String endDate) {
+        List<ItensVistorias> filteredAnuncios = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        try {
+            Date start = dateFormat.parse(startDate);
+            Date end = dateFormat.parse(endDate);
+
+            for (ItensVistorias anuncio : anuncios) {
+                Date anuncioDate = dateFormat.parse(anuncio.getData());
+
+                if (anuncio.getNomePerfilU().equals(inspectorId) &&
+                        (anuncioDate.equals(start) || anuncioDate.after(start)) &&
+                        (anuncioDate.equals(end) || anuncioDate.before(end))) {
+                    filteredAnuncios.add(anuncio);
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao filtrar por data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        return filteredAnuncios;
+    }
+
+
 
 
     public void searchByCategory(String category) {

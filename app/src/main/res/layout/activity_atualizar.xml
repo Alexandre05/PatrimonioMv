@@ -12,13 +12,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <EditText
-            android:id="@+id/EditarTipo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Tipo do item"
-            android:inputType="text"
-            android:padding="8dp" />
+
 
         <EditText
             android:id="@+id/Edit_localizacao"
@@ -59,5 +53,13 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
             android:text="Salvar" />
+
+        <Button
+            android:id="@+id/TelaImpri"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="Imprimir" />
     </LinearLayout>
 </ScrollView>

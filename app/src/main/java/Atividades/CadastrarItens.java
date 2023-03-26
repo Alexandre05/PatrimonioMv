@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -22,6 +23,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -209,7 +214,7 @@ public void salvarAnuncios() {
             }
         }
 
-        if (imagens.size()!= 0) {
+        if (imagens.size() != 0) {
             if (!anuncios.getLocalizacao().isEmpty()) {
                 if (!anuncios.getNomeItem().isEmpty()) {
                     ItensVistorias.verificarPlacaExistente(anuncios.getPlaca()).addOnCompleteListener(new OnCompleteListener<Boolean>() {
@@ -220,6 +225,22 @@ public void salvarAnuncios() {
                                     Toast.makeText(CadastrarItens.this, "A placa já está em uso.", Toast.LENGTH_SHORT).show();
                                 } else {
                                     if (!anuncios.getOutrasInformacoes().isEmpty()) {
+                                        // Adicionar informações da vistoria em uma string e gerar o QR Code
+                                        String qrCodeData = "Nome do item: " + anuncios.getNomeItem()
+                                                + "\nPlaca: " + anuncios.getPlaca()
+                                                + "\nNome do responsável: " + anuncios.getNomePerfilU()
+                                                + "\nLocalização: " + anuncios.getLocalizacao()
+                                                + "\nData: " + anuncios.getData()
+                                                + "\nOutras informações: " + anuncios.getOutrasInformacoes();
+                                        Bitmap qrCodeBitmap = generateQRCode(qrCodeData);
+                                        if (qrCodeBitmap != null) {
+                                            imagens.add(qrCodeBitmap);
+                                            // Adicione este código após adicionar o QR Code à lista de imagens
+                                            Intent intent = new Intent(CadastrarItens.this, ViewQRCodeActivity.class);
+                                            intent.putExtra("qrCodeData", qrCodeData);
+                                            startActivity(intent);
+                                        }
+
                                         salvarAnuncios();
                                     } else {
                                         exibirMensagemErro("Preencha o campo descrição");
@@ -240,6 +261,7 @@ public void salvarAnuncios() {
             exibirMensagemErro("Selecione ao menos uma foto!");
         }
     }
+
 
 
     private void exibirMensagemErro(String mensagem) {
@@ -264,6 +286,24 @@ public void salvarAnuncios() {
 
         }
 
+    }
+    private Bitmap generateQRCode(String text) {
+        int width = 500;
+        int height = 500;
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        try {
+            BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, width, height);
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return bitmap;
+        } catch (WriterException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void adicionarImagem() {

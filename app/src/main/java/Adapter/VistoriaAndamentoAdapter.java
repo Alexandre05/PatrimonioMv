@@ -1,6 +1,7 @@
 package Adapter;
 
 import android.content.res.ColorStateList;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,41 +34,36 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<ItensVistorias> {
         if (convertView == null) {
             convertView = LayoutInflater.from(activity).inflate(resource, parent, false);
         }
-
-        TextView nomePerfilTextView = convertView.findViewById(R.id.nomePerfilUTextView);
-        TextView dataTextView = convertView.findViewById(R.id.dataTextView);
-        TextView localizacaoTextView = convertView.findViewById(R.id.localizacaoTextView);
         Button concluirVistoriaButton = convertView.findViewById(R.id.concluirVistoriaButton);
 
         ItensVistorias vistoriaAtual = getItem(position);
-
+        TextView nomePerfilTextView = convertView.findViewById(R.id.nomePerfilUTextView);
+        TextView dataTextView = convertView.findViewById(R.id.dataTextView);
+        TextView localizacaoTextView = convertView.findViewById(R.id.localizacaoTextView);
         nomePerfilTextView.setText(vistoriaAtual.getNomePerfilU());
         dataTextView.setText(vistoriaAtual.getData());
         localizacaoTextView.setText(vistoriaAtual.getLocalizacao());
-
         updateConcluirVistoriaButton(concluirVistoriaButton, vistoriaAtual);
-
         concluirVistoriaButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!vistoriaAtual.isConcluida()) {
-                    vistoriaAtual.setConcluida(true);
-                    activity.concluirVistoria(vistoriaAtual);
-                    updateConcluirVistoriaButton(concluirVistoriaButton, vistoriaAtual);
-                }
+                activity.concluirVistoria(vistoriaAtual);
+
             }
         });
 
+
         return convertView;
     }
+
     private void updateConcluirVistoriaButton(Button concluirVistoriaButton, ItensVistorias vistoriaAtual) {
         if (vistoriaAtual.isConcluida()) {
             concluirVistoriaButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(activity, R.color.green)));
-            concluirVistoriaButton.setText(R.string.vistoria_finalizada);
+            concluirVistoriaButton.setText(R.string.Finalizada);
             concluirVistoriaButton.setEnabled(false);
         } else {
             concluirVistoriaButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(activity, R.color.accentColor)));
-            concluirVistoriaButton.setText(R.string.concluir_vistoria);
+            concluirVistoriaButton.setText(R.string.A_concluir);
             concluirVistoriaButton.setEnabled(true);
         }
     }

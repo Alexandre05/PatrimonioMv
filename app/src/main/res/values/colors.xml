@@ -10,6 +10,8 @@
     <color name="teal_500">#00796B</color>
     <color name="teal_800">#00796B</color>
     <color name="accentColor">#FF183B</color>
-    <color name="green">#04D871</color>
+    <color name="green">#4CAF50</color>
     <color name="red">#E70505</color>
+    <color name="design_default_color_primary">#6200EE</color>
+    <color name="design_default_color_on_primary">#FFFFFF</color>
 </resources>

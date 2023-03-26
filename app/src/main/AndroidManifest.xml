@@ -25,13 +25,33 @@
         android:theme="@style/Theme.PatrimonioMv"
         tools:targetApi="31">
         <activity
+            android:name="Atividades.ImprimirActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name="Atividades.ViewQRCodeActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name="Atividades.CompanyInfoActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name="Atividades.VistoriasEmAndamentoActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-
         <activity
             android:name="Atividades.AdminActivity"
             android:exported="false">
