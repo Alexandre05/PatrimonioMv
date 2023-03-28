@@ -33,6 +33,9 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 
+import java.util.Arrays;
+import java.util.List;
+
 import Helper.Base64Custon;
 import Helper.ConFirebase;
 import Helper.Permissoes;
@@ -47,7 +50,7 @@ public class Cadastrar extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private EditText campoCodigoEspecial;
     private DatabaseReference refe;
-
+    private EditText campoPortaria;
     private String[] permissoes = new String[]{
 
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -72,81 +75,72 @@ public class Cadastrar extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                boolean isAdmin = campoIsAdmin.isChecked();
                 String nome = campoNome.getText().toString();
                 String endereco = campoEndereco.getText().toString();
                 String email = campoEmail.getText().toString();
                 String senha = campoSenha.getText().toString();
-
-                // String repetirSenha= campoConfirmaSenha.toString();
-
+                String repetirSenha = campoConfirmaSenha.getText().toString();
+                String portaria = campoPortaria.getText().toString();
 
                 if (!nome.isEmpty()) {
-
                     if (!endereco.isEmpty()) {
-
                         if (!email.isEmpty()) {
-
                             if (!senha.isEmpty()) {
+                                if (validar(senha, repetirSenha)) {
+                                    if (!portaria.isEmpty()) {
+                                        if (isPortariaValida(portaria)) {
+                                            usuario = new Usuario();
 
+                                            usuario.setNome(nome);
+                                            usuario.setEndereco(endereco);
+                                            usuario.setEmail(email);
+                                            usuario.setSenha(senha);
+                                            FirebaseMessaging.getInstance().getToken()
+                                                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<String> task) {
+                                                            String token = task.getResult();
+                                                            usuario.setToken(token);
+                                                        }
+                                                    });
 
-                                usuario = new Usuario();
-
-                                usuario.setNome(nome);
-                                usuario.setEndereco(endereco);
-                                usuario.setEmail(email);
-                                usuario.setSenha(senha);
-                                usuario.setAdmin(isAdmin);
-                                FirebaseMessaging.getInstance().getToken()
-                                        .addOnCompleteListener(new OnCompleteListener<String>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<String> task) {
-
-                                                String token = task.getResult();
-                                                usuario.setToken(token);
-                                            }
-
-                                        });
-
-
-                                cadaatrarUsuario();
-
+                                            cadaatrarUsuario();
+                                        } else {
+                                            Toast.makeText(Cadastrar.this,
+                                                    "Portaria inválida. Por favor, insira uma portaria válida.",
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        Toast.makeText(Cadastrar.this,
+                                                "Por favor, insira a portaria.",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(Cadastrar.this,
+                                            "A senha não é válida!",
+                                            Toast.LENGTH_SHORT).show();
+                                }
                             } else {
                                 Toast.makeText(Cadastrar.this,
                                         "Digite uma senha!",
                                         Toast.LENGTH_SHORT).show();
-
-
                             }
-
                         } else {
-
                             Toast.makeText(Cadastrar.this,
-                                    "Preencha  o E-mail!",
+                                    "Preencha o E-mail!",
                                     Toast.LENGTH_SHORT).show();
-
                         }
-
-
                     } else {
-
-
                         Toast.makeText(Cadastrar.this,
-                                "Preencha  Seu Endereço!",
+                                "Preencha o Endereço!",
                                 Toast.LENGTH_SHORT).show();
                     }
-
-
                 } else {
                     Toast.makeText(Cadastrar.this,
-                            "Preencha  Seu Nome",
+                            "Preencha o Nome",
                             Toast.LENGTH_SHORT).show();
-
-
                 }
-
             }
-
         });
 
 
@@ -227,17 +221,24 @@ public class Cadastrar extends AppCompatActivity {
 
     private void IniciConpo() {
         campoCodigoEspecial = findViewById(R.id.codigoEspecial);
-        campoIsAdmin = findViewById(R.id.campoIsAdmin);
+        //campoIsAdmin = findViewById(R.id.campoIsAdmin);
         jatenhoC = findViewById(R.id.jatenhoCota);
+        campoPortaria = findViewById(R.id.campoNumeroPortaria);
         campoNome = findViewById(R.id.camPNome);
         campoEndereco = findViewById(R.id.camEm);
         campoEmail = findViewById(R.id.campEm);
         campoSenha = findViewById(R.id.camSem);
         botaoCadastro = findViewById(R.id.BtnCadastrar);
+        campoConfirmaSenha=findViewById(R.id.RecamSem);
 
 
     }
-
+    private boolean isPortariaValida(String portaria) {
+        // Aqui você pode verificar a portaria fornecida de acordo com suas regras.
+        // Por exemplo, você pode verificar se a portaria está presente em uma lista de portarias válidas.
+        List<String> portariasValidas = Arrays.asList("123", "456", "789");
+        return portariasValidas.contains(portaria);
+    }
     public static boolean verificarForcaSenha(String campoSenha, String campoRepetirSenha, Cadastrar activity) {
         /*As seguintes regras devem ser obedecidas:
          * Mínimo de oito caracteres;
@@ -361,5 +362,30 @@ public class Cadastrar extends AppCompatActivity {
         }
         return false;
     }
+    public boolean validar(String senha, String confirmaSenha) {
+        if (!senha.isEmpty() && !confirmaSenha.isEmpty()) {
+            if (senha.equals(confirmaSenha)) {
+                if (verificarForcaSenha(senha, confirmaSenha, this)) {
+                    return true;
+                } else {
+                    Toast.makeText(Cadastrar.this,
+                            "A senha não atende aos requisitos de segurança!",
+                            Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            } else {
+                Toast.makeText(Cadastrar.this,
+                        "As senhas não são iguais!",
+                        Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } else {
+            Toast.makeText(Cadastrar.this,
+                    "Por favor, insira a senha e a confirmação da senha!",
+                    Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
+
 }
 

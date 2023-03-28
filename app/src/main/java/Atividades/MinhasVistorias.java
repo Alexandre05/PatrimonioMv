@@ -7,9 +7,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.media2.exoplayer.external.util.Log;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,10 +39,13 @@ public class MinhasVistorias extends AppCompatActivity {
     private static final int SELECAO_GALERIA = 200;
     private AppBarConfiguration appBarConfiguration;
     private ActivityMeusAnimaisBinding binding;
+    private ActivityMeusAnimaisBinding binding2;
     private DatabaseReference anunciosUsuarioRef;
     private ItensVistorias anuncioSele;
     private RecyclerView recycleAnuncios;
     private AlertDialog alert;
+    private Button irOutraSala;
+
 
     private Usuario usuario;
     private List<ItensVistorias> anuncios = new ArrayList<>();
@@ -55,22 +60,28 @@ public class MinhasVistorias extends AppCompatActivity {
         setContentView(binding.getRoot());
 
 
-
-
-
         inicializarCompo();
         //setSupportActionBar(binding.toolbar);
-       this.setTitle("Minhas Vistorias");
+        this.setTitle("Minhas Vistorias");
 
 
-// efento de clique
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 startActivity(new Intent(getApplicationContext(), CadastrarItens.class));
             }
         });
 
+        binding.impriB.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(MinhasVistorias.this, ImprimirActivity.class);
+                startActivity(intent);
+            }
+        });
 
         recycleAnuncios.setLayoutManager(new LinearLayoutManager(this));
         recycleAnuncios.setHasFixedSize(true);

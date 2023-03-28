@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:backgroundTint="@color/design_default_color_primary"
-            android:text="Imprimir"
+            android:text="Salvar Para Imprimir"
             android:textColor="@android:color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

@@ -28,6 +28,15 @@ public class Usuario implements Serializable {
     private String senha;
     private  String status;
     private String role;
+    private String numeroPortaria;
+
+    public String getNumeroPortaria() {
+        return numeroPortaria;
+    }
+
+    public void setNumeroPortaria(String numeroPortaria) {
+        this.numeroPortaria = numeroPortaria;
+    }
 
     public String getRole() {
         return role;

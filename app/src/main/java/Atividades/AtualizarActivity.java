@@ -25,7 +25,7 @@ public class AtualizarActivity extends AppCompatActivity {
     private EditText nomeItem;
     private EditText outrasInformacoes;
     private EditText placa;
-    private  Button imprimir;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,7 @@ public class AtualizarActivity extends AppCompatActivity {
         nomeItem = findViewById(R.id.Edit_nome_item);
         outrasInformacoes = findViewById(R.id.Edit_outras_informacoes);
         placa = findViewById(R.id.Edit_placa);
-        imprimir=findViewById(R.id.TelaImpri);
+        //imprimir=findViewById(R.id.TelaImpri);
         if (anuncio != null) {
             localizacao.setText(anuncio.getLocalizacao());
             nomeItem.setText(anuncio.getNomeItem());
@@ -58,13 +58,7 @@ public class AtualizarActivity extends AppCompatActivity {
                 salvarDados();
             }
         });
-        imprimir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(AtualizarActivity.this, ImprimirActivity.class);
-                startActivity(intent);
-            }
-        });
+
     }
 
     private void salvarDados() {

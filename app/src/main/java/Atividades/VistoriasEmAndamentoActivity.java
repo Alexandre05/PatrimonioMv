@@ -85,11 +85,6 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         };
         query.addChildEventListener(vistoriasEventListener);
     }
-
-
-
-
-
     public void concluirVistoria(ItensVistorias vistoriaAtual) {
         Log.d("concluirVistoria", "concluirVistoria called");
         String userId = ConFirebase.getIdUsuario();
@@ -102,13 +97,15 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 vistoriaAtual.setConcluida(true);
-                for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
-                    ItensVistorias vistoriaConcluida = vistoriaSnapshot.getValue(ItensVistorias.class);
+                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                    for (DataSnapshot vistoriaSnapshot : userSnapshot.getChildren()) {
+                        ItensVistorias vistoriaConcluida = vistoriaSnapshot.getValue(ItensVistorias.class);
 
-                    if (localizacao.equals(vistoriaConcluida.getLocalizacao()) && dataVistoria.equals(vistoriaConcluida.getData())) {
-                        // Outra vistoria na mesma sala e com a mesma data já foi concluída
-                        Toast.makeText(VistoriasEmAndamentoActivity.this, "A vistoria já foi concluída por outro vistoriador.", Toast.LENGTH_LONG).show();
-                        return;
+                        if (localizacao.equals(vistoriaConcluida.getLocalizacao()) && dataVistoria.equals(vistoriaConcluida.getData())) {
+                            // Outra vistoria na mesma sala e com a mesma data já foi concluída
+                            Toast.makeText(VistoriasEmAndamentoActivity.this, "A vistoria já foi concluída por outro vistoriador.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
                     }
                 }
 
@@ -117,7 +114,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                 vistoriaAtual.setConcluida(true);
 
                 // Adicionar a vistoria concluída ao nó "vistoriasConcluidas"
-                DatabaseReference vistoriaConcluidaRef = mDatabase.child("vistoriasConcluidas").child(vistoriaId);
+                DatabaseReference vistoriaConcluidaRef = mDatabase.child("vistoriasConcluidas").child(userId).child(vistoriaId);
                 vistoriaConcluidaRef.setValue(vistoriaAtual, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
@@ -142,6 +139,10 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
             }
         });
     }
+
+
+
+
 
 
     public void novoMetodo(ItensVistorias vistoriaAtual) {
