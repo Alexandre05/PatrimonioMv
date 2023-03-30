@@ -35,6 +35,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import Helper.Base64Custon;
 import Helper.ConFirebase;
@@ -45,7 +46,7 @@ import br.com.patrimoniomv.R;
 public class Cadastrar extends AppCompatActivity {
 
     private Button jatenhoC, botaoCadastro;
-    private CheckBox campoIsAdmin;
+
     private EditText campoEmail, campoSenha, campoNome, campoEndereco, campoConfirmaSenha;
     private FirebaseAuth autenticacao;
     private EditText campoCodigoEspecial;
@@ -72,47 +73,55 @@ public class Cadastrar extends AppCompatActivity {
 
 
         botaoCadastro.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
+                String codigoEspecial = campoCodigoEspecial.getText().toString();
                 String nome = campoNome.getText().toString();
                 String endereco = campoEndereco.getText().toString();
                 String email = campoEmail.getText().toString();
                 String senha = campoSenha.getText().toString();
                 String repetirSenha = campoConfirmaSenha.getText().toString();
                 String portaria = campoPortaria.getText().toString();
+                String tipoUsuario = "membro"; // Valor padrão, caso o usuário não possua código especial
 
                 if (!nome.isEmpty()) {
                     if (!endereco.isEmpty()) {
                         if (!email.isEmpty()) {
                             if (!senha.isEmpty()) {
                                 if (validar(senha, repetirSenha)) {
-                                    if (!portaria.isEmpty()) {
-                                        if (isPortariaValida(portaria)) {
-                                            usuario = new Usuario();
+                                    if (!codigoEspecial.isEmpty() && codigoEspecial.equals(ConFirebase.CODIGO_ESPECIAL)) {
+                                        tipoUsuario = "AD";
+                                    }
 
-                                            usuario.setNome(nome);
-                                            usuario.setEndereco(endereco);
-                                            usuario.setEmail(email);
-                                            usuario.setSenha(senha);
-                                            FirebaseMessaging.getInstance().getToken()
-                                                    .addOnCompleteListener(new OnCompleteListener<String>() {
-                                                        @Override
-                                                        public void onComplete(@NonNull Task<String> task) {
-                                                            String token = task.getResult();
-                                                            usuario.setToken(token);
-                                                        }
-                                                    });
+                                    if (tipoUsuario.equals("AD") || (!portaria.isEmpty() && isPortariaValida(portaria))) {
+                                        usuario = new Usuario();
 
-                                            cadaatrarUsuario();
-                                        } else {
-                                            Toast.makeText(Cadastrar.this,
-                                                    "Portaria inválida. Por favor, insira uma portaria válida.",
-                                                    Toast.LENGTH_SHORT).show();
-                                        }
-                                    } else {
+                                        usuario.setNome(nome);
+                                        usuario.setEndereco(endereco);
+                                        usuario.setEmail(email);
+                                        usuario.setSenha(senha);
+                                        usuario.setTipo(tipoUsuario); // Definir o tipo do usuário
+
+                                        FirebaseMessaging.getInstance().getToken()
+                                                .addOnCompleteListener(new OnCompleteListener<String>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<String> task) {
+                                                        String token = task.getResult();
+                                                        usuario.setToken(token);
+                                                    }
+                                                });
+
+                                        cadastrarUsuario();
+
+                                        Intent intent = new Intent(Cadastrar.this, AtualizarActivity.class);
+                                        startActivity(intent);
+                                    } else if (!tipoUsuario.equals("AD")) {
                                         Toast.makeText(Cadastrar.this,
                                                 "Por favor, insira a portaria.",
+                                                Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(Cadastrar.this,
+                                                "Portaria inválida. Por favor, insira uma portaria válida.",
                                                 Toast.LENGTH_SHORT).show();
                                     }
                                 } else {
@@ -145,10 +154,7 @@ public class Cadastrar extends AppCompatActivity {
 
 
     }
-
-
-    public void cadaatrarUsuario() {
-
+    private void cadastrarUsuario() {
         autenticacao = ConFirebase.getReferenciaAutencicacao();
         autenticacao.createUserWithEmailAndPassword(
                 usuario.getEmail(), usuario.getSenha()
@@ -176,8 +182,9 @@ public class Cadastrar extends AppCompatActivity {
                     String codigoEspecial = campoCodigoEspecial.getText().toString();
                     usuario.salvarUsuario(codigoEspecial);
                     usuario.salvarUsuario(codigoEspecial);
+                    usuario.setStatus("pendente");
                     Log.d("Cadastro", "Usuário salvo no Firebase");
-                    Usuario.getUsuarioAutal();
+                    Usuario.getUsuarioAtual();
 
 
                     finish();
@@ -209,8 +216,9 @@ public class Cadastrar extends AppCompatActivity {
                 }
             }
         });
-
     }
+
+
 
 
     public void JaConta(View view) {
@@ -221,7 +229,7 @@ public class Cadastrar extends AppCompatActivity {
 
     private void IniciConpo() {
         campoCodigoEspecial = findViewById(R.id.codigoEspecial);
-        //campoIsAdmin = findViewById(R.id.campoIsAdmin);
+
         jatenhoC = findViewById(R.id.jatenhoCota);
         campoPortaria = findViewById(R.id.campoNumeroPortaria);
         campoNome = findViewById(R.id.camPNome);
@@ -240,128 +248,53 @@ public class Cadastrar extends AppCompatActivity {
         return portariasValidas.contains(portaria);
     }
     public static boolean verificarForcaSenha(String campoSenha, String campoRepetirSenha, Cadastrar activity) {
-        /*As seguintes regras devem ser obedecidas:
-         * Mínimo de oito caracteres;
-         * Mínimo de um número;
-         * Mínimo de uma letra MAIÚSCULA;
-         * Mínimo de uma letra minúscula;
-         * Mínimo de um caractere especial;
-         * Não pode conter letras repetidas;
-         * Não pode conter três números em sequência ou repetidos;
-         * */
-
-        boolean contemMaiuscula = false;
-        boolean contemMinuscula = false;
-        boolean contemNumero = false;
-        boolean contemSimbolo = false;
-        boolean contemMinimoOitoDigitos = false;
-        boolean contemSequenciaNumerica = true;
-        boolean contemLetrasRepetidas = true;
-
-        String[] maiusculas = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Ç"};
-        String[] minusculas = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "ç"};
-        String[] numeros = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-        String[] simbolos = {"(", ")", ",", "<", ".", ">", ";", ":", "/", "?", "@", "#", "$", "%", "&", "*", "-", "_", "+", "=", "§", "[", "{", "]", "}", "~", "^", "|"};
-        String[] letrasRepetidas = {"aa", "aA", "Aa", "AA", "bb", "bB", "Bb", "BB", "cc", "cC", "Cc", "CC", "dd", "dD", "Dd", "DD", "ee", "eE", "Ee", "EE", "ff", "fF", "Ff", "FF", "gg", "gG", "Gg", "GG", "hh", "hH", "Hh", "HH", "ii", "iI", "Ii", "II", "jj", "jJ", "Jj", "JJ", "kk", "kK", "Kk", "KK", "ll", "lL", "Ll", "LL", "mm", "mM", "Mm", "MM", "nn", "nN", "Nn", "NN", "oo", "oO", "Oo", "OO", "pp", "pP", "Pp", "PP", "qq", "qQ", "Qq", "QQ", "rr", "rR", "Rr", "RR", "ss", "sS", "Ss", "SS", "tt", "tT", "Tt", "TT", "uu", "uU", "Uu", "UU", "vv", "vV", "Vv", "VV", "ww", "wW", "Ww", "WW", "xx", "xX", "Xx", "XX", "zz", "zZ", "Zz", "ZZ", "çç", "çÇ", "Çç", "ÇÇ"};
-        String[] sequenciaNumerica = {"012", "123", "234", "345", "456", "567", "678", "789", "890", "000", "111", "222", "333", "444", "555", "666", "777", "888", "999"};
-
         String erros = "";
 
-        //Senhas devem ser iguais
         if (campoSenha.equals(campoRepetirSenha)) {
-            //Senha deve conter pelo menos oito digitos
-            if (campoSenha.length() >= 8) contemMinimoOitoDigitos = true;
-            else {
-                erros += "Senha deve ter no mínimo oito dígitos";
-            }
-            //Senha deve conter pelo menos uma letra maiúscula
-            int M = 0;
-            for (int i = 0; i < maiusculas.length; i++) {
-                if (campoSenha.contains(maiusculas[i])) {
-                    M = 1;
-                    if (M == 1) {
-                        contemMaiuscula = true;
-                        break;
-                    }
-                }
-            }
-            if (M == 0) erros += "\nA senha deve conter pelo menos uma letra maiúscula.";
-            //Senha deve conter pelo menos uma letra minúscula
-            int m = 0;
-            for (int i = 0; i < minusculas.length; i++) {
-                if (campoSenha.contains(minusculas[i])) {
-                    m = 1;
-                    if (m == 1) {
-                        contemMinuscula = true;
-                        break;
-                    }
-                }
-            }
-            if (m == 0) erros += "\nA senha deve conter pelo menos uma letra minúscula. ";
+            Pattern minOitoDigitos = Pattern.compile(".{8,}");
+            Pattern maiuscula = Pattern.compile("[A-ZÇ]");
+            Pattern minuscula = Pattern.compile("[a-zç]");
+            Pattern numero = Pattern.compile("\\d");
+            Pattern simbolo = Pattern.compile("[^a-zA-Z0-9çÇ]");
+            Pattern sequenciaNumerica = Pattern.compile("(012|123|234|345|456|567|678|789|890|000|111|222|333|444|555|666|777|888|999)");
+            Pattern letrasRepetidas = Pattern.compile("(.)\\1");
 
-            //Senha deve conter pelo menos um número
-            int n = 0;
-            for (int i = 0; i < numeros.length; i++) {
-                if (campoRepetirSenha.contains(numeros[i])) {
-                    n = 1;
-                    if (n == 1) {
-                        contemNumero = true;
-                        break;
-                    }
-                }
-            }
-            if (n == 0) erros += "\nA senha deve conter pelo menos um número. ";
+            boolean cumpreRegras = minOitoDigitos.matcher(campoSenha).find() &&
+                    maiuscula.matcher(campoSenha).find() &&
+                    minuscula.matcher(campoSenha).find() &&
+                    numero.matcher(campoSenha).find() &&
+                    simbolo.matcher(campoSenha).find() &&
+                    !sequenciaNumerica.matcher(campoSenha).find() &&
+                    !letrasRepetidas.matcher(campoSenha).find();
 
-            //Senha deve conter pelo menos um caractere especial (),<.>;:/?@#$%&*-_+=§[{]}~^|
-            int s = 0;
-            for (int i = 0; i < simbolos.length; i++) {
-                if (campoSenha.contains(simbolos[i])) {
-                    s = 1;
-                    if (s == 1) {
-                        contemSimbolo = true;
-                        break;
-                    }
-                }
-            }
-            if (s == 0) erros += "\nA senha deve conter pelo menos um caractere especial. ";
-
-            //Senha não pode conter três números em sequencia, nem repetidos
-            int seq = 0;
-            for (int i = 0; i < sequenciaNumerica.length; i++) {
-                if (campoSenha.contains(sequenciaNumerica[i])) {
-                    seq = 1;
-                    if (seq == 1)
-                        erros += "\nA senha não pode conter números em sequência ou repetidos.";
-                    break;
-                }
-            }
-            if (seq == 0) contemSequenciaNumerica = false;
-            //Senha não pode conter letras iguais em sequencia
-            int ls = 0;
-            for (int i = 0; i < letrasRepetidas.length; i++) {
-                if (campoSenha.contains(letrasRepetidas[i])) {
-                    ls = 1;
-                    if (ls == 1) erros += "\nA senha não pode conter letras repetidas.";
-                    break;
-                }
-            }
-            if (ls == 0) contemLetrasRepetidas = false;
-
-            //Se todos os critérios forem cumpridos
-            if (!contemLetrasRepetidas && contemMaiuscula && contemMinuscula && contemNumero && contemSimbolo && contemMinimoOitoDigitos && !contemSequenciaNumerica) {
+            if (cumpreRegras) {
                 return true;
             } else {
-                AlertDialog.Builder alerta = new AlertDialog.Builder(activity);
-                alerta.setIcon(R.drawable.ic_launcher_foreground);
-                alerta.setTitle("Erro");
-                alerta.setMessage(erros);
-                alerta.setNeutralButton("Tentar novamente", null);
-                alerta.create();
-                alerta.show();
+                erros = "A senha deve conter:\n" +
+                        "- Pelo menos 8 caracteres\n" +
+                        "- Pelo menos uma letra maiúscula\n" +
+                        "- Pelo menos uma letra minúscula\n" +
+                        "- Pelo menos um número\n" +
+                        "- Pelo menos um caractere especial\n" +
+                        "- Não pode conter números em sequência ou repetidos\n" +
+                        "- Não pode conter letras repetidas";
             }
+        } else {
+            erros = "As senhas não são iguais.";
         }
+
+        AlertDialog.Builder alerta = new AlertDialog.Builder(activity);
+        alerta.setIcon(R.drawable.ic_launcher_foreground);
+        alerta.setTitle("Erro");
+        alerta.setMessage(erros);
+        alerta.setNeutralButton("Tentar novamente", null);
+        alerta.create();
+        alerta.show();
+
         return false;
     }
+
+
     public boolean validar(String senha, String confirmaSenha) {
         if (!senha.isEmpty() && !confirmaSenha.isEmpty()) {
             if (senha.equals(confirmaSenha)) {

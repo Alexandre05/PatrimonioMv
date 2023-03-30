@@ -25,10 +25,19 @@ public class ItensVistorias implements Serializable {
   private String nomeItem;
     private String placa;
     private String data;
-    private int buttonColor;
     private Double latitude,longetude;
     private  String nomePerfilU;
     private boolean concluida;
+    private String idInspector;
+
+    public String getIdInspector() {
+        return idInspector;
+    }
+
+    public void setIdInspector(String idInspector) {
+        this.idInspector = idInspector;
+    }
+
     private boolean excluidaVistoria;
 
     public boolean isExcluidaVistoria() {
@@ -38,14 +47,7 @@ public class ItensVistorias implements Serializable {
     public void setExcluidaVistoria(boolean excluidaVistoria) {
         this.excluidaVistoria = excluidaVistoria;
     }
-    @Exclude
-    public int getButtonColor() {
-        return buttonColor;
-    }
 
-    public void setButtonColor(int buttonColor) {
-        this.buttonColor = buttonColor;
-    }
 
     public boolean isConcluida() {
         return concluida;
@@ -109,6 +111,7 @@ public class ItensVistorias implements Serializable {
   }
   public  void  salvar(){
     String idUsuario= ConFirebase.getIdUsuario();
+      setIdInspector(idUsuario);
     DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
             .child("anuncios");
     anuncioRefe.child(idUsuario)
@@ -119,6 +122,7 @@ public class ItensVistorias implements Serializable {
 
   public  void remover(){
     String idiUsuario= ConFirebase.getIdUsuario();
+
     DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
             .child("anuncios")
             .child(idiUsuario)

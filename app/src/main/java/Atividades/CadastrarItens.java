@@ -48,7 +48,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -178,6 +180,7 @@ public void salvarAnuncios() {
         String nomeItem = campoNome.getText().toString();
         String placa = campoPorte.getText().toString();
         String nomeCampo = campoNomeRes.getText().toString();
+
         usuarioLogado.setNome(nomeCampo);
 
         String outrasInformacoes = campoObs.getText().toString();
@@ -194,8 +197,10 @@ public void salvarAnuncios() {
         anuncios.setNomePerfilU(nomeCampo);
         anuncios.setOutrasInformacoes(outrasInformacoes);
         anuncios.setPlaca(placa);
+        anuncios.setIdInspector(usuarioLogado.getIdU());
 
         anuncios.setData(DataCuston.dataAtual());
+
         return anuncios;
     }
 

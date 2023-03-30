@@ -20,9 +20,10 @@ import Mode.Usuario;
 public class ConFirebase {
 
     public static DatabaseReference referenciaFarebase;
-    private   static FirebaseAuth referenciaAutencicacao;
+    private static FirebaseAuth referenciaAutencicacao;
     public static StorageReference referenciaStorage;
-    public static final String CODIGO_ESPECIAL = "123";
+    public static  String CODIGO_ESPECIAL = "123";
+
     public static String getIdUsuario() {
         // pega o id que foi criando ao cadastrar o usuario
         FirebaseAuth aut = getReferenciaAutencicacao();
@@ -33,14 +34,12 @@ public class ConFirebase {
         return null;
     }
 
-    public  static  DatabaseReference getFirebaseDatabase(){
 
-        if (referenciaFarebase== null){
+    public static DatabaseReference getFirebaseDatabase() {
+
+        if (referenciaFarebase == null) {
             FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-            referenciaFarebase= FirebaseDatabase.getInstance().getReference();
-
-
-
+            referenciaFarebase = FirebaseDatabase.getInstance().getReference();
 
 
         }
@@ -48,19 +47,20 @@ public class ConFirebase {
     }
 
 
-    public static FirebaseAuth getReferenciaAutencicacao(){
+    public static FirebaseAuth getReferenciaAutencicacao() {
 
         if (referenciaAutencicacao == null) {
-            referenciaAutencicacao= FirebaseAuth.getInstance();
+            referenciaAutencicacao = FirebaseAuth.getInstance();
 
         }
-        return  referenciaAutencicacao;
+        return referenciaAutencicacao;
     }
-// retorna a intancia do firebaseStore
-    public  static  StorageReference getFirebaseStorage(){
-        if(  referenciaStorage==null){
 
-            referenciaStorage= FirebaseStorage.getInstance().getReference();
+    // retorna a intancia do firebaseStore
+    public static StorageReference getFirebaseStorage() {
+        if (referenciaStorage == null) {
+
+            referenciaStorage = FirebaseStorage.getInstance().getReference();
 
 
         }
@@ -68,22 +68,24 @@ public class ConFirebase {
 
 
     }
-    public  static  String getIdentificarUsaurio(){
-        FirebaseAuth usuario =  ConFirebase.getReferenciaAutencicacao();
 
-        String email =usuario.getCurrentUser().getEmail();
+    public static String getIdentificarUsaurio() {
+        FirebaseAuth usuario = ConFirebase.getReferenciaAutencicacao();
+
+        String email = usuario.getCurrentUser().getEmail();
         String identifcaUsuario = Base64Custon.codificarBase64(email);
-        return  identifcaUsuario;
+        return identifcaUsuario;
 
     }
-    public  static FirebaseUser getUsuarioAtaul(){
+
+    public static FirebaseUser getUsuarioAtaul() {
         FirebaseAuth usuario = ConFirebase.getReferenciaAutencicacao();
         //String email = usuario.getCurrentUser().getEmail();
 
-        return  usuario.getCurrentUser();
+        return usuario.getCurrentUser();
     }
 
-    public  static boolean  AtualizarFotoUsuario(Uri url){
+    public static boolean AtualizarFotoUsuario(Uri url) {
 
         try {
 
@@ -96,29 +98,27 @@ public class ConFirebase {
             user.updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-                    if(!task.isSuccessful()){
-                        Log.d("Perfil"," Erro");
+                    if (!task.isSuccessful()) {
+                        Log.d("Perfil", " Erro");
 
 
                     }
                 }
             });
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return  false;
+            return false;
 
 
         }
 
-        return  true;
-
-
+        return true;
 
 
     }
 
-    public  static boolean  AtualizarNomeUsuario(String nome){
+    public static boolean AtualizarNomeUsuario(String nome) {
 
         try {
 
@@ -131,37 +131,35 @@ public class ConFirebase {
             user.updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-                    if(!task.isSuccessful()){
-                        Log.d("Perfil"," Erro ao atualizar nome usuario");
+                    if (!task.isSuccessful()) {
+                        Log.d("Perfil", " Erro ao atualizar nome usuario");
 
 
                     }
                 }
             });
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return  false;
+            return false;
 
 
         }
 
-        return  true;
-
-
+        return true;
 
 
     }
 
-    public  static Usuario getDadosUsarioLogado(){
+    public static Usuario getDadosUsarioLogado() {
 
-        FirebaseUser firebaseuser =getUsuarioAtaul();
+        FirebaseUser firebaseuser = getUsuarioAtaul();
         Usuario usario = new Usuario();
         usario.setEmail(firebaseuser.getEmail());
         usario.setNome(firebaseuser.getDisplayName());
-        if( firebaseuser.getPhotoUrl()==null){
+        if (firebaseuser.getPhotoUrl() == null) {
             usario.setFoto("");
-        }else {
+        } else {
             usario.setFoto(firebaseuser.getPhotoUrl().toString());
 
         }
@@ -169,5 +167,9 @@ public class ConFirebase {
 
     }
 
+    // Adicione este método para atualizar o código especial
+    public static void atualizarCodigoEspecial(String novoCodigoEspecial) {
+        CODIGO_ESPECIAL = novoCodigoEspecial;
+    }
 }
 

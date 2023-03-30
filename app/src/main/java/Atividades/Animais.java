@@ -88,7 +88,7 @@ public class Animais extends AppCompatActivity {
                 @Override
                 public void onUserLoaded(Usuario usuario) {
                     if (usuario != null) {
-                        isAdmin = userIsAdmin(usuario);
+                        isAdmin = usuario.isUserAdmin();
                     }
                 }
             });
@@ -125,13 +125,18 @@ public class Animais extends AppCompatActivity {
 
     }
 
-    private void getUserFromFirebase(String uid, OnUserLoadedListener listener) {
+
+    private void getUserFromFirebase(String uid, final OnUserLoadedListener listener) {
         DatabaseReference userRef = ConFirebase.getFirebaseDatabase().child("usuarios").child(uid);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Usuario usuario = dataSnapshot.getValue(Usuario.class);
-                listener.onUserLoaded(usuario);
+                if (dataSnapshot.exists()) {
+                    Usuario usuario = dataSnapshot.getValue(Usuario.class);
+                    listener.onUserLoaded(usuario);
+                } else {
+                    listener.onUserLoaded(null);
+                }
             }
 
             @Override
@@ -141,14 +146,12 @@ public class Animais extends AppCompatActivity {
         });
     }
 
+
     private interface OnUserLoadedListener {
         void onUserLoaded(Usuario usuario);
     }
 
-    private boolean userIsAdmin(Usuario usuario) {
-        // Agora você pode retornar diretamente o resultado de isUserAdmin()
-        return usuario.isUserAdmin();
-    }
+
 
 
     @Override

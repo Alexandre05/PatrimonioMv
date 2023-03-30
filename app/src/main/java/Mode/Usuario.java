@@ -26,27 +26,12 @@ public class Usuario implements Serializable {
     private String endereco;
     private String email;
     private String senha;
-    private  String status;
-    private String role;
     private String numeroPortaria;
-
-    public String getNumeroPortaria() {
-        return numeroPortaria;
-    }
-
-    public void setNumeroPortaria(String numeroPortaria) {
-        this.numeroPortaria = numeroPortaria;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    private boolean isAdmin;
+    private String tipo;
+    private String status;
+    private boolean membroComissao;
+    private String matricula;
+    private String comissaoId;
 
     public String getStatus() {
         return status;
@@ -56,16 +41,47 @@ public class Usuario implements Serializable {
         this.status = status;
     }
 
-    public boolean isAdmin() {
-        return isAdmin;
+    public String getComissaoId() {
+        return comissaoId;
     }
 
-    public void setAdmin(boolean admin) {
-        isAdmin = admin;
+    public void setComissaoId(String comissaoId) {
+        this.comissaoId = comissaoId;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public boolean isMembroComissao() {
+        return membroComissao;
+    }
+
+    public void setMembroComissao(boolean membroComissao) {
+        this.membroComissao = membroComissao;
+    }
+
+    public String getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(String matricula) {
+        this.matricula = matricula;
+    }
+
+    public String getNumeroPortaria() {
+        return numeroPortaria;
+    }
+
+    public void setNumeroPortaria(String numeroPortaria) {
+        this.numeroPortaria = numeroPortaria;
     }
 
     private String token;
-
 
     public String getToken() {
         return token;
@@ -93,11 +109,10 @@ public class Usuario implements Serializable {
     }
 
     public Usuario() {
-
-
     }
+
     public boolean isUserAdmin() {
-        return "admin".equals(role);
+        return "AD".equals(tipo);
     }
 
     public void salvarUsuario(String codigoEspecial) {
@@ -107,24 +122,22 @@ public class Usuario implements Serializable {
 
             // Verifique se o código especial corresponde ao valor predefinido
             if (ConFirebase.CODIGO_ESPECIAL.equals(codigoEspecial)) {
-                setRole("admin");
+                Log.d("SalvarUsuario", "Código especial válido. Definindo tipo como AD.");
+                setTipo("AD");
             } else {
-                setRole("user");
+                Log.d("SalvarUsuario", "Código especial inválido. Definindo tipo como user.");
+                setTipo("user");
             }
 
             refe.child("usuarios")
                     .child(idU)
                     .setValue(this);
 
-            Log.d("SalvarUsuario", "Salvando usuário com ID: " + idU);
-        } else {
+            Log.d("SalvarUsuario", "Salvando usuário com ID: " + idU + " e tipo: " + getTipo());
+        } else  {
             // Trate o caso em que o usuário não está autenticado
         }
     }
-
-
-
-
 
     public void atualizar() {
         String indeUsu = ConFirebase.getIdentificarUsaurio();
@@ -134,8 +147,6 @@ public class Usuario implements Serializable {
         Map<String, Object> valoeresUsuario = converterParaMap();
 
         usuarioRef.updateChildren(valoeresUsuario);
-
-
     }
 
     @Exclude
@@ -144,26 +155,26 @@ public class Usuario implements Serializable {
         usuaruiMap.put("email", getEmail());
         usuaruiMap.put("nome", getNome());
         usuaruiMap.put("foto", getFoto());
-        usuaruiMap.put("role", getRole());
+        usuaruiMap.put("tipo", getTipo());
+                usuaruiMap.put("endereco", getEndereco());
+        usuaruiMap.put("numeroPortaria", getNumeroPortaria());
+        usuaruiMap.put("membroComissao", isMembroComissao());
+        usuaruiMap.put("matricula", getMatricula());
+        usuaruiMap.put("comissaoId",getComissaoId());
+        usuaruiMap.put("token", getToken());
 
         return usuaruiMap;
-
-
     }
 
-    public static FirebaseUser getUsuarioAutal() {
+    public static FirebaseUser getUsuarioAtual() {
         FirebaseAuth usuario = ConFirebase.getReferenciaAutencicacao();
         return usuario.getCurrentUser();
-
-
     }
-
 
     public static boolean AtualizarUsuario(String nome) {
 
         try {
-
-            FirebaseUser user = getUsuarioAutal();
+            FirebaseUser user = getUsuarioAtual();
             UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
                     .setDisplayName(nome)
                     .build();
@@ -181,8 +192,6 @@ public class Usuario implements Serializable {
             e.printStackTrace();
             return false;
         }
-
-
     }
 
     public String getNome() {
@@ -217,7 +226,4 @@ public class Usuario implements Serializable {
     public void setSenha(String senha) {
         this.senha = senha;
     }
-
-
 }
-

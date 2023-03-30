@@ -44,7 +44,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import Helper.ConFirebase;
 import Mode.ItensVistorias;
 import br.com.patrimoniomv.R;
 import android.util.Log;
@@ -67,67 +66,70 @@ public class ImprimirActivity extends AppCompatActivity {
         buttonImprimir = findViewById(R.id.button_imprimir);
         anuncios = new ArrayList<>();
         loadDataFromFirebase();
-        onDataLoaded();
-
-        // Exemplo de chamada do método printByInspectorDate
-        // Inicialize a lista de anúncios (adicione aqui os itens de vistoria conforme necessário)
-
+        updateButtonStatus();
         buttonImprimir.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checkWriteStoragePermission();
+                Log.d("PDF", "Botão imprimir clicado");
+
                 String startDate = String.format(Locale.getDefault(), "%02d/%02d/%04d",
                         startDatePicker.getDayOfMonth(), startDatePicker.getMonth() + 1, startDatePicker.getYear());
                 String endDate = String.format(Locale.getDefault(), "%02d/%02d/%04d",
                         endDatePicker.getDayOfMonth(), endDatePicker.getMonth() + 1, endDatePicker.getYear());
 
-                // Obter o inspectorId do usuário autenticado
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 if (user != null) {
                     String inspectorId = user.getUid();
-                    // Filtra os dados do Firebase
-                    onDataLoaded(); // Adicione esta chamada
+                    Log.d("Lista Imprimir", "ID" + inspectorId);
                     filteredAnuncios = filterByInspectorDate(anuncios, inspectorId, startDate, endDate);
-                    createPdf(filteredAnuncios);
+                    Log.d("Lista Imprimir", "T" + anuncios);
+                    if (!filteredAnuncios.isEmpty()) {
+                        Log.d("PDF", "filteredAnuncios não está vazio"); // Adicione este log
+                        checkWriteStoragePermission();
+                        Log.d("PDF", "Chamando createFile() a partir do onClick");
+                        createFile();
+                    } else {
+                        Log.d("PDF", "filteredAnuncios está vazio"); // Adicione este log
+                        Toast.makeText(ImprimirActivity.this, "Não há dados para gerar o PDF!", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
+                    Log.d("PDF", "Usuário não autenticado"); // Adicione este log
                     Toast.makeText(ImprimirActivity.this, "Usuário não autenticado!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
-
     }
 
-    private void onDataLoaded() {
-        Log.i("onDataLoaded", "Início do método onDataLoaded");
+    private void generatePDF() {
+        String startDate = String.format(Locale.getDefault(), "%02d/%02d/%04d",
+                startDatePicker.getDayOfMonth(), startDatePicker.getMonth() + 1, startDatePicker.getYear());
+        String endDate = String.format(Locale.getDefault(), "%02d/%02d/%04d",
+                endDatePicker.getDayOfMonth(), endDatePicker.getMonth() + 1, endDatePicker.getYear());
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String inspectorId = user.getUid();
-            String startDate = String.format(Locale.getDefault(), "%02d/%02d/%04d",
-                    startDatePicker.getDayOfMonth(), startDatePicker.getMonth() + 1, startDatePicker.getYear());
-            String endDate = String.format(Locale.getDefault(), "%02d/%02d/%04d",
-                    endDatePicker.getDayOfMonth(), endDatePicker.getMonth() + 1, endDatePicker.getYear());
-
-            // Filtra os dados do Firebase
+            Log.d("Lista Imprimir", "ID" + inspectorId);
             filteredAnuncios = filterByInspectorDate(anuncios, inspectorId, startDate, endDate);
-
-            if (filteredAnuncios.size() > 0) {
-                // Habilite o botão "Salvar PDF"
-                buttonImprimir.setEnabled(true);
-
-                // Verifica a permissão de escrita e, em seguida, gera o relatório em PDF com os dados filtrados
-                checkWriteStoragePermission();
+            Log.d("Lista Imprimir", "T" + anuncios);
+            if (!filteredAnuncios.isEmpty()) {
+                createFile();
             } else {
-                // Desabilite o botão "Salvar PDF"
-                buttonImprimir.setEnabled(false);
-
-                // Exibir mensagem informando que não há dados
-                Toast.makeText(ImprimirActivity.this, "Não há dados disponíveis para as datas selecionadas.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ImprimirActivity.this, "Não há dados para gerar o PDF!", Toast.LENGTH_SHORT).show();
             }
         } else {
             Toast.makeText(ImprimirActivity.this, "Usuário não autenticado!", Toast.LENGTH_SHORT).show();
         }
-        Log.i("onDataLoaded", "Fim do método onDataLoaded");
+    }
+
+    private void updateButtonStatus() {
+        if (anuncios.size() > 0) {
+            Log.d("Lista","metodoUp"+anuncios);
+            buttonImprimir.setEnabled(true);
+        } else {
+            buttonImprimir.setEnabled(false);
+            Toast.makeText(ImprimirActivity.this, "Não há dados disponíveis para as datas selecionadas.", Toast.LENGTH_SHORT).show();
+        }
     }
     private void loadDataFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -144,9 +146,10 @@ public class ImprimirActivity extends AppCompatActivity {
                         ItensVistorias item = snapshot.getValue(ItensVistorias.class);
                         if (item != null) {
                             anuncios.add(item);
+                            Log.d("Lista","Mensa"+anuncios);
                         }
                     }
-                    //onDataLoaded();
+                    updateButtonStatus(); // Adicione esta chamada
                 }
 
                 @Override
@@ -160,18 +163,9 @@ public class ImprimirActivity extends AppCompatActivity {
     }
 
 
-    // Outros métodos da classe
-
-
-
-    public void printByInspectorDate(String inspectorId, String startDate, String endDate) {
-        List<ItensVistorias> filteredAnuncios = filterByInspectorDate(anuncios, inspectorId, startDate, endDate);
-        createPdf(filteredAnuncios);
-        Log.d(TAG, "printByInspectorDate: filteredAnuncios size: " + filteredAnuncios.size()); // ADICIONADO
-    }
-
 
     private void createFile() {
+        Log.d("PDF", "Chamando createFile()");
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/pdf");
@@ -179,21 +173,18 @@ public class ImprimirActivity extends AppCompatActivity {
         startActivityForResult(intent, CREATE_FILE_REQUEST);
     }
 
-    private void createPdf(List<ItensVistorias> filteredAnuncios) {
-        if (filteredAnuncios.isEmpty()) {
-            Toast.makeText(this, "Não há dados para gerar o PDF!", Toast.LENGTH_SHORT).show();
-            return;
+
+    private boolean checkWriteStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            Log.d("Permissão", "Permissão de escrita concedida.");
+            return true;
+        } else {
+            return false;
         }
-        createFile();
+
     }
 
-    private void checkWriteStoragePermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            createPdf(filteredAnuncios);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-        }
-    }
+
 
 
 
@@ -205,37 +196,37 @@ public class ImprimirActivity extends AppCompatActivity {
             Uri uri = data.getData();
             if (uri != null) {
                 savePdfToFile(uri, filteredAnuncios);
+                Log.d("PDF", "Arquivo PDF criado com sucesso: " + uri.toString());
+            } else {
+                Log.d("PDF", "URI nulo.");
             }
+        } else {
+            Log.d("PDF", "onActivityResult: requestCode: " + requestCode + ", resultCode: " + resultCode + ", data: " + data);
         }
     }
 
 
-    private List<ItensVistorias> filterByInspectorDate(List<ItensVistorias> anuncios, String inspectorId, String startDate, String endDate) {
-        Log.i("Filter", "Iniciando a filtragem");
-        Log.i("Filter", "Inspector ID: " + inspectorId);
-        Log.i("Filter", "Data inicial: " + startDate);
-        Log.i("Filter", "Data final: " + endDate);
-        filteredAnuncios.clear();
+
+    public List<ItensVistorias> filterByInspectorDate(List<ItensVistorias> anuncios, String inspectorId, String startDate, String endDate) {
+        List<ItensVistorias> filteredAnuncios = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
         try {
             Date start = dateFormat.parse(startDate);
             Date end = dateFormat.parse(endDate);
+            Log.d("Filtro", "Data inicial: " + start + ", Data final: " + end); // Adicione este log
 
             for (ItensVistorias anuncio : anuncios) {
-                if (anuncio.getIdAnuncio().equals(inspectorId)) {
-                    Date date = dateFormat.parse(anuncio.getData());
-                    Log.i("Filter", "Data do anúncio: " + anuncio.getData());
+                Date date = dateFormat.parse(anuncio.getData());
+                Log.d("Filtro", "Anúncio: " + anuncio.getNomeItem() + ", Data: " + date); // Adicione este log
+                if (anuncio.getIdInspector() != null && anuncio.getIdInspector().equals(inspectorId)) {
                     if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
-                        Log.i("Filter", "Anúncio filtrado: " + anuncio.toString());
+                        Log.d("Filtro", "Anúncio adicionado à lista filtrada: " + anuncio.getNomeItem() + ", Data: " + date);
                         filteredAnuncios.add(anuncio);
-                    } else {
-                        Log.i("Filter", "Anúncio fora do intervalo");
                     }
-                } else {
-                    Log.i("Filter", "Anúncio não corresponde ao usuário");
                 }
             }
+
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -246,6 +237,7 @@ public class ImprimirActivity extends AppCompatActivity {
 
 
     private void savePdfToFile(Uri uri ,List<ItensVistorias> filteredAnuncios) {
+        Log.d("PDF","");
         Document document = new Document();
         try {
             ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
@@ -281,6 +273,7 @@ public class ImprimirActivity extends AppCompatActivity {
                 table.addCell("Localização");
 
                 // Adicionando dados à tabela
+                Log.d("PDF", "Total de anúncios filtrados: " + filteredAnuncios.size());
                 for (ItensVistorias anuncio : filteredAnuncios) {
                     table.addCell(anuncio.getNomeItem());
                     table.addCell(anuncio.getPlaca());
@@ -305,6 +298,19 @@ public class ImprimirActivity extends AppCompatActivity {
         }
         Log.d(TAG, "savePdfToFile: uri: " + uri); // ADICIONADO
     }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("Permissão", "Permissão de escrita externa concedida.");
+            } else {
+                Log.d("Permissão", "Permissão de escrita externa negada.");
+                Toast.makeText(this, "A permissão de escrita externa é necessária para gerar o PDF.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 
 
 

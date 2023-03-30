@@ -111,7 +111,7 @@ public class Login extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             Usuario user = dataSnapshot.getValue(Usuario.class);
-                            if (user != null && "admin".equals(user.getRole())) {
+                            if (user != null && "AD".equals(user.getTipo())) {
                                 abrirTelaAdmin();
                             } else {
                                 abrirTelaAni();

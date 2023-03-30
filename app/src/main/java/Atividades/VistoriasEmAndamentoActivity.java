@@ -87,7 +87,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
     }
     public void concluirVistoria(ItensVistorias vistoriaAtual) {
         Log.d("concluirVistoria", "concluirVistoria called");
-        String userId = ConFirebase.getIdUsuario();
+        String idInspector = vistoriaAtual.getIdInspector();
         String vistoriaId = vistoriaAtual.getIdAnuncio();
         String localizacao = vistoriaAtual.getLocalizacao();
         String dataVistoria = vistoriaAtual.getData();
@@ -114,14 +114,22 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                 vistoriaAtual.setConcluida(true);
 
                 // Adicionar a vistoria concluída ao nó "vistoriasConcluidas"
-                DatabaseReference vistoriaConcluidaRef = mDatabase.child("vistoriasConcluidas").child(userId).child(vistoriaId);
+                // Adicionar a vistoria concluída ao nó "vistoriasConcluidas"
+                DatabaseReference vistoriaConcluidaRef = mDatabase.child("vistoriasConcluidas").child(idInspector).child(vistoriaId);
+
                 vistoriaConcluidaRef.setValue(vistoriaAtual, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                         if (databaseError == null) {
                             // Atualizar o status da vistoria nos nós "anuncios" e "anunciosPu"
-                            mDatabase.child("anuncios").child(userId).child(vistoriaId).child("concluida").setValue(true);
+                            mDatabase.child("anuncios").child(idInspector).child(vistoriaId).child("concluida").setValue(true);
                             mDatabase.child("anunciosPu").child(localizacao).child(vistoriaId).child("concluida").setValue(true);
+
+                            // Remover a vistoria da lista de vistorias em andamento
+                            vistoriasEmAndamento.remove(vistoriaAtual);
+
+                            // Notificar o adapter para atualizar a lista
+                            adapter.notifyDataSetChanged();
 
                             // Atualizar a lista de vistorias
                             fetchVistoriasEmAndamento();

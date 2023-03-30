@@ -7,7 +7,7 @@ public class DataCuston {
 
         long data = System.currentTimeMillis();
 
-        SimpleDateFormat simpleDateFormate = new SimpleDateFormat("d/M/yyyy");
+        SimpleDateFormat simpleDateFormate = new SimpleDateFormat("dd/MM/yyyy");
 
         String dataString = simpleDateFormate.format(data);
 
