@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +14,8 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,6 +33,7 @@ public class DetalhesAc extends AppCompatActivity {
 
     private TextView nome, ob, porte, localiza, nomeVistoriador, latitudeTextView, longitudeTextView;
     private ItensVistorias anuncioSele;
+    private Button btnChat;
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
     @Override
@@ -70,6 +74,13 @@ public class DetalhesAc extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        btnChat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                abrirTelaChat();
+            }
+        });
+
     }
 
     private void carregarDados(String idAnuncio, String localizacao) {
@@ -129,9 +140,23 @@ public class DetalhesAc extends AppCompatActivity {
             new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {}).attach();
         }
     }
+    private void abrirTelaChat() {
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            // Se o usuário estiver logado, inicie a atividade de chat
+            Intent chatIntent = new Intent(DetalhesAc.this, Chat.class);
+            startActivity(chatIntent);
+        } else {
+            // Se o usuário não estiver logado, mostre um aviso
+            Toast.makeText(this, "Você precisa estar logado para acessar o chat.", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void iniciarComponentesUI() {
         viewPager = findViewById(R.id.view_pager3);
+        btnChat=findViewById(R.id.buttonMsf);
         tabLayout = findViewById(R.id.tab_layout);
         viewPager = findViewById(R.id.view_pager3);
         nome = findViewById(R.id.textView4);

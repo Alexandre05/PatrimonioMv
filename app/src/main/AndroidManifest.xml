@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- Permissoes internet -->
+
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -24,6 +24,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PatrimonioMv"
         tools:targetApi="31">
+        <activity
+            android:name="Atividades.DisplayInfoActivity"
+            android:exported="false" />
+        <activity
+            android:name="Atividades.QRCodeDetailsActivity"
+            android:exported="false"></activity>
         <activity
             android:name="Atividades.ImprimirActivity"
             android:exported="false">
@@ -72,7 +78,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-
         <activity
             android:name="Atividades.MapasActivity"
             android:exported="false" />
@@ -90,13 +95,6 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider"
-            android:exported="false"
-            android:grantUriPermissions="true" />
-
         <activity
             android:name="Atividades.Relatorios"
             android:exported="false">
@@ -118,6 +116,7 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
         <activity
             android:name="Atividades.Perfil"
             android:exported="false"

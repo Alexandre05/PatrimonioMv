@@ -2,14 +2,13 @@
 <com.google.android.material.bottomnavigation.BottomNavigationView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal"
-
     android:id="@+id/bnve"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-
     android:layout_alignParentBottom="true"
     android:background="#FDF6EC"
-    app:itemIconTint="@android:color/black"
-    app:itemTextColor="@android:color/black"
+    android:elevation="8dp"
+    app:itemBackground="@android:color/white"
+    app:itemIconTint="@color/bottom_navigation_item_color"
+    app:itemTextColor="@color/bottom_navigation_item_color"
     app:menu="@menu/menu_nave" />

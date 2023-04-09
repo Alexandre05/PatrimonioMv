@@ -14,6 +14,9 @@
     <string name="longitude_value">Longitude: %s</string>
     <string name="A_concluir">Vistoria A  Concluír</string>
     <string name="Finalizada">Vistoria Finalizada</string>
+    <string name="save_button_text">Salvar</string>
+    <string name="print_button_text">Imprimir</string>
+
 
     <string name="fullscreen_image_description">Imagem em tela cheia</string>
 

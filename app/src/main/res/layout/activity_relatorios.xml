@@ -8,32 +8,49 @@
     android:padding="16dp"
     tools:context="Atividades.Relatorios">
 
-    <!-- Adicione esse código após o EditText da localização -->
-    <EditText
-        android:id="@+id/editText_location"
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Localização"
-        android:inputType="text"
-        android:maxLines="1"
-        android:textColor="#000"
-        android:textSize="16sp" />
+        app:cardElevation="2dp"
+        app:cardCornerRadius="4dp">
 
-    <EditText
-        android:id="@+id/editText_licensePlate"
+        <EditText
+            android:id="@+id/editText_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:hint="Localização"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="#000"
+            android:textSize="16sp" />
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Número da placa"
-        android:inputType="number"
-        android:maxLines="1"
-        android:maxLength="7"
-        android:textColor="#000"
-        android:textSize="16sp" />
+        android:layout_marginTop="8dp"
+        app:cardElevation="2dp"
+        app:cardCornerRadius="4dp">
+
+        <EditText
+            android:id="@+id/editText_licensePlate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:hint="Número da placa"
+            android:inputType="number"
+            android:maxLines="1"
+            android:maxLength="7"
+            android:textColor="#000"
+            android:textSize="16sp" />
+    </androidx.cardview.widget.CardView>
 
     <RadioGroup
         android:id="@+id/radioGroup_searchCriteria"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
         <RadioButton
@@ -49,22 +66,73 @@
             android:layout_height="wrap_content"
             android:text="Número da placa" />
     </RadioGroup>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:weightSum="2">
+        <EditText
+            android:id="@+id/editText_startDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:hint="Data inicial"
+            android:inputType="date"
+            android:textColor="#000"
+            android:focusable="false"
+            android:clickable="true"
+            android:textSize="16sp"/>
+
+        <EditText
+            android:id="@+id/editText_endDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:hint="Data final"
+            android:inputType="date"
+            android:textColor="#000"
+            android:focusable="false"
+            android:clickable="true"
+            android:textSize="16sp" />
+    </LinearLayout>
+
     <Button
         android:id="@+id/button_search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Pesquisar" />
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#1E88E5"
+        android:text="Pesquisar"
+        android:textColor="#FFF" />
+
     <Button
         android:id="@+id/button_generate_pdf"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Gerar PDF" />
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#4CAF50"
+        android:text="Gerar PDF"
+        android:textColor="#FFF" />
+
+    <Button
+        android:id="@+id/buttonGenerateQrCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#FF9800"
+        android:text="Gerar QR Code"
+        android:textColor="#FFF" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_results"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="8dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 </LinearLayout>

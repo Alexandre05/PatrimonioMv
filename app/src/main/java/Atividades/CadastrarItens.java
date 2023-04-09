@@ -239,7 +239,8 @@ public void salvarAnuncios() {
                                                 + "\nOutras informações: " + anuncios.getOutrasInformacoes();
                                         Bitmap qrCodeBitmap = generateQRCode(qrCodeData);
                                         if (qrCodeBitmap != null) {
-                                            imagens.add(qrCodeBitmap);
+                                            salvarQRCodeStorage(qrCodeBitmap);
+                                            // imagens.add(qrCodeBitmap);
                                             // Adicione este código após adicionar o QR Code à lista de imagens
                                             Intent intent = new Intent(CadastrarItens.this, ViewQRCodeActivity.class);
                                             intent.putExtra("qrCodeData", qrCodeData);
@@ -266,9 +267,6 @@ public void salvarAnuncios() {
             exibirMensagemErro("Selecione ao menos uma foto!");
         }
     }
-
-
-
     private void exibirMensagemErro(String mensagem) {
         Toast.makeText(this,
                 mensagem, Toast.LENGTH_SHORT).show();
@@ -286,9 +284,6 @@ public void salvarAnuncios() {
                 adicionarImagem();
                 Log.d("onClick", "onClick:" + v.getId());
                 break;
-
-
-
         }
 
     }
@@ -310,6 +305,39 @@ public void salvarAnuncios() {
             return null;
         }
     }
+    private void salvarQRCodeStorage(Bitmap qrCodeBitmap) {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        qrCodeBitmap.compress(Bitmap.CompressFormat.PNG, 100, bao);
+        byte[] dadosQRCode = bao.toByteArray();
+
+        final StorageReference qrCodeAnuncio = storage
+                .child("qrcodes")
+                .child("Itens")
+                .child(anuncios.getIdAnuncio())
+                .child("qrcode");
+
+        UploadTask uploadTask = qrCodeAnuncio.putBytes(dadosQRCode);
+        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                qrCodeAnuncio.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        String qrCodeURL = uri.toString();
+                        anuncios.setQrCodeURL(qrCodeURL);
+                        anuncios.salvar();
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                exibirMensagemErro("Falha ao fazer upload do QR Code");
+                Log.e("INFO", "Falha ao fazer upload do QR Code:" + e.getMessage());
+            }
+        });
+    }
+
 
     private void adicionarImagem() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -378,16 +406,13 @@ public void salvarAnuncios() {
 
 
     public void carregarSpi() {
-
-
-        String[] bairro = getResources().getStringArray(R.array.Localização);
+        String[] Localização = getResources().getStringArray(R.array.Localização);
         ArrayAdapter<String> Adapter2 = new ArrayAdapter<String>(
-                this, android.R.layout.simple_spinner_item, bairro
+                this, R.layout.spinner_selected_item, Localização
         );
 
+        Adapter2.setDropDownViewResource(R.layout.spinner_item);
         campocidade.setAdapter(Adapter2);
-
-
     }
 
     private void iniciarCampo() {

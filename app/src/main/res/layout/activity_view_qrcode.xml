@@ -1,31 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context="Atividades.ViewQRCodeActivity">
 
     <ImageView
         android:id="@+id/qrCodeImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true" />
+        android:layout_width="383dp"
+        android:layout_height="454dp"
+        android:layout_weight="1"
+        android:scaleType="centerInside" />
 
-    <Button
-        android:id="@+id/saveLvarQR_CODE"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/qrCodeDataTextView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/qrCodeImageView"
-        android:layout_centerHorizontal="true"
+        android:layout_below="@id/qrCodeImageView"
         android:layout_marginTop="16dp"
-        android:text="Salvar" />
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
 
-    <Button
-        android:id="@+id/printButtun"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Imprimir QR Code" />
+        android:layout_below="@id/qrCodeDataTextView"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/saveQRCodeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/save_button_text" />
+
+        <Button
+            android:id="@+id/printQRCodeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/print_button_text" />
+
+    </LinearLayout>
 
 </RelativeLayout>

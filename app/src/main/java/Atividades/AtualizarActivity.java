@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
 import Helper.ConFirebase;
 import Mode.ItensVistorias;
@@ -86,7 +87,6 @@ public class AtualizarActivity extends AppCompatActivity {
 
     private void atualizarAnuncio(String novaPlaca) {
         // Atualiza os dados do anúncio
-        anuncio.setTipoItem(tipoItem.getText().toString());
         anuncio.setLocalizacao(localizacao.getText().toString());
         anuncio.setNomeItem(nomeItem.getText().toString());
         anuncio.setOutrasInformacoes(outrasInformacoes.getText().toString());
@@ -94,7 +94,13 @@ public class AtualizarActivity extends AppCompatActivity {
 
         // Chama o método atualizarAnuncio do model Anuncios
         String idUsuario = ConFirebase.getIdUsuario();
-        ItensVistorias.atualizarAnuncio(anuncio, idUsuario).addOnCompleteListener(new OnCompleteListener<Void>() {
+        Task<Void> atualizarAnuncioTask = ItensVistorias.atualizarAnuncio(anuncio, idUsuario);
+        Task<Void> atualizarAnuncioPuTask = ItensVistorias.atualizarAnuncioPu(anuncio, idUsuario);
+
+        // Combina as tarefas para garantir que ambas sejam concluídas com sucesso
+        Task<Void> combinedTask = Tasks.whenAll(atualizarAnuncioTask, atualizarAnuncioPuTask);
+
+        combinedTask.addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
@@ -107,6 +113,7 @@ public class AtualizarActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
 }

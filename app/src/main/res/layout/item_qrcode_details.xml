@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+    <TextView
+        android:id="@+id/formatted_qr_data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textSize="16sp" />
+    <ImageView
+        android:id="@+id/Imagem"
+        android:layout_width="match_parent"
+        android:layout_height="190dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/camera" />
+
+    <TextView
+        android:id="@+id/textView_item_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Nome do item:"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_item_NPatr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Placa:"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_item_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Localização:"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_item_Data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Data:"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_item_Vistoriador"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Vistoriador:"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_item_OB"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Observações:"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+</LinearLayout>

@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-
-    <item android:id="@+id/inicial"
+    <item
+        android:id="@+id/inicial"
         android:icon="@drawable/ic_home_preto_24dp"
-        android:title="Home" />
-    <item android:id="@+id/Ad"
-        
+        android:title="Home"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/Ad"
         android:icon="@android:drawable/ic_menu_edit"
-        android:title="Área Ad." />
+        android:title="Área Ad."
+        app:showAsAction="ifRoom" />
 
-
-    <item android:id="@+id/ic_minhas"
+    <item
+        android:id="@+id/ic_minhas"
         android:icon="@drawable/ic_postagem_preto_24dp"
-        android:title="Minhas Vistorias" />
+        android:title="Minhas Vistorias"
+        app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/ic_perfil"
+    <item
+        android:id="@+id/ic_perfil"
         android:icon="@drawable/ic_perfil"
-        android:title="Perfil" />
-
-
-
+        android:title="Perfil"
+        app:showAsAction="ifRoom" />
 
 </menu>

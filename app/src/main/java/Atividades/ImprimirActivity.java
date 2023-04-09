@@ -87,7 +87,10 @@ public class ImprimirActivity extends AppCompatActivity {
                         Log.d("PDF", "filteredAnuncios não está vazio"); // Adicione este log
                         checkWriteStoragePermission();
                         Log.d("PDF", "Chamando createFile() a partir do onClick");
+
                         createFile();
+
+
                     } else {
                         Log.d("PDF", "filteredAnuncios está vazio"); // Adicione este log
                         Toast.makeText(ImprimirActivity.this, "Não há dados para gerar o PDF!", Toast.LENGTH_SHORT).show();
@@ -98,6 +101,7 @@ public class ImprimirActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     private void generatePDF() {
@@ -150,6 +154,7 @@ public class ImprimirActivity extends AppCompatActivity {
                         }
                     }
                     updateButtonStatus(); // Adicione esta chamada
+
                 }
 
                 @Override
@@ -169,8 +174,10 @@ public class ImprimirActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/pdf");
-        intent.putExtra(Intent.EXTRA_TITLE, "relatorio.pdf");
+        intent.putExtra(Intent.EXTRA_TITLE, "");
         startActivityForResult(intent, CREATE_FILE_REQUEST);
+
+
     }
 
 
@@ -183,9 +190,6 @@ public class ImprimirActivity extends AppCompatActivity {
         }
 
     }
-
-
-
 
 
     @Override
@@ -207,29 +211,44 @@ public class ImprimirActivity extends AppCompatActivity {
 
 
 
-    public List<ItensVistorias> filterByInspectorDate(List<ItensVistorias> anuncios, String inspectorId, String startDate, String endDate) {
+    public static List<ItensVistorias> filterByInspectorDate(List<ItensVistorias> anuncios, String inspectorId, String startDate, String endDate) {
         List<ItensVistorias> filteredAnuncios = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
         try {
             Date start = dateFormat.parse(startDate);
             Date end = dateFormat.parse(endDate);
-            Log.d("Filtro", "Data inicial: " + start + ", Data final: " + end); // Adicione este log
+            Log.d("Filtro", "Data inicial: " + start + ", Data final: " + end);
 
             for (ItensVistorias anuncio : anuncios) {
                 Date date = dateFormat.parse(anuncio.getData());
-                Log.d("Filtro", "Anúncio: " + anuncio.getNomeItem() + ", Data: " + date); // Adicione este log
-                if (anuncio.getIdInspector() != null && anuncio.getIdInspector().equals(inspectorId)) {
-                    if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
-                        Log.d("Filtro", "Anúncio adicionado à lista filtrada: " + anuncio.getNomeItem() + ", Data: " + date);
-                        filteredAnuncios.add(anuncio);
-                    }
+                Log.d("Filtro", "Anúncio: " + anuncio.getNomeItem() + ", Data: " + date);
+
+                boolean isInspectorMatch = anuncio.getIdInspector().equals(inspectorId);
+                boolean isDateInRange = date.compareTo(start) >= 0 && date.compareTo(end) <= 0;
+
+                if (isInspectorMatch) {
+                    Log.d("Filtro", "Anúncio corresponde ao inspetor: " + anuncio.getNomeItem() + ", Data: " + date);
+                } else {
+                    Log.d("Filtro", "Anúncio não corresponde ao inspetor: " + anuncio.getNomeItem() + ", Data: " + date);
+                }
+
+                if (isDateInRange) {
+                    Log.d("Filtro", "Anúncio está no intervalo de datas: " + anuncio.getNomeItem() + ", Data: " + date);
+                } else {
+                    Log.d("Filtro", "Anúncio não está no intervalo de datas: " + anuncio.getNomeItem() + ", Data: " + date);
+                }
+
+                if (isInspectorMatch && isDateInRange) {
+                    Log.d("Filtro", "Anúncio adicionado à lista filtrada: " + anuncio.getNomeItem() + ", Data: " + date);
+                    filteredAnuncios.add(anuncio);
                 }
             }
 
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
         return filteredAnuncios;
     }
 

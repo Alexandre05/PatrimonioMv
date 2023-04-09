@@ -2,12 +2,12 @@
     <!-- Base application theme. -->
     <style name="Theme.PatrimonioMv" parent="Theme.MaterialComponents.DayNight">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/teal_500</item>
-        <item name="colorPrimaryVariant">@color/teal_800</item>
+        <item name="colorPrimary">@color/light_blue_500</item>
+        <item name="colorPrimaryVariant">@color/light_blue_800</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/purple_500</item>
-        <item name="colorSecondaryVariant">@color/purple_700</item>
+        <item name="colorSecondary">@color/light_green_500</item>
+        <item name="colorSecondaryVariant">@color/light_green_800</item>
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
@@ -33,7 +33,7 @@
 
     <!-- Style for toolbar -->
     <style name="Widget.PatrimonioMv.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
-        <item name="android:background">@color/teal_500</item>
+        <item name="android:background">@color/light_blue_500</item>
         <item name="android:textColorPrimary">@color/white</item>
         <item name="titleTextColor">@color/white</item>
         <item name="android:elevation">8dp</item>
@@ -41,11 +41,10 @@
 
     <!-- Style for floating action button -->
     <style name="Widget.PatrimonioMv.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
-        <item name="backgroundTint">@color/teal_500</item>
-        <item name="rippleColor">@color/teal_800</item>
+        <item name="backgroundTint">@color/light_green_500</item>
+        <item name="rippleColor">@color/light_green_800</item>
         <item name="android:translationZ">4dp</item>
         <item name="iconTint">@color/white</item>
         <item name="tint">@color/white</item>
     </style>
 </resources>
-

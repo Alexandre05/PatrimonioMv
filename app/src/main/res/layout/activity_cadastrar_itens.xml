@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#C2F1C4">
+    android:background="#F0F4F8">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,9 +15,10 @@
 
         <HorizontalScrollView
             android:id="@+id/imageContainer"
-            android:layout_width="373dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -36,6 +37,13 @@
 
         </HorizontalScrollView>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Localização do Item:"
+            android:textSize="18sp"
+            android:textColor="#1C1C1C"
+            android:layout_marginBottom="4dp"/>
 
         <Spinner
             android:id="@+id/cidade"
@@ -50,9 +58,10 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/custonnoecao"
             android:ems="10"
-            android:hint="Nome Iten"
+            android:hint="Nome Item"
             android:inputType="textPersonName"
-            android:padding="10dp" />
+            android:padding="10dp"
+            android:textSize="16sp" />
 
         <EditText
             android:id="@+id/editPlaca"
@@ -63,7 +72,8 @@
             android:ems="10"
             android:inputType="number"
             android:padding="10dp"
-            android:hint="Nº Placa" />
+            android:hint="Nº Placa"
+            android:textSize="16sp" />
 
         <EditText
             android:id="@+id/editObs"
@@ -74,9 +84,9 @@
             android:ems="10"
             android:inputType="textPersonName"
             android:padding="10dp"
-            android:hint="Observações" />
-
-        <TextView
+            android:hint="Observações"
+            android:textSize="16sp" />
+        <EditText
             android:id="@+id/editNomeRes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,9 +95,10 @@
             android:ems="10"
             android:inputType="textPersonName"
             android:padding="10dp"
-            android:hint="Nome" />
+            android:hint="Nome"
+            android:textSize="16sp" />
 
-        <TextView
+        <EditText
             android:visibility="gone"
             android:id="@+id/fone"
             android:layout_width="match_parent"
@@ -97,6 +108,7 @@
             android:inputType="datetime"
             android:padding="10dp"
             app:maskStyle="completable"/>
+
         <Button
             android:id="@+id/SalvarA"
             android:layout_width="match_parent"
@@ -104,7 +116,9 @@
             android:layout_marginTop="16dp"
             android:background="@drawable/botoaentrar"
             android:onClick="validarAnuncio"
-            android:text="Cadastrar Iten"
+            android:text="Cadastrar Item"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
             android:theme="@style/Theme.AppCompat.Dialog.MinWidth"
             tools:ignore="OnClick" />
 

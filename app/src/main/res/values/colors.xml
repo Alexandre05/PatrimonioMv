@@ -12,6 +12,19 @@
     <color name="accentColor">#FF183B</color>
     <color name="green">#4CAF50</color>
     <color name="red">#E70505</color>
+    <color name="green_500">#26A65B</color>
+    <color name="green_800">#1C8043</color>
+    <color name="yellow_500">#F7DC6F</color>
+    <color name="yellow_800">#D4AC0D</color>
+    <color name="blue_500">#2196F3</color>
+    <color name="blue_800">#1565C0</color>
+    <color name="light_blue_500">#03A9F4</color>
+    <color name="light_blue_800">#0277BD</color>
+    <color name="light_green_500">#8BC34A</color>
+    <color name="light_green_800">#558B2F</color>
+    <color name="bottom_navigation_item_color">#2196F3</color>
+    <color name="initial_background_color">#4DB845</color>
+    <color name="primaryColor">#6200EE</color>
     <color name="design_default_color_primary">#6200EE</color>
     <color name="design_default_color_on_primary">#FFFFFF</color>
 </resources>

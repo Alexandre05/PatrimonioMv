@@ -18,8 +18,9 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
-
+import androidx.appcompat.app.AppCompatActivity;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
@@ -48,8 +49,8 @@ public class ViewQRCodeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_qrcode);
 
         qrCodeImageView = findViewById(R.id.qrCodeImageView);
-        saveButto = findViewById(R.id.saveLvarQR_CODE);
-        imprimir = findViewById(R.id.printButtun);
+        saveButto = findViewById(R.id.saveQRCodeButton);
+        imprimir = findViewById(R.id.printQRCodeButton);
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -71,8 +72,6 @@ public class ViewQRCodeActivity extends AppCompatActivity {
                 printQRCode();
             }
         });
-
-
     }
 
     // Copie o método generateQRCode() aqui ou mova-o para uma classe utilitária para compartilhar entre as atividades
