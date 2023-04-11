@@ -11,7 +11,12 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -20,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -38,9 +44,10 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class Perfil extends AppCompatActivity {
     private ImageButton imagemCamera, imageGaleria;
-    private EditText editeNome;
+    private EditText nomeUs,editIdade, editCPF, editSexo, editEndereco,editSobrenome;
+
     private CircleImageView perfil;
-    private EditText nomeUs;
+
     private Usuario usuarioLogado;
     private Button atualizarNome;
     private String identificadorUsuario;
@@ -55,38 +62,28 @@ public class Perfil extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ;
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_perfil);
        // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         //getSupportActionBar().setTitle("Perfil");
         // recuper dados do usuario
-        usuarioLogado= ConFirebase.getDadosUsarioLogado();
+       usuarioLogado= ConFirebase.getDadosUsarioLogado();
 
-        atualizarNome = findViewById(R.id.butaoAtualizarNomePerfil);
-        perfil=findViewById(R.id.fotoCadastroPerfil);
-        nomeUs= findViewById(R.id.editNomeUsario);
 
+        inicarCampos();
+        carregarDadosUsuario();
         FirebaseUser usuario = ConFirebase.getUsuarioAtaul();
-        Uri url =usuario.getPhotoUrl();
-        if (url !=null){
 
-            Glide.with(Perfil.this)
-                    .load(url)
-                    .into(perfil);
-
-        }else {
-            perfil.setImageResource(R.drawable.camera);
-
-
-        }
         nomeUs.setText(usuario.getDisplayName());
+
+
 
 
         storageReference= ConFirebase.getFirebaseStorage();
         identificadorUsuario = ConFirebase.getIdentificarUsaurio();
-        inicarCampos();
+
 
         imagemCamera.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,22 +116,30 @@ public class Perfil extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String nome = nomeUs.getText().toString();
+                String sobrenome = editSobrenome.getText().toString();
+                String idade = editIdade.getText().toString();
+                String cpf = editCPF.getText().toString();
+                String sexo = editSexo.getText().toString();
+                String endereco = editEndereco.getText().toString();
 
-                boolean retonor = ConFirebase.AtualizarNomeUsuario(nome);
-                if (retonor){
+                usuarioLogado.setNome(nome);
+                usuarioLogado.setSobrenome(sobrenome);
+                usuarioLogado.setIdade(idade);
+                usuarioLogado.setCpf(cpf);
+                usuarioLogado.setSexo(sexo);
+                usuarioLogado.setEndereco(endereco);
 
-                    usuarioLogado.setNome(nome);
+                if (usuarioLogado != null) {
                     usuarioLogado.atualizar();
-
-
-                    Toast.makeText(Perfil.this,
-                            "Nome Atualizado com Sucesso",
-                            Toast.LENGTH_SHORT).show();
-
-
+                    Toast.makeText(Perfil.this, "Dados atualizados com sucesso", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d("AtualizarUsuario", "usuarioLogado é nulo.");
+                    Toast.makeText(Perfil.this, "Erro ao atualizar os dados", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
+
     }
 
 
@@ -142,12 +147,73 @@ public class Perfil extends AppCompatActivity {
     private void inicarCampos() {
         imagemCamera = findViewById(R.id.imageCamera);
         imageGaleria = findViewById(R.id.imageGaleria);
-        editeNome = findViewById(R.id.editNomeUsario);
+        nomeUs = findViewById(R.id.editNomeUsario);
+        editIdade = findViewById(R.id.editIdade);
+        editCPF = findViewById(R.id.editCPF);
+        editSexo = findViewById(R.id.editSexo);
+        editEndereco = findViewById(R.id.editEndereco);
+        editSobrenome = findViewById(R.id.editSobrenome);
+        perfil = (CircleImageView) findViewById(R.id.fotoCadastroPerfil);
+        atualizarNome = findViewById(R.id.butaoAtualizarNomePerfil);
 
 
     }
 
-    @Override
+    private void carregarDadosUsuario() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            identificadorUsuario = currentUser.getUid();
+        } else {
+            // Tratar a situação em que o usuário não está logado
+            return;
+        }
+
+        DatabaseReference usuarioRef = ConFirebase.getFirebaseDatabase().child("usuarios").child(identificadorUsuario);
+        usuarioRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Usuario usuario = dataSnapshot.getValue(Usuario.class);
+                if (usuario != null) {
+                    nomeUs.setText(usuario.getNome());
+                    if (usuario.getSobrenome() != null) {
+                        editSobrenome.setText(usuario.getSobrenome());
+                    }
+                    if (usuario.getIdade() != null) {
+                        editIdade.setText(usuario.getIdade());
+                    }
+                    if (usuario.getCpf() != null) {
+                        editCPF.setText(usuario.getCpf());
+                    }
+                    if (usuario.getSexo() != null) {
+                        editSexo.setText(usuario.getSexo());
+                    }
+                    editEndereco.setText(usuario.getEndereco());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Tratar o erro aqui
+            }
+        });
+
+        // Adicione o trecho de código abaixo para configurar a imagem e o nome do perfil
+        Uri url = currentUser.getPhotoUrl();
+        if (url != null) {
+            Glide.with(Perfil.this)
+                    .load(url)
+                    .into(perfil);
+        } else {
+            perfil.setImageResource(R.drawable.camera);
+        }
+        nomeUs.setText(currentUser.getDisplayName());
+    }
+
+
+
+
+
+        @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 

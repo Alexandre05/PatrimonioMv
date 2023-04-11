@@ -21,7 +21,7 @@ import Helper.ConFirebase;
 public class Usuario implements Serializable {
 
     private String idU;
-    private String nome;
+    private String nome, idade, cpf, sexo,  sobrenome;;
     private String foto;
     private String endereco;
     private String email;
@@ -32,6 +32,40 @@ public class Usuario implements Serializable {
     private boolean membroComissao;
     private String matricula;
     private String comissaoId;
+
+    public String getIdade() {
+        return idade;
+    }
+
+    public void setIdade(String idade) {
+        this.idade = idade;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public String getSexo() {
+        return sexo;
+    }
+
+    public void setSexo(String sexo) {
+        this.sexo = sexo;
+    }
+
+    public String getSobrenome() {
+        return sobrenome;
+    }
+
+    public void setSobrenome(String sobrenome) {
+        this.sobrenome = sobrenome;
+    }
+
+
 
     public String getStatus() {
         return status;
@@ -134,20 +168,43 @@ public class Usuario implements Serializable {
                     .setValue(this);
 
             Log.d("SalvarUsuario", "Salvando usuário com ID: " + idU + " e tipo: " + getTipo());
-        } else  {
+        } else {
             // Trate o caso em que o usuário não está autenticado
         }
     }
 
+
+
     public void atualizar() {
         String indeUsu = ConFirebase.getIdentificarUsaurio();
+        Log.d("AtualizarUsuario", "UID do usuário: " + indeUsu);
         DatabaseReference database = ConFirebase.getFirebaseDatabase();
-        DatabaseReference usuarioRef = database.child("usuarios")
-                .child(indeUsu);
-        Map<String, Object> valoeresUsuario = converterParaMap();
 
-        usuarioRef.updateChildren(valoeresUsuario);
+        if (indeUsu != null) {
+            DatabaseReference usuarioRef = database.child("usuarios")
+                    .child(indeUsu);
+            Map<String, Object> valoeresUsuario = converterParaMap();
+
+            Log.d("AtualizarUsuario", "Chamando updateChildren com os seguintes valores: " + valoeresUsuario.toString());
+            Log.d("AtualizarUsuario", "Usuário autenticado UID: " + indeUsu);
+
+            usuarioRef.updateChildren(valoeresUsuario).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        Log.d("AtualizarUsuario", "Dados atualizados com sucesso no Firebase.");
+                    } else {
+                        Log.e("AtualizarUsuario", "Erro ao atualizar dados no Firebase.", task.getException());
+                    }
+                }
+            });
+        } else {
+            Log.e("Usuario", "Erro: usuário não autenticado.");
+        }
     }
+
+
+
 
     @Exclude
     public Map<String, Object> converterParaMap() {
@@ -156,20 +213,28 @@ public class Usuario implements Serializable {
         usuaruiMap.put("nome", getNome());
         usuaruiMap.put("foto", getFoto());
         usuaruiMap.put("tipo", getTipo());
-                usuaruiMap.put("endereco", getEndereco());
+        usuaruiMap.put("endereco", getEndereco());
         usuaruiMap.put("numeroPortaria", getNumeroPortaria());
         usuaruiMap.put("membroComissao", isMembroComissao());
         usuaruiMap.put("matricula", getMatricula());
         usuaruiMap.put("comissaoId",getComissaoId());
         usuaruiMap.put("token", getToken());
+        // Adicione os novos campos ao HashMap
+        usuaruiMap.put("sobrenome", getSobrenome());
+        usuaruiMap.put("idade", getIdade());
+        usuaruiMap.put("cpf", getCpf());
+        usuaruiMap.put("sexo", getSexo());
+
 
         return usuaruiMap;
     }
+
 
     public static FirebaseUser getUsuarioAtual() {
         FirebaseAuth usuario = ConFirebase.getReferenciaAutencicacao();
         return usuario.getCurrentUser();
     }
+
 
     public static boolean AtualizarUsuario(String nome) {
 

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#B7CADB"
-
-    android:orientation="vertical"
-    android:padding="35sp"
     tools:context="Atividades.Cadastrar">
-
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="35sp">
 
     <TextView
         android:id="@+id/crieSuaConta"
@@ -36,6 +37,17 @@
         android:inputType="textPersonName"
         android:padding="20sp"
         android:paddingTop="5sp" />
+        <EditText
+            android:id="@+id/camPSobrenome"
+            android:layout_width="331dp"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/c_pessoa"
+            android:ems="10"
+            android:gravity="center_horizontal|fill_vertical"
+            android:hint="Sobrenome"
+            android:inputType="textPersonName"
+            android:padding="20sp"
+            android:paddingTop="5sp" />
 
     <EditText
         android:id="@+id/camEm"
@@ -48,8 +60,44 @@
         android:inputType="textPersonName"
         android:padding="20sp" />
 
+
     <EditText
-        android:id="@+id/campEm"
+        android:id="@+id/camIdade"
+        android:layout_width="331dp"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/c_pessoa"
+        android:ems="10"
+        android:gravity="center_horizontal|fill_vertical"
+        android:hint="Idade"
+        android:inputType="number"
+        android:padding="20sp"
+        android:paddingTop="5sp" />
+
+        <EditText
+            android:id="@+id/camCPF"
+            android:layout_width="338dp"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/c_pessoa"
+            android:ems="10"
+            android:gravity="center_horizontal|fill_vertical"
+            android:hint="CPF"
+            android:inputType="number"
+            android:padding="20sp"
+            android:paddingTop="5sp" />
+
+    <EditText
+        android:id="@+id/camSexo"
+        android:layout_width="331dp"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/c_pessoa"
+        android:ems="10"
+        android:gravity="center_horizontal|fill_vertical"
+        android:hint="Sexo (M/F)"
+        android:inputType="text"
+        android:padding="20sp"
+        android:paddingTop="5sp" />
+    <EditText
+        android:id="@+id/campEmail"
         android:layout_width="331dp"
         android:layout_height="wrap_content"
         android:drawableLeft="@drawable/email"
@@ -111,7 +159,6 @@
         tools:layout_editor_absoluteX="95dp"
         tools:layout_editor_absoluteY="372dp" />
 
-
     <Button
         android:id="@+id/jatenhoCota"
         android:layout_width="331dp"
@@ -134,3 +181,4 @@
         android:hint="Termo de Uso" />
 
 </LinearLayout>
+    </ScrollView>

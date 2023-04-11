@@ -5,6 +5,9 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 
 import com.google.common.reflect.TypeToken;
@@ -14,10 +17,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
+
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -49,6 +54,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -87,19 +94,23 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import Adapter.AdapterAnuncios;
+import Api.NotificationReceiver;
 import Helper.ConFirebase;
 import Mode.ItensVistorias;
 import br.com.patrimoniomv.R;
+
 import android.graphics.pdf.PdfDocument;
 
 import net.glxn.qrgen.android.QRCode;
 
 public class Relatorios extends AppCompatActivity {
 
-    private EditText editTextLocation,editTextEndDate;
-    private Button buttonSearch,btn_imprimir;
+
+    private EditText editTextLocation, editTextEndDate;
+    private Button buttonSearch, btn_imprimir;
     private List<ItensVistorias> currentSearchResults = new ArrayList<>();
 
     private RecyclerView recyclerView;
@@ -107,23 +118,27 @@ public class Relatorios extends AppCompatActivity {
     private AdapterAnuncios adapterAnuncios;
     private DatabaseReference anunciosRef;
     private FirebaseUser currentUser;
-    private EditText editTextLicensePlate,editTextStartDate;
+    private EditText editTextLicensePlate, editTextStartDate;
     private RadioGroup radioGroupSearchCriteria;
     private RadioButton radioButtonLocation;
     private RadioButton radioButtonLicensePlate;
     private ItensVistorias selectedItem;
-    private Button buttonGeneratePdf,buttonGenerateQrCode;
+    private Button buttonGeneratePdf, buttonGenerateQrCode;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 11;
     private static final int REQUEST_WRITE_STORAGE = 112;
     private static final int CREATE_FILE_REQUEST = 1;
     private static final int SCAN_QR_REQUEST_CODE = 100;
 
     private static final int STORAGE_PERMISSION_CODE = 101;
+    private static final String CHANNEL_ID = "PDF_NOTIFICATION_CHANNEL";
 
     private static final int REQUEST_CODE_SCAN_QR_CODE = 1001;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //showNotification("Teste de notificação", "Esta é uma notificação de teste", null);
+
         setContentView(R.layout.activity_relatorios);
         buttonGeneratePdf = findViewById(R.id.button_generate_pdf);
         editTextLicensePlate = findViewById(R.id.editText_licensePlate);
@@ -143,7 +158,7 @@ public class Relatorios extends AppCompatActivity {
         adapterAnuncios = new AdapterAnuncios(anuncios, this);
         recyclerView.setAdapter(adapterAnuncios);
         editTextLocation.setVisibility(View.GONE);
-
+        createNotificationChannel();
         radioButtonLicensePlate.setChecked(true);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         final DatePickerDialog.OnDateSetListener startDateListener = new DatePickerDialog.OnDateSetListener() {
@@ -267,9 +282,7 @@ public class Relatorios extends AppCompatActivity {
             }
 
 
-
         });
-
 
 
 // metodo gerar QRC
@@ -305,8 +318,6 @@ public class Relatorios extends AppCompatActivity {
                 }
             }
         });
-
-
 
 
         // metodo gerar PDF
@@ -390,6 +401,7 @@ public class Relatorios extends AppCompatActivity {
             }
         });
     }
+
     private void updateRecyclerView(List<ItensVistorias> searchResults) {
         anuncios.clear();
         anuncios.addAll(searchResults);
@@ -584,6 +596,7 @@ public class Relatorios extends AppCompatActivity {
 
         qrCodeDialog.show();
     }
+
     private void printQRCode(Bitmap qrCodeBitmap) {
         PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
 
@@ -602,8 +615,6 @@ public class Relatorios extends AppCompatActivity {
                     callback.onLayoutFinished(info, true);
                 }
             }
-            
-
 
 
             @Override
@@ -636,10 +647,7 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
-
-
-
-        public List<ItensVistorias> filterByDate(List<ItensVistorias> anuncios, String startDate, String endDate) {
+    public List<ItensVistorias> filterByDate(List<ItensVistorias> anuncios, String startDate, String endDate) {
         List<ItensVistorias> filteredAnuncios = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
@@ -660,6 +668,54 @@ public class Relatorios extends AppCompatActivity {
         }
 
         return filteredAnuncios;
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "PDF Notifications";
+            String description = "Notificações relacionadas a PDF";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+    }
+
+    private void showNotification(String title, String message, Uri uri) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.pdf)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true);
+
+        // Cria um Intent para abrir o PDF quando a notificação for clicada
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, "application/pdf");
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        builder.setContentIntent(pendingIntent);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        int notificationId = (int) System.currentTimeMillis(); // Gera um ID único para a notificação
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        notificationManager.notify(notificationId, builder.build());
     }
 
     private void createFile() {
@@ -696,14 +752,24 @@ public class Relatorios extends AppCompatActivity {
             if (data != null) {
                 Log.d("PDF_RESULT", "Uri obtido com sucesso");
                 Uri uri = data.getData();
+                Log.d("PDF_RESULT", "Uri: " + uri.toString()); // Adicione esta linha
 
                 String startDate = "01/01/2023";
                 String endDate = "31/12/2023";
 
                 List<ItensVistorias> filteredAnuncios = filterByDate(anuncios, startDate, endDate);
                 salvaPdfToFile(uri, filteredAnuncios); // Adicione os anúncios filtrados como parâmetro
+
+                // Adicione o Toast para informar o usuário sobre a localização do arquivo PDF salvo
+                String filePath = uri.getPath();
+                Toast.makeText(Relatorios.this, "PDF salvo em: " + filePath, Toast.LENGTH_LONG).show();
+
+                showNotification("PDF salvo com sucesso!", "O PDF foi salvo em: " + filePath, uri);
+
+
             }
         } else if (requestCode == SCAN_QR_REQUEST_CODE && resultCode == RESULT_OK) {
+            Log.d("PDF_RESULT", "Uri obtido com sucesso");
             if (data != null) {
                 String qrContent = data.getStringExtra("SCAN_RESULT");
                 if (qrContent != null && qrContent.startsWith("vistoriaapp://scan?data=")) {
@@ -716,9 +782,11 @@ public class Relatorios extends AppCompatActivity {
                     Intent displayInfoIntent = new Intent(this, DisplayInfoActivity.class);
                     displayInfoIntent.putExtra(DisplayInfoActivity.EXTRA_ITEM_LIST_JSON, jsonPart);
                     startActivity(displayInfoIntent);
-                } else {
-                    // Mostrar mensagem de erro para o usuário (QR Code inválido)
+
+                    //showNotification("QR Code escaneado com sucesso!", "O QR Code foi escaneado com sucesso!");
+
                 }
+
             }
         }
     }
@@ -747,29 +815,18 @@ public class Relatorios extends AppCompatActivity {
             }
         }
     }
-
-
-
-    private void salvaPdfToFile(Uri uri, List<ItensVistorias> filteredAnuncios){
+    private void salvaPdfToFile(Uri uri, List<ItensVistorias> filteredAnuncios) {
         Log.d("PDF_SAVE", "PdfDocument criado e iniciado");
         try {
-
-            // Inicializar um PdfDocument
             PdfDocument document = new PdfDocument();
-
-            // Medidas em pontos (1 polegada = 72 pontos)
             int pageWidth = 792;
             int pageHeight = 1122;
 
-            // Adicionar uma nova página ao documento
             PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create();
             PdfDocument.Page page = document.startPage(pageInfo);
             Canvas canvas = page.getCanvas();
 
-            // Adicionar o conteúdo do PDF aqui usando o objeto Canvas
             Paint paint = new Paint();
-            Log.d("PDF_SAVE", "Conteúdo do PDF adicionado");
-            // Adicionando título e subtítulo
             paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             paint.setTextSize(20);
             paint.setColor(Color.BLACK);
@@ -778,7 +835,6 @@ public class Relatorios extends AppCompatActivity {
             paint.setTextSize(16);
             canvas.drawText("Detalhes da Vistoria", 50, 150, paint);
 
-            // Desenhar a tabela
             int startY = 200;
             int startX = 50;
             int cellWidth = 100;
@@ -786,17 +842,14 @@ public class Relatorios extends AppCompatActivity {
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(2);
 
-            // Desenhar linhas horizontais
-            for (int i = 0; i < anuncios.size() + 2; i++) {
+            for (int i = 0; i < filteredAnuncios.size() + 2; i++) {
                 canvas.drawLine(startX, startY + i * 50, startX + 6 * cellWidth, startY + i * 50, paint);
             }
 
-            // Desenhar linhas verticais
             for (int i = 0; i < 7; i++) {
-                canvas.drawLine(startX + i * cellWidth, startY, startX + i * cellWidth, startY + (anuncios.size() + 1) * 50, paint);
+                canvas.drawLine(startX + i * cellWidth, startY, startX + i * cellWidth, startY + (filteredAnuncios.size() + 1) * 50, paint);
             }
 
-            // Adicionar cabeçalho da tabela
             paint.setStyle(Paint.Style.FILL);
             paint.setTextSize(12);
 
@@ -807,9 +860,8 @@ public class Relatorios extends AppCompatActivity {
             canvas.drawText("Data da Vistoria", startX + 4 * cellWidth + 10, startY + 30, paint);
             canvas.drawText("Localização", startX + 5 * cellWidth + 10, startY + 30, paint);
 
-            // Adicionar dados à tabela
             int rowIndex = 1;
-            for (ItensVistorias vistoria : anuncios) {
+            for (ItensVistorias vistoria : filteredAnuncios) {
                 canvas.drawText(vistoria.getNomeItem(), startX + 10, startY + 30 + rowIndex * 50, paint);
                 canvas.drawText(vistoria.getPlaca(), startX + cellWidth + 10, startY + 30 + rowIndex * 50, paint);
                 canvas.drawText(vistoria.getOutrasInformacoes(), startX + 2 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
@@ -817,11 +869,9 @@ public class Relatorios extends AppCompatActivity {
                 canvas.drawText(vistoria.getData(), startX + 4 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
                 canvas.drawText(vistoria.getLocalizacao(), startX + 5 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
                 rowIndex++;
-            }
-            // Finalizar a página
-            document.finishPage(page);
 
-            // Salvar o documento no arquivo Uri fornecido
+            }       document.finishPage(page);
+
             ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
             Log.d("PDF_SAVE", "Tentativa de salvar o documento no arquivo Uri");
             if (pfd != null) {
@@ -830,6 +880,14 @@ public class Relatorios extends AppCompatActivity {
                     Log.d("PDF_SAVE", "Tentativa de escrever o documento no arquivo");
                     document.writeTo(fos);
                     Toast.makeText(this, "PDF criado com sucesso!", Toast.LENGTH_SHORT).show();
+
+                    // Adicione o Toast para informar o usuário sobre a localização do arquivo PDF salvo
+                    String filePath = uri.getPath();
+                    Toast.makeText(Relatorios.this, "PDF salvo em: " + filePath, Toast.LENGTH_LONG).show();
+
+                    // Exibir a notificação após salvar o PDF
+                    showNotification("PDF salvo com sucesso!", "O PDF foi salvo em: " + filePath, uri);
+
                 } catch (IOException e) {
                     Log.e("PDF_SAVE", "Erro ao escrever o documento no arquivo: " + e.getMessage());
                     e.printStackTrace();
@@ -845,6 +903,7 @@ public class Relatorios extends AppCompatActivity {
             Toast.makeText(this, "Erro ao criar o PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
     private String saveQRCodeToStorage(Bitmap qrCodeBitmap) {
         try {
             File directory = new File(getExternalFilesDir(null), "QRCode");

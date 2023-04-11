@@ -47,7 +47,8 @@ public class Cadastrar extends AppCompatActivity {
 
     private Button jatenhoC, botaoCadastro;
 
-    private EditText campoEmail, campoSenha, campoNome, campoEndereco, campoConfirmaSenha;
+    private EditText campoEmail, campoSenha, campoNome, campoEndereco, campoConfirmaSenha,campoSobrenome,
+    campoIdade,campoSexo,campoCPF;
     private FirebaseAuth autenticacao;
     private EditText campoCodigoEspecial;
     private DatabaseReference refe;
@@ -82,78 +83,71 @@ public class Cadastrar extends AppCompatActivity {
                 String senha = campoSenha.getText().toString();
                 String repetirSenha = campoConfirmaSenha.getText().toString();
                 String portaria = campoPortaria.getText().toString();
+                String sobrenome = campoSobrenome.getText().toString();
+                String idade = campoIdade.getText().toString();
+                String cpf = campoCPF.getText().toString();
+                String sexo = campoSexo.getText().toString();
                 String tipoUsuario = "membro"; // Valor padrão, caso o usuário não possua código especial
 
-                if (!nome.isEmpty()) {
-                    if (!endereco.isEmpty()) {
-                        if (!email.isEmpty()) {
-                            if (!senha.isEmpty()) {
-                                if (validar(senha, repetirSenha)) {
-                                    if (!codigoEspecial.isEmpty() && codigoEspecial.equals(ConFirebase.CODIGO_ESPECIAL)) {
-                                        tipoUsuario = "AD";
+                // Verifique se os campos obrigatórios estão preenchidos
+                if (nome.isEmpty() || endereco.isEmpty() || email.isEmpty() || senha.isEmpty() || repetirSenha.isEmpty() || cpf.isEmpty()) {
+                    Toast.makeText(Cadastrar.this, "Por favor, preencha todos os campos obrigatórios!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // A partir daqui, todos os campos obrigatórios estão preenchidos
+
+                if (validar(senha, repetirSenha)) {
+                    if (!codigoEspecial.isEmpty() && codigoEspecial.equals(ConFirebase.CODIGO_ESPECIAL)) {
+                        tipoUsuario = "AD";
+                    }
+
+                    if (tipoUsuario.equals("AD") || (!portaria.isEmpty() && isPortariaValida(portaria))) {
+                        usuario = new Usuario();
+
+                        usuario.setNome(nome);
+                        usuario.setEndereco(endereco);
+                        usuario.setSexo(sexo);
+                        usuario.setEmail(email);
+                        usuario.setSenha(senha);
+                        usuario.setSobrenome(sobrenome);
+                        usuario.setIdade(String.valueOf(Integer.parseInt(idade))); // Converta a idade para int antes de atribuí-la
+                        usuario.setCpf(cpf);
+                        usuario.setNumeroPortaria(portaria);
+                        usuario.setTipo(tipoUsuario); // Definir o tipo do usuário
+
+                        FirebaseMessaging.getInstance().getToken()
+                                .addOnCompleteListener(new OnCompleteListener<String>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<String> task) {
+                                        String token = task.getResult();
+                                        usuario.setToken(token);
                                     }
+                                });
 
-                                    if (tipoUsuario.equals("AD") || (!portaria.isEmpty() && isPortariaValida(portaria))) {
-                                        usuario = new Usuario();
+                        cadastrarUsuario();
 
-                                        usuario.setNome(nome);
-                                        usuario.setEndereco(endereco);
-                                        usuario.setEmail(email);
-                                        usuario.setSenha(senha);
-                                        usuario.setTipo(tipoUsuario); // Definir o tipo do usuário
-
-                                        FirebaseMessaging.getInstance().getToken()
-                                                .addOnCompleteListener(new OnCompleteListener<String>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<String> task) {
-                                                        String token = task.getResult();
-                                                        usuario.setToken(token);
-                                                    }
-                                                });
-
-                                        cadastrarUsuario();
-
-                                        Intent intent = new Intent(Cadastrar.this, AtualizarActivity.class);
-                                        startActivity(intent);
-                                    } else if (!tipoUsuario.equals("AD")) {
-                                        Toast.makeText(Cadastrar.this,
-                                                "Por favor, insira a portaria.",
-                                                Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(Cadastrar.this,
-                                                "Portaria inválida. Por favor, insira uma portaria válida.",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    Toast.makeText(Cadastrar.this,
-                                            "A senha não é válida!",
-                                            Toast.LENGTH_SHORT).show();
-                                }
-                            } else {
-                                Toast.makeText(Cadastrar.this,
-                                        "Digite uma senha!",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(Cadastrar.this,
-                                    "Preencha o E-mail!",
-                                    Toast.LENGTH_SHORT).show();
-                        }
+                        Intent intent = new Intent(Cadastrar.this, AtualizarActivity.class);
+                        startActivity(intent);
+                    } else if (!tipoUsuario.equals("AD")) {
+                        Toast.makeText(Cadastrar.this,
+                                "Por favor, insira a portaria.",
+                                Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(Cadastrar.this,
-                                "Preencha o Endereço!",
+                                "Portaria inválida. Por favor, insira uma portaria válida.",
                                 Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(Cadastrar.this,
-                            "Preencha o Nome",
+                            "A senha não é válida!",
                             Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-
     }
+
     private void cadastrarUsuario() {
         autenticacao = ConFirebase.getReferenciaAutencicacao();
         autenticacao.createUserWithEmailAndPassword(
@@ -166,8 +160,6 @@ public class Cadastrar extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     Log.d("Cadastro", "Autenticação bem-sucedida");
                     FirebaseUser user = autenticacao.getCurrentUser();
-
-
                     user.sendEmailVerification();
 
                     String idU = Base64Custon.codificarBase64(usuario.getEmail());
@@ -180,15 +172,13 @@ public class Cadastrar extends AppCompatActivity {
                     ConFirebase.AtualizarNomeUsuario(usuario.getNome());
                     usuario.setIdU(idU);
                     String codigoEspecial = campoCodigoEspecial.getText().toString();
-                    usuario.salvarUsuario(codigoEspecial);
-                    usuario.salvarUsuario(codigoEspecial);
+                    usuario.salvarUsuario(codigoEspecial); // Modificado aqui
+
                     usuario.setStatus("pendente");
                     Log.d("Cadastro", "Usuário salvo no Firebase");
                     Usuario.getUsuarioAtual();
 
-
                     finish();
-
 
                 } else {
                     String erroExe = "";
@@ -212,11 +202,12 @@ public class Cadastrar extends AppCompatActivity {
                     Toast.makeText(Cadastrar.this,
                             "Erro:" + erroExe,
                             Toast.LENGTH_SHORT).show();
-//
                 }
             }
         });
     }
+
+
 
 
 
@@ -234,10 +225,14 @@ public class Cadastrar extends AppCompatActivity {
         campoPortaria = findViewById(R.id.campoNumeroPortaria);
         campoNome = findViewById(R.id.camPNome);
         campoEndereco = findViewById(R.id.camEm);
-        campoEmail = findViewById(R.id.campEm);
+        campoEmail = findViewById(R.id.campEmail);
         campoSenha = findViewById(R.id.camSem);
         botaoCadastro = findViewById(R.id.BtnCadastrar);
         campoConfirmaSenha=findViewById(R.id.RecamSem);
+        campoSobrenome = findViewById(R.id.camPSobrenome);
+        campoIdade = findViewById(R.id.camIdade);
+        campoCPF = findViewById(R.id.camCPF);
+        campoSexo = findViewById(R.id.camSexo);
 
 
     }

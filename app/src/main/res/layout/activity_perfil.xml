@@ -1,90 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="#F8F6F3"
-    android:orientation="vertical"
     tools:context="Atividades.Perfil">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/fotoCadastroPerfil"
-        android:layout_width="232dp"
-        android:layout_height="155dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="64dp"
-        android:src="@drawable/c_pessoa"
-        app:civ_border_color="#FF000000"
-        app:civ_border_width="0dp" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/imageGaleria"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/custonconfirmar"
-            android:padding="12dp"
-            app:srcCompat="@drawable/fotogaleria" />
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/fotoCadastroPerfil"
+            android:layout_width="232dp"
+            android:layout_height="155dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="64dp"
+            android:src="@drawable/c_pessoa"
+            app:civ_border_color="#FF000000"
+            app:civ_border_width="0dp" />
 
-        <ImageButton
-            android:id="@+id/imageCamera"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/custonconfirmar"
-            android:padding="12dp"
-            app:srcCompat="@drawable/camera" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:background="#FFFFFF"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:paddingBottom="0dp">
-
-        <EditText
-            android:id="@+id/editNomeUsario"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/custon_text"
-            android:hint="Nome do usuário"
-            android:inputType="textPersonName"
-            android:padding="12dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/imageGaleria"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/custonconfirmar"
+                android:padding="12dp"
+                app:srcCompat="@drawable/fotogaleria" />
+
+            <ImageButton
+                android:id="@+id/imageCamera"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/custonconfirmar"
+                android:padding="12dp"
+                app:srcCompat="@drawable/camera" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="#FFFFFF"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:paddingBottom="0dp">
+
+            <EditText
+                android:id="@+id/editNomeUsario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custon_text"
+                android:hint="Nome do usuário"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:textColor="#212121"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/editSobrenome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custon_text"
+                android:hint="Sobrenome"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:textColor="#212121"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/editIdade"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custon_text"
+                android:hint="Idade"
+                android:inputType="number"
+                android:padding="12dp"
+                android:textColor="#212121"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/editCPF"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custon_text"
+                android:hint="CPF"
+                android:inputType="number"
+                android:padding="12dp"
+                android:textColor="#212121"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/editSexo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custon_text"
+                android:hint="Sexo"
+                android:inputType="text"
+                android:padding="12dp"
+                android:textColor="#212121"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/editEndereco"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custon_text"
+                android:hint="Endereço"
+                android:inputType="textPostalAddress"
+                android:padding="12dp"
+                android:textColor="#212121"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center_horizontal"
+            android:text="Seu Perfil no App"
             android:textColor="#212121"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/butaoAtualizarNomePerfil"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="32dp"
+            android:background="@drawable/custonconfirmar"
+            android:text="Confirmar"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
             android:textSize="18sp" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:gravity="center_horizontal"
-        android:text="Seu Perfil no App"
-        android:textColor="#212121"
-        android:textSize="24sp" />
-
-    <Button
-        android:id="@+id/butaoAtualizarNomePerfil"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="32dp"
-        android:background="@drawable/custonconfirmar"
-        android:text="Confirmar"
-        android:textAllCaps="false"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp" />
-
-</LinearLayout>
+</ScrollView>

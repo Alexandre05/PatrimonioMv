@@ -25,14 +25,16 @@ public class ConFirebase {
     public static  String CODIGO_ESPECIAL = "123";
 
     public static String getIdUsuario() {
-        // pega o id que foi criando ao cadastrar o usuario
         FirebaseAuth aut = getReferenciaAutencicacao();
         FirebaseUser currentUser = aut.getCurrentUser();
         if (currentUser != null) {
+            Log.d("ConFirebase", "Usuário autenticado: " + currentUser.getUid());
             return currentUser.getUid();
         }
+        Log.d("ConFirebase", "Usuário não autenticado.");
         return null;
     }
+
 
 
     public static DatabaseReference getFirebaseDatabase() {
@@ -71,12 +73,14 @@ public class ConFirebase {
 
     public static String getIdentificarUsaurio() {
         FirebaseAuth usuario = ConFirebase.getReferenciaAutencicacao();
-
-        String email = usuario.getCurrentUser().getEmail();
-        String identifcaUsuario = Base64Custon.codificarBase64(email);
-        return identifcaUsuario;
-
+        FirebaseUser currentUser = usuario.getCurrentUser();
+        if (currentUser != null) {
+            return currentUser.getUid();
+        }
+        return null;
     }
+
+
 
     public static FirebaseUser getUsuarioAtaul() {
         FirebaseAuth usuario = ConFirebase.getReferenciaAutencicacao();
@@ -84,6 +88,7 @@ public class ConFirebase {
 
         return usuario.getCurrentUser();
     }
+
 
     public static boolean AtualizarFotoUsuario(Uri url) {
 
@@ -119,7 +124,6 @@ public class ConFirebase {
     }
 
     public static boolean AtualizarNomeUsuario(String nome) {
-
         try {
 
             FirebaseUser user = getUsuarioAtaul();
@@ -151,6 +155,7 @@ public class ConFirebase {
 
     }
 
+
     public static Usuario getDadosUsarioLogado() {
 
         FirebaseUser firebaseuser = getUsuarioAtaul();
@@ -171,5 +176,15 @@ public class ConFirebase {
     public static void atualizarCodigoEspecial(String novoCodigoEspecial) {
         CODIGO_ESPECIAL = novoCodigoEspecial;
     }
+    private static String empresaId;
+
+    public static void setEmpresaId(String empresaId) {
+        ConFirebase.empresaId = empresaId;
+    }
+
+    public static String getEmpresaId() {
+        return empresaId;
+    }
+
 }
 
