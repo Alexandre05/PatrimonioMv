@@ -60,8 +60,6 @@ public class Cadastrar extends AppCompatActivity {
     };
     private Usuario usuario;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -71,8 +69,6 @@ public class Cadastrar extends AppCompatActivity {
         setContentView(R.layout.activity_cadastrar);
 
         IniciConpo();
-
-
         botaoCadastro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,7 +84,6 @@ public class Cadastrar extends AppCompatActivity {
                 String cpf = campoCPF.getText().toString();
                 String sexo = campoSexo.getText().toString();
                 String tipoUsuario = "membro"; // Valor padrão, caso o usuário não possua código especial
-
                 // Verifique se os campos obrigatórios estão preenchidos
                 if (nome.isEmpty() || endereco.isEmpty() || email.isEmpty() || senha.isEmpty() || repetirSenha.isEmpty() || cpf.isEmpty()) {
                     Toast.makeText(Cadastrar.this, "Por favor, preencha todos os campos obrigatórios!", Toast.LENGTH_SHORT).show();

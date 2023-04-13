@@ -4,12 +4,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -36,6 +39,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
     private Button concluir;
     private VistoriaAndamentoAdapter adapter;
     private List<ItensVistorias> vistoriasEmAndamento;
+    private ChildEventListener vistoriasEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,19 +49,43 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
         vistoriasAndamentoListView = findViewById(R.id.vistorias_andamentoU);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        //mDatabase.child("vistoriasConcluidas").setValue(true);
 
+        //mDatabase.child("vistoriasConcluidas").setValue(true);
+        checkUserAuthentication();
         // Carregar os dados das vistorias em andamento
+        vistoriasEmAndamento = new ArrayList<>();
+        Log.d("fetchVistorias", "onChildChanged called");
+        vistoriasEventListener = null;
         fetchVistoriasEmAndamento();
 
     }
 
+    private void checkUserAuthentication() {
+        FirebaseUser currentUser = ConFirebase.getUsuarioAtaul();
+        if (currentUser != null) {
+            Log.d("Authentication", "Usuário autenticado: " + currentUser.getUid());
+            // O usuário está autenticado, você pode prosseguir com o acesso aos dados
+        } else {
+            Log.d("Authentication", "Usuário não autenticado.");
+            // Redirecione o usuário para a tela de login ou registre-se
+            // Substitua LoginActivity.class pelo nome da sua atividade de login
+            Intent intent = new Intent(VistoriasEmAndamentoActivity.this, Login.class);
+            startActivity(intent);
+            finish();
+        }
+    }
+
     private void fetchVistoriasEmAndamento() {
         vistoriasEmAndamento = new ArrayList<>();
-        Set<String> uniqueKeys = new HashSet<>(); // Crie um conjunto para armazenar as chaves únicas
+        Set<String> uniqueKeys = new HashSet<>();
 
-        Query query = mDatabase.child("anuncios");
-        ChildEventListener vistoriasEventListener = new ChildEventListener() {
+        Query query = mDatabase.child("vistorias");
+
+        if (vistoriasEventListener != null) {
+            query.removeEventListener(vistoriasEventListener);
+        }
+
+        vistoriasEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.d("fetchVistorias", "onChildAdded called");
@@ -65,19 +93,18 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                     ItensVistorias vistoria = vistoriaSnapshot.getValue(ItensVistorias.class);
 
                     if (!vistoria.isConcluida() && !vistoria.isExcluidaVistoria()) {
-                        String licensePlate = vistoria.getPlaca(); // Obtenha o número da placa aqui
-                        String date = vistoria.getData(); // Obtenha a data da vistoria aqui
-                        String location = vistoria.getLocalizacao(); // Obtenha a localização da vistoria aqui
-                        String uniqueKey = licensePlate + "_" + date + "_" + location; // Crie uma chave única combinando a placa, data e localização
+                        String licensePlate = vistoria.getPlaca();
+                        String date = vistoria.getData();
+                        String location = vistoria.getLocalizacao();
+                        String uniqueKey = licensePlate + "_" + date + "_" + location;
 
-                        if (!uniqueKeys.contains(uniqueKey)) { // Verifique se a chave única não está no conjunto
-                            uniqueKeys.add(uniqueKey); // Adicione a chave única ao conjunto
-                            vistoriasEmAndamento.add(vistoria); // Adicione a vistoria à lista
+                        if (!uniqueKeys.contains(uniqueKey)) {
+                            uniqueKeys.add(uniqueKey);
+                            vistoriasEmAndamento.add(vistoria);
                         }
                     }
                 }
 
-                // Configurar o adaptador e associá-lo à ListView
                 adapter = new VistoriaAndamentoAdapter(VistoriasEmAndamentoActivity.this, R.layout.itensvistoria, vistoriasEmAndamento);
                 vistoriasAndamentoListView.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
@@ -85,14 +112,16 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                fetchVistoriasEmAndamento(); // Quando uma vistoria for concluída, atualize a lista
+                fetchVistoriasEmAndamento();
             }
 
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            }
 
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -104,37 +133,66 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
 
     public void concluirVistoria(ItensVistorias vistoriaAtual) {
-        String idInspector = vistoriaAtual.getIdInspector();
         String localizacao = vistoriaAtual.getLocalizacao();
         String dataVistoria = vistoriaAtual.getData();
-        Set<String> uniqueLicensePlates = new HashSet<>();
+        String uniqueGroupKey = localizacao + "_" + dataVistoria;
+        Log.d("DEBUG", "uniqueGroupKey: " + uniqueGroupKey);
 
-        // Solicitar confirmação do vistoriador
         AlertDialog.Builder builder = new AlertDialog.Builder(VistoriasEmAndamentoActivity.this);
         builder.setTitle("Concluir Vistoria");
         builder.setMessage("Deseja concluir todas as vistorias da localização: " + localizacao + " na data: " + dataVistoria + "?");
         builder.setPositiveButton("Sim", (dialog, which) -> {
-            // Obter todas as vistorias da mesma localização, na mesma data e com placas únicas
-            Query query = mDatabase.child("anuncios").child(idInspector).orderByChild("localizacao").equalTo(localizacao);
-            query.addListenerForSingleValueEvent(new ValueEventListener() {
+            DatabaseReference anunciosRef = ConFirebase.getFirebaseDatabase().child("vistorias");
+
+            anunciosRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
-                        ItensVistorias vistoria = vistoriaSnapshot.getValue(ItensVistorias.class);
-                        String licensePlate = vistoria.getPlaca();
+                    List<ItensVistorias> vistoriasList = new ArrayList<>();
+                    for (DataSnapshot inspectorSnapshot : dataSnapshot.getChildren()) {
+                        String inspectorId = inspectorSnapshot.getKey();
+                        DatabaseReference inspectorRef = ConFirebase.getFirebaseDatabase().child("vistorias").child(inspectorId);
+                        Query query = inspectorRef.orderByChild("localizacao_data").equalTo(uniqueGroupKey);
+                        query.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
+                                        ItensVistorias vistoria = vistoriaSnapshot.getValue(ItensVistorias.class);
+                                        if (vistoria != null && !vistoria.isConcluida()) {
+                                            vistoriasList.add(vistoria);
+                                            Log.d("DEBUG", "Vistoria item: " + vistoria); // Adicionado para rastrear itens da vistoria
+                                        }
+                                    }
+                                } else {
+                                    // Tratar a situação em que não há dados no dataSnapshot (por exemplo, exibir uma mensagem)
+                                }
+                            }
 
-                        if (vistoria.getData().equals(dataVistoria) && !vistoria.isConcluida() && !uniqueLicensePlates.contains(licensePlate)) {
-                            uniqueLicensePlates.add(licensePlate);
-                            String vistoriaId = vistoria.getIdAnuncio();
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                // Tratar o erro aqui
+                                Log.d("DEBUG", "onCancelled - databaseError: " + databaseError);
+                            }
+                        });
+                    }
 
-                            // Mover vistoria para o nó "vistoriasConcluidas"
-                            DatabaseReference vistoriaConcluidaRef = mDatabase.child("vistoriasConcluidas").child(idInspector).child(vistoriaId);
-                            vistoria.setConcluida(true);
-                            vistoriaConcluidaRef.setValue(vistoria);
+                    // Combinar os itens das várias vistorias em uma única vistoria concluída
+                    ItensVistorias vistoriaConcluida = combineVistorias(vistoriasList);
+                    vistoriaConcluida.setLocalizacao(localizacao);
+                    vistoriaConcluida.setData(dataVistoria);
+                    vistoriaConcluida.setConcluida(true);
 
-                            // Atualizar o status da vistoria nos nós "anuncios" e "anunciosPu"
-                            mDatabase.child("anuncios").child(idInspector).child(vistoriaId).child("concluida").setValue(true);
-                            mDatabase.child("anunciosPu").child(localizacao).child(vistoriaId).child("concluida").setValue(true);
+                    // Salvar a vistoria concluída no nó "vistoriasConcluidas"
+                    DatabaseReference vistoriasConcluidasRef = ConFirebase.getFirebaseDatabase().child("vistoriasConcluidas");
+                    String vistoriaConcluidaId = vistoriasConcluidasRef.push().getKey();
+                    if (vistoriaConcluidaId != null) {
+                        vistoriasConcluidasRef.child(vistoriaConcluidaId).setValue(vistoriaConcluida.toMap());
+                    }                // Atualizar o status das vistorias originais para "concluida = true"
+                    for (ItensVistorias vistoria : vistoriasList) {
+                        String inspectorId = vistoria.getIdInspector();
+                        String vistoriaId = vistoria.getIdAnuncio();
+                        if (inspectorId != null && vistoriaId != null) {
+                            anunciosRef.child(inspectorId).child(vistoriaId).child("concluida").setValue(true);
                         }
                     }
 
@@ -145,6 +203,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     // Tratar o erro aqui
+                    Log.d("DEBUG", "onCancelled - databaseError: " + databaseError);
                 }
             });
         });
@@ -153,14 +212,15 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         builder.create().show();
     }
 
+    private ItensVistorias combineVistorias(List<ItensVistorias> vistoriasList) {
+        ItensVistorias vistoriaConcluida = new ItensVistorias();
+        // Inicializar campos adicionais conforme necessário
 
+        for (ItensVistorias vistoria : vistoriasList) {
+            // Combine os itens das várias vistorias aqui
+            // Exemplo: vistoriaConcluida.setCampoX(vistoriaConcluida.getCampoX() + vistoria.getCampoX());
+        }
 
-
-
-    public void novoMetodo(ItensVistorias vistoriaAtual) {
-        // Implemente o comportamento desejado aqui
+        return vistoriaConcluida;
     }
-
-
-
 }

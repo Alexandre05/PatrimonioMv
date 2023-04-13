@@ -52,13 +52,18 @@ public class AdapterAnuncios extends RecyclerView.Adapter<AdapterAnuncios.MyView
 
         List<String> urlFtos = anuncio.getFotos();
 
-
         if (urlFtos != null && urlFtos.size() > 0) {
             String urlCapa = urlFtos.get(0);
+
+            // Limpando a imagem antes de carregar
+            Picasso.get().cancelRequest(holder.foto);
+
+            // Carregando a imagem
             Picasso.get().load(urlCapa).into(holder.foto);
             Log.i("foto", "men" + urlCapa);
+        } else {
+            holder.foto.setImageDrawable(null);
         }
-
     }
 
     @Override
@@ -76,7 +81,6 @@ public class AdapterAnuncios extends RecyclerView.Adapter<AdapterAnuncios.MyView
         TextView nomeU;
         TextView locali;
 
-
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             locali=itemView.findViewById(R.id.texLocali);
@@ -91,4 +95,3 @@ public class AdapterAnuncios extends RecyclerView.Adapter<AdapterAnuncios.MyView
         }
     }
 }
-

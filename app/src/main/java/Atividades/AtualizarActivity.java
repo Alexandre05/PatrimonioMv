@@ -32,7 +32,7 @@ public class AtualizarActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_atualizar);
-        anuncio = (ItensVistorias) getIntent().getSerializableExtra("anuncio");
+        anuncio = (ItensVistorias) getIntent().getSerializableExtra("vistorias");
 
         // Inicializa os campos da tela
 

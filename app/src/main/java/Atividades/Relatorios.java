@@ -525,7 +525,7 @@ public class Relatorios extends AppCompatActivity {
         String encodedJson = Uri.encode(json);
 
         // Substitua a URL do esquema do aplicativo pela URL da sua página web
-        String webUrl = "http://192.168.1.5:8080/QrCode/" + encodedJson;
+        String webUrl = "https://ppmv-78b65.web.app" + encodedJson;
 
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         try {
@@ -537,6 +537,13 @@ public class Relatorios extends AppCompatActivity {
                 }
             }
             Log.d("QRCode", "QR Code generated successfully");
+            String action = "com.google.zxing.client.android.SCAN";
+            Intent intent = new Intent(action);
+            intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+            intent.putExtra("SAVE_HISTORY", false);
+            intent.putExtra("RESULT_DISPLAY_DURATION_MS", 0L);
+            intent.putExtra("PROMPT_MESSAGE", "Aponte a câmera para o QR Code para abrir a página da web");
+            startActivityForResult(intent, 0);
             return bitmap;
         } catch (WriterException e) {
             Log.e("QRCode", "Error generating QR Code", e);

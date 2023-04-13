@@ -21,6 +21,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.google.zxing.BarcodeFormat;
@@ -95,6 +97,8 @@ public class CadastrarItens extends AppCompatActivity
     private LocationManager locationManager;
     private double latitude;
     private double longitude;
+    private DatabaseReference databaseReference;
+    private ChildEventListener childEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +122,7 @@ public class CadastrarItens extends AppCompatActivity
 
 
     }
+
 // savar Anuncios
 public void salvarAnuncios() {
     dialog = new SpotsDialog.Builder(this)
@@ -133,6 +138,7 @@ public void salvarAnuncios() {
         int tamanhoLista = imagens.size();
         salvarFotoStorage(imagem, tamanhoLista, i);
     }
+
 }
 
     // salva
@@ -160,6 +166,7 @@ public void salvarAnuncios() {
                     listasFotoRe.clear();
                     dialog.dismiss();
                     finish();
+
                 }
             });
         }
@@ -174,6 +181,7 @@ public void salvarAnuncios() {
 
     private ItensVistorias ConfiAnuncio() {
         String recebe = ConFirebase.getDadosUsarioLogado().getNome();
+
 
         //String tipoIten = campoanimais.getSelectedItem().toString();
         String localizacao = campocidade.getSelectedItem().toString();
@@ -195,12 +203,13 @@ public void salvarAnuncios() {
         anuncios.setLocalizacao(localizacao);
         anuncios.setNomeItem(nomeItem);
         anuncios.setNomePerfilU(nomeCampo);
+
         anuncios.setOutrasInformacoes(outrasInformacoes);
         anuncios.setPlaca(placa);
         anuncios.setIdInspector(usuarioLogado.getIdU());
 
         anuncios.setData(DataCuston.dataAtual());
-
+        anuncios.setLocalizacao_data(anuncios.getLocalizacao() + "_" + anuncios.getData());
         return anuncios;
     }
 
@@ -248,6 +257,8 @@ public void salvarAnuncios() {
                                         }
 
                                         salvarAnuncios();
+                                        recreate();
+
                                     } else {
                                         exibirMensagemErro("Preencha o campo descrição");
                                     }
@@ -267,6 +278,7 @@ public void salvarAnuncios() {
             exibirMensagemErro("Selecione ao menos uma foto!");
         }
     }
+
     private void exibirMensagemErro(String mensagem) {
         Toast.makeText(this,
                 mensagem, Toast.LENGTH_SHORT).show();

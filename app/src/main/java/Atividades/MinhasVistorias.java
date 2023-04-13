@@ -70,6 +70,7 @@ public class MinhasVistorias extends AppCompatActivity {
             public void onClick(View view) {
 
                 startActivity(new Intent(getApplicationContext(), CadastrarItens.class));
+                recuperarAnucnis();
             }
         });
 
@@ -99,9 +100,10 @@ public class MinhasVistorias extends AppCompatActivity {
                             public void onItemClick(View view, int position) {
                                 ItensVistorias anuncioSelecionado = anuncios.get(position);
                                 Intent intent = new Intent(getApplicationContext(), AtualizarActivity.class);
-                                intent.putExtra("anuncio", anuncioSelecionado);
+                                intent.putExtra("vistorias", anuncioSelecionado);
                                 startActivity(intent);
                             }
+
 
                             @Override
                             public void onLongItemClick(View view, int position) {
@@ -111,8 +113,12 @@ public class MinhasVistorias extends AppCompatActivity {
                                         .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int id) {
                                                 ItensVistorias anunciosSelecionado = anuncios.get(position);
+                                                String anuncioId = anunciosSelecionado.getIdAnuncio();
+                                                anunciosUsuarioRef.child(anuncioId).removeValue(); // Remover o anúncio do Firebase
                                                 anunciosSelecionado.remover();
                                                 adapterAnuncios.notifyDataSetChanged();
+                                                recuperarAnucnis();
+                                                recreate();
                                             }
                                         })
                                         .setNegativeButton("Não", new DialogInterface.OnClickListener() {
@@ -123,6 +129,7 @@ public class MinhasVistorias extends AppCompatActivity {
                                 AlertDialog alert = builder.create();
                                 alert.show();
                             }
+
 
 
                             @Override
@@ -136,8 +143,6 @@ public class MinhasVistorias extends AppCompatActivity {
 
 
     }
-
-
     private void recuperarAnucnis() {
         alert = new AlertDialog.Builder(this)
                 .setMessage("Recuperando Meus Anuncios...")
@@ -146,7 +151,7 @@ public class MinhasVistorias extends AppCompatActivity {
         alert.show();
         anunciosUsuarioRef = ConFirebase.getFirebaseDatabase()
                 // aqui pega e mostra os meus anuncios
-                .child("anuncios")
+                .child("vistorias")
                 .child(ConFirebase.getIdUsuario());
 
         anunciosUsuarioRef.addValueEventListener(new ValueEventListener() {

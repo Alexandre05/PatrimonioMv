@@ -16,11 +16,36 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import Helper.ConFirebase;
 public class ItensVistorias implements Serializable {
     @PropertyName("idAnuncio")
     private String idAnuncio;
+    private String idVistoria;
+    private String localizacao_data;
+
+    public String getLocalizacao_data() {
+        return localizacao_data;
+    }
+
+    public void setLocalizacao_data(String localizacao_data) {
+        this.localizacao_data = localizacao_data;
+    }
+
+    public void setExcluidaVistoria(boolean excluidaVistoria) {
+        this.excluidaVistoria = excluidaVistoria;
+    }
+
+    public String getIdVistoria() {
+        return idVistoria;
+    }
+
+    public void setIdVistoria(String idVistoria) {
+        this.idVistoria = idVistoria;
+    }
 
     @PropertyName("qrCodeURL")
     private String qrCodeURL;
@@ -84,19 +109,7 @@ public class ItensVistorias implements Serializable {
         return excluidaVistoria;
     }
 
-    public void setExcluidaVistoria(boolean excluidaVistoria) {
-        this.excluidaVistoria = excluidaVistoria;
-    }
-    public String getFormattedData() {
-        String formattedData = "Nome do item: " + nomeItem +
-                "\nPlaca: " + placa +
-                "\nLocalização: " + localizacao +
-                "\nData: " + data +
-                "\nVistoriador: " + nomePerfilU +
-                "\nObservações: " + outrasInformacoes;
 
-        return formattedData;
-    }
 
 
     public boolean isConcluida() {
@@ -152,7 +165,7 @@ public class ItensVistorias implements Serializable {
     @PropertyName("fotos")
   private List<String> fotos;
   public ItensVistorias() {
-    DatabaseReference anuncioRefe=ConFirebase.getFirebaseDatabase().child("anuncios") ;
+    DatabaseReference anuncioRefe=ConFirebase.getFirebaseDatabase().child("vistorias") ;
 
     setIdAnuncio(anuncioRefe.push().getKey());
   }
@@ -160,7 +173,7 @@ public class ItensVistorias implements Serializable {
     String idUsuario= ConFirebase.getIdUsuario();
       setIdInspector(idUsuario);
     DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-            .child("anuncios");
+            .child("vistorias");
     anuncioRefe.child(idUsuario)
             .child(getIdAnuncio())
             .setValue(this);
@@ -171,74 +184,20 @@ public class ItensVistorias implements Serializable {
     String idiUsuario= ConFirebase.getIdUsuario();
 
     DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-            .child("anuncios")
+            .child("vistorias")
+            .child("vistoriaPu")
             .child(idiUsuario)
             .child(getIdAnuncio());
     anuncioRefe.removeValue();
     removerAPu();
   }
-    public static Task<List<ItensVistorias>> buscarVistoriasConcluidasPorDataELocalizacao(String localizacao, String dataInicial, String dataFinal) {
-        TaskCompletionSource<List<ItensVistorias>> taskCompletionSource = new TaskCompletionSource<>();
-
-        DatabaseReference vistoriasConcluidasRef = FirebaseDatabase.getInstance().getReference("vistoriasConcluidas");
-        Query query = vistoriasConcluidasRef.child(localizacao).orderByChild("data").startAt(dataInicial).endAt(dataFinal);
-
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<ItensVistorias> vistoriasList = new ArrayList<>();
-                for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
-                    ItensVistorias vistoria = vistoriaSnapshot.getValue(ItensVistorias.class);
-                    if (vistoria.isConcluida()) {
-                        vistoriasList.add(vistoria);
-                    }
-                }
-                taskCompletionSource.setResult(vistoriasList);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                taskCompletionSource.setException(databaseError.toException());
-            }
-        });
-
-        return taskCompletionSource.getTask();
-    }
 
 
-    public static Task<List<ItensVistorias>> recuperarAnunciosPorPlaca(String licensePlate) {
-        TaskCompletionSource<List<ItensVistorias>> taskCompletionSource = new TaskCompletionSource<>();
 
-        DatabaseReference anunciosRef = FirebaseDatabase.getInstance().getReference("anunciosPu");
-        ValueEventListener valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<ItensVistorias> anunciosList = new ArrayList<>();
-                for (DataSnapshot locationSnapshot : dataSnapshot.getChildren()) {
-                    for (DataSnapshot anuncioSnapshot : locationSnapshot.getChildren()) {
-                        ItensVistorias anuncio = anuncioSnapshot.getValue(ItensVistorias.class);
-                        if (anuncio.getPlaca().equalsIgnoreCase(licensePlate)) {
-                            anunciosList.add(anuncio);
-                        }
-                    }
-                }
-                taskCompletionSource.setResult(anunciosList);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                taskCompletionSource.setException(databaseError.toException());
-            }
-        };
-
-        anunciosRef.addListenerForSingleValueEvent(valueEventListener);
-
-        return taskCompletionSource.getTask();
-    }
     public static Task<Boolean> verificarPlacaExistente(String placa) {
         TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
 
-        DatabaseReference anunciosRef = FirebaseDatabase.getInstance().getReference("anunciosPu");
+        DatabaseReference anunciosRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
         ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -270,7 +229,7 @@ public class ItensVistorias implements Serializable {
     }
     public static Task<Void> atualizarAnuncio(ItensVistorias anuncio, String idUsuario) {
         // Recupera a referência do nó do anúncio
-        DatabaseReference anunciosRef = ConFirebase.getFirebaseDatabase().child("anuncios").child(idUsuario).child(anuncio.getIdAnuncio());
+        DatabaseReference anunciosRef = ConFirebase.getFirebaseDatabase().child("vistorias").child(idUsuario).child(anuncio.getIdAnuncio());
 
         // Atualiza os dados do anúncio no Firebase
         return anunciosRef.setValue(anuncio);
@@ -278,7 +237,7 @@ public class ItensVistorias implements Serializable {
 
     public static Task<Void> atualizarAnuncioPu(ItensVistorias anuncio, String idUsuario) {
         DatabaseReference anuncioPuRef = ConFirebase.getFirebaseDatabase()
-                .child("anunciosPu")
+                .child("vistoriaPu")
                 .child(idUsuario)
                 .child(anuncio.getIdAnuncio());
 
@@ -288,7 +247,7 @@ public class ItensVistorias implements Serializable {
     // DETERA OS ANUNCIOS PARA TODOS
   public  void removerAPu(){
       DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-              .child("anunciosPu")
+              .child("vistoriaPu")
               .child(getLocalizacao())
               .child(getIdAnuncio());
     anuncioRefe.removeValue();
@@ -296,13 +255,35 @@ public class ItensVistorias implements Serializable {
 // SALVA ANUNCIOS PARA TODOS
   public  void  salvarAnuncioPublico(){
     DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-            .child("anunciosPu");
+            .child("vistoriaPu");
     anuncioRefe.child(getLocalizacao())
             .child(getIdAnuncio())
             .setValue(this);
   }
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("idAnuncio", idAnuncio);
+        result.put("idVistoria", idVistoria);
+        result.put("localizacao_data", localizacao_data);
+        result.put("qrCodeURL", qrCodeURL);
+        result.put("tipoItem", tipoItem);
+        result.put("localizacao", localizacao);
+        result.put("nomeItem", nomeItem);
+        result.put("placa", placa);
+        result.put("data", data);
+        result.put("latitude", latitude);
+        result.put("longetude", longetude);
+        result.put("outrasInformacoes", outrasInformacoes);
+        result.put("nomePerfilU", nomePerfilU);
+        result.put("concluida", concluida);
+        result.put("idInspector", idInspector);
+        result.put("excluidaVistoria", excluidaVistoria);
+        result.put("fotos", fotos);
+        return result;
+    }
 
-  public String getTipoItem()
+
+    public String getTipoItem()
     {
         return tipoItem;
   }

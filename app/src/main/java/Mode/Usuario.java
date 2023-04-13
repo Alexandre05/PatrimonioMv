@@ -13,6 +13,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -168,10 +169,24 @@ public class Usuario implements Serializable {
                     .setValue(this);
 
             Log.d("SalvarUsuario", "Salvando usuário com ID: " + idU + " e tipo: " + getTipo());
+
+            // Chame o novo método para inicializar o nó "vistoriasConcluidas" para este usuário
+            inicializarVistoriasConcluidas(idU);
+
         } else {
             // Trate o caso em que o usuário não está autenticado
         }
     }
+
+    private void inicializarVistoriasConcluidas(String userId) {
+        DatabaseReference refe = ConFirebase.getFirebaseDatabase();
+        refe.child("vistoriasConcluidas")
+                .child(userId)
+                .setValue(new ArrayList<>()); // Inicialize o nó com uma lista vazia
+        Log.d("SalvarUsuario", "Inicializando o nó vistoriasConcluidas para o usuário: " + userId);
+    }
+
+
 
 
 

@@ -70,7 +70,7 @@ public class DetalhesAc extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(DetalhesAc.this, MapasActivity.class);
-                intent.putExtra("anuncio", anuncioSele);
+                intent.putExtra("vistorias", anuncioSele);
                 startActivity(intent);
             }
         });
@@ -91,7 +91,7 @@ public class DetalhesAc extends AppCompatActivity {
         }
 
         DatabaseReference anunciosPuRef = FirebaseDatabase.getInstance()
-                .getReference("anunciosPu")
+                .getReference("vistoriaPu")
                 .child(localizacao) // cai aqui o erro
                 .child(idAnuncio);
 
@@ -117,7 +117,7 @@ public class DetalhesAc extends AppCompatActivity {
 
     private void exibirDados(ItensVistorias anuncioSele) {
         if (anuncioSele != null) {
-            Log.d("DETAILED_ACTIVITY", "Anuncio: " + anuncioSele.toString());
+            Log.d("DETAILED_ACTIVITY", "vistorias: " + anuncioSele.toString());
             // Definir o nome, outras informações, placa, nome do perfil do usuário e localização nos TextViews
             nome.setText(anuncioSele.getNomeItem());
             ob.setText(anuncioSele.getOutrasInformacoes());

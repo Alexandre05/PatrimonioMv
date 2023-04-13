@@ -1,8 +1,10 @@
 package Atividades;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -34,6 +36,7 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,6 +53,7 @@ import dmax.dialog.SpotsDialog;
 
 public class Animais extends AppCompatActivity {
     private FirebaseAuth autenticacao;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerViewPu;
     private EditText nomeUsuario;
     private Button animais, bairoo;
@@ -75,8 +79,9 @@ public class Animais extends AppCompatActivity {
 
         navigation();
         inicializarCompo();
+
         autenticacao = ConFirebase.getReferenciaAutencicacao();
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("anuncios");
+        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistorias");
         //autenticacao.signOut();
         recyclerViewPu.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewPu.setHasFixedSize(true);
@@ -89,13 +94,19 @@ public class Animais extends AppCompatActivity {
                 public void onUserLoaded(Usuario usuario) {
                     if (usuario != null) {
                         isAdmin = usuario.isUserAdmin();
+
                     }
                 }
             });
         }
-        recuperaAnuncioPublicos();
-
-// aqui faz o tique na tela para abrir
+        recuperaAnuncioPublicos(true);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                atualizarDados();
+            }
+        });
+// aqui faz o toque na tela para abrir
         recyclerViewPu.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerViewPu, new RecyclerItemClickListener.OnItemClickListener() {
 
             @Override
@@ -150,16 +161,11 @@ public class Animais extends AppCompatActivity {
     private interface OnUserLoadedListener {
         void onUserLoaded(Usuario usuario);
     }
-
-
-
-
     @Override
     protected void onStart() {
         super.onStart();
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("anuncios").child("localizacao");
+        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
     }
-
 
     @Override
     protected void onStop() {
@@ -173,8 +179,15 @@ public class Animais extends AppCompatActivity {
             listacioItens.clear();
             for (DataSnapshot localizacao : snapshot.getChildren()) {
                 for (DataSnapshot lo : localizacao.getChildren()) {
-                    ItensVistorias anuncio = lo.getValue(ItensVistorias.class);
-                    listacioItens.add(anuncio);
+                    // Verifique se o anúncio ainda existe antes de adicioná-lo à lista
+                    if (lo.exists()) {
+                        ItensVistorias anuncio = lo.getValue(ItensVistorias.class);
+
+                        // Adicione uma verificação adicional para garantir que o anúncio seja válido
+                        if (anuncio != null && anuncio.getIdAnuncio() != null && !anuncio.getIdAnuncio().isEmpty()) {
+                            listacioItens.add(anuncio);
+                        }
+                    }
                 }
             }
             Collections.reverse(listacioItens);
@@ -187,13 +200,33 @@ public class Animais extends AppCompatActivity {
 
         }
     };
-
-    private void recuperaAnuncioPublicos() {
+    private void recuperaAnuncioPublicos(boolean firTime) {
         alertDialog = new SpotsDialog.Builder(this)
                 .setMessage("Recuperando  Vistorias").setCancelable(false).show();
         alertDialog.show();
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("anunciosPu");
+        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
+
+        // Adicione esta linha para remover o listener anterior antes de adicionar um novo
+        anunciosRef.removeEventListener(valueEventListenerAnuncios);
+
         anunciosRef.addValueEventListener(valueEventListenerAnuncios);
+    }
+
+
+    private void atualizarDados() {
+        // Remova o listener anterior, caso exista
+        if (valueEventListenerAnuncios != null) {
+            anunciosRef.removeEventListener(valueEventListenerAnuncios);
+        }
+
+        // Recupere os dados novamente do Firebase
+        recuperaAnuncioPublicos(false);
+
+        // Atualize o RecyclerView
+        adapterAnuncios.notifyDataSetChanged();
+
+        // Pare o ícone de carregamento do SwipeRefreshLayout
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -242,14 +275,12 @@ public class Animais extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void Abrir() {
-        startActivity(new Intent(this, Login.class));
-    }
 
     private void inicializarCompo() {
         recyclerViewPu = findViewById(R.id.ryclePublico);
         campoEmail = findViewById(R.id.emialLog);
         campoSenha = findViewById(R.id.senhaLog);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
     }
     private void navigation() {
         BottomNavigationView bottom = findViewById(R.id.bnve);
