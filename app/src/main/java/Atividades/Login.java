@@ -150,7 +150,7 @@ public class Login extends AppCompatActivity {
 
 
     public void abrirTelaAdmin() {
-        startActivity(new Intent(this, AdminActivity.class));
+        startActivity(new Intent(this, Admininistrar.class));
     }
 
 

@@ -115,7 +115,7 @@ public class Cadastrar extends AppCompatActivity {
 
                         cadastrarUsuario();
 
-                        Intent intent = new Intent(Cadastrar.this, AtualizarActivity.class);
+                        Intent intent = new Intent(Cadastrar.this, Atualizar.class);
                         startActivity(intent);
                     } else if (!tipoUsuario.equals("AD")) {
                         Toast.makeText(Cadastrar.this,

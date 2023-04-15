@@ -98,7 +98,7 @@ public class MinhasVistorias extends AppCompatActivity {
                             @Override
                             public void onItemClick(View view, int position) {
                                 ItensVistorias anuncioSelecionado = anuncios.get(position);
-                                Intent intent = new Intent(getApplicationContext(), AtualizarActivity.class);
+                                Intent intent = new Intent(getApplicationContext(), Atualizar.class);
                                 intent.putExtra("vistorias", anuncioSelecionado);
                                 startActivity(intent);
                             }

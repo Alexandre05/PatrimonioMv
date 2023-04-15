@@ -49,7 +49,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name="Atividades.CompanyInfoActivity"
+            android:name="Atividades.InformacoesEmpresa"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -63,7 +63,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name="Atividades.AdminActivity"
+            android:name="Atividades.Admininistrar"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -108,7 +108,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name="Atividades.AtualizarActivity"
+            android:name="Atividades.Atualizar"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

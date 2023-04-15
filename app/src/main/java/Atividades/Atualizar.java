@@ -17,7 +17,7 @@ import Ajuda.ConFirebase;
 import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 
-public class AtualizarActivity extends AppCompatActivity {
+public class Atualizar extends AppCompatActivity {
     private ItensVistorias anuncio;
 
     private EditText tipoItem;
@@ -70,12 +70,12 @@ public class AtualizarActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         boolean placaExistente = task.getResult();
                         if (placaExistente) {
-                            Toast.makeText(AtualizarActivity.this, "A placa já existe em outro anúncio!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(Atualizar.this, "A placa já existe em outro anúncio!", Toast.LENGTH_SHORT).show();
                         } else {
                             atualizarAnuncio(novaPlaca);
                         }
                     } else {
-                        Toast.makeText(AtualizarActivity.this, "Erro ao verificar a placa.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(Atualizar.this, "Erro ao verificar a placa.", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -103,11 +103,11 @@ public class AtualizarActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Toast.makeText(AtualizarActivity.this, "Anúncio atualizado com sucesso!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Atualizar.this, "Anúncio atualizado com sucesso!", Toast.LENGTH_SHORT).show();
                     // Retorna para a tela de lista de anúncios
                     finish();
                 } else {
-                    Toast.makeText(AtualizarActivity.this, "Erro ao atualizar o anúncio.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Atualizar.this, "Erro ao atualizar o anúncio.", Toast.LENGTH_SHORT).show();
                 }
             }
         });

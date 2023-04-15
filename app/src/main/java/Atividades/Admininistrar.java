@@ -31,7 +31,7 @@ import Modelos.ItensVistorias;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 
-public class AdminActivity extends AppCompatActivity {
+public class Admininistrar extends AppCompatActivity {
     private ListView listViewVistorias;
     private List<ItensVistorias> vistorias;
     private VistoriaAdapter vistoriaAdapter;
@@ -73,9 +73,9 @@ public class AdminActivity extends AppCompatActivity {
                 if (!novoCodigo.isEmpty()) {
                     ConFirebase.CODIGO_ESPECIAL = novoCodigo; // altera o valor da variável estática
                     novoCodigoEspecial.setText("");
-                    Toast.makeText(AdminActivity.this, "Código especial atualizado", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Admininistrar.this, "Código especial atualizado", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(AdminActivity.this, "Por favor, insira um novo código especial", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Admininistrar.this, "Por favor, insira um novo código especial", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -88,9 +88,9 @@ public class AdminActivity extends AppCompatActivity {
 
                 if (!numeroPortarias.isEmpty() && !vistoriadoresPorPortaria.isEmpty()) {
                     salvarConfiguracoes(Integer.parseInt(numeroPortarias), Integer.parseInt(vistoriadoresPorPortaria));
-                    Toast.makeText(AdminActivity.this, "Configurações salvas", Toast.LENGTH_SHORT);
+                    Toast.makeText(Admininistrar.this, "Configurações salvas", Toast.LENGTH_SHORT);
                 } else {
-                    Toast.makeText(AdminActivity.this, "Por favor, insira o número de portarias e vistoriadores por portaria", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Admininistrar.this, "Por favor, insira o número de portarias e vistoriadores por portaria", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -103,7 +103,7 @@ public class AdminActivity extends AppCompatActivity {
 
     }
     private void openEditCompanyInfoActivity() {
-        Intent intent = new Intent(AdminActivity.this, CompanyInfoActivity.class);
+        Intent intent = new Intent(Admininistrar.this, InformacoesEmpresa.class);
         startActivity(intent);
     }
     private void salvarConfiguracoes(int numeroPortarias, int vistoriadoresPorPortaria) {
@@ -132,14 +132,14 @@ public class AdminActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(AdminActivity.this, "Erro ao buscar vistoria: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(Admininistrar.this, "Erro ao buscar vistoria: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void exibirNotificacao(String localizacao) {
         String mensagem = "A vistoria da localização " + localizacao + " foi concluída.";
-        Toast.makeText(AdminActivity.this, mensagem, Toast.LENGTH_SHORT).show();
+        Toast.makeText(Admininistrar.this, mensagem, Toast.LENGTH_SHORT).show();
     }
     public boolean isMatriculaValida(String matricula) {
         return matriculasMembrosComissao.contains(matricula);

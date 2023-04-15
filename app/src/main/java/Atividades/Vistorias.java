@@ -288,7 +288,7 @@ public class Vistorias extends AppCompatActivity {
                 switch (id) {
                     case R.id.Ad:
                         if (isAdmin) {
-                            startActivity(new Intent(getApplicationContext(), AdminActivity.class));
+                            startActivity(new Intent(getApplicationContext(), Admininistrar.class));
                         }
                         break;
                     case R.id.ic_minhas:

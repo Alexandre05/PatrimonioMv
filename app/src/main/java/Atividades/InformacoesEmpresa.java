@@ -6,7 +6,7 @@ import android.os.Bundle;
 
 import br.com.patrimoniomv.R;
 
-public class CompanyInfoActivity extends AppCompatActivity {
+public class InformacoesEmpresa extends AppCompatActivity {
     
 
     @Override
