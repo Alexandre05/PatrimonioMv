@@ -24,8 +24,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
-import Helper.ConFirebase;
-import Mode.Usuario;
+import Ajuda.ConFirebase;
+import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 
 public class Login extends AppCompatActivity {
@@ -170,7 +170,7 @@ public class Login extends AppCompatActivity {
 
     public void abrirTelaAni(){
 
-        startActivity(new Intent(this,Animais.class));
+        startActivity(new Intent(this, Vistorias.class));
     }
 
 

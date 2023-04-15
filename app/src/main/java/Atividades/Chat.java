@@ -19,7 +19,7 @@ import java.util.List;
 
 import Fragment.ContatosT1;
 import Fragment.Conversas;
-import Mode.ItensVistorias;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 import retrofit2.Retrofit;
 

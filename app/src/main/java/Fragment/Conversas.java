@@ -20,10 +20,10 @@ import com.google.firebase.database.DatabaseReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import Adapter.ConversaAdpter;
-import Helper.ConFirebase;
-import Mode.ConversaAssunto;
-import Mode.RecyclerItemClickListener;
+import Adaptadores.ConversaAdpter;
+import Ajuda.ConFirebase;
+import Modelos.ConversaAssunto;
+import Modelos.RecyclerItemClickListener;
 import br.com.patrimoniomv.R;
 
 

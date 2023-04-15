@@ -26,10 +26,10 @@ public class Inicial extends AppCompatActivity {
 
                 if (isFirstRun) {
                     // Redirecionar para a tela de inserção de informações da empresa
-                    startActivity(new Intent(Inicial.this, Animais.class));
+                    startActivity(new Intent(Inicial.this, Vistorias.class));
                 } else {
                     // Redirecionar para a tela principal
-                    startActivity(new Intent(Inicial.this, Animais.class));
+                    startActivity(new Intent(Inicial.this, Vistorias.class));
                 }
 
                 // Encerrar a Activity da tela de boas-vindas

@@ -1,4 +1,4 @@
-package Helper;
+package Ajuda;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;

@@ -5,7 +5,6 @@ import static com.google.firebase.crashlytics.internal.Logger.TAG;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
@@ -44,7 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import Mode.ItensVistorias;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 import android.util.Log;
 

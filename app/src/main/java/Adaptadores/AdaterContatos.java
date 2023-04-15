@@ -1,4 +1,4 @@
-package Adapter;
+package Adaptadores;
 
 import android.content.Context;
 import android.net.Uri;
@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
-import Mode.Usuario;
+import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 import de.hdodenhof.circleimageview.CircleImageView;
 

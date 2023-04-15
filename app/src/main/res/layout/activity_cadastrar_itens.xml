@@ -115,7 +115,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/botoaentrar"
-            android:onClick="validarAnuncio"
+            android:onClick="validarVistorias"
             android:text="Cadastrar Item"
             android:textSize="18sp"
             android:textColor="#FFFFFF"

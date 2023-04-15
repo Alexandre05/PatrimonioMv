@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import Mode.ItensVistorias;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 
 public class MapasActivity extends FragmentActivity implements OnMapReadyCallback {

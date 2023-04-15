@@ -7,10 +7,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
+import android.util.Pair;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -20,12 +19,14 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import Adapter.VistoriaAndamentoAdapter;
-import Helper.ConFirebase;
-import Mode.ItensVistorias;
+import Adaptadores.VistoriaAndamentoAdapter;
+import Ajuda.ConFirebase;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -33,6 +34,8 @@ import com.google.firebase.database.FirebaseDatabase;
 public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
     private ListView vistoriasAndamentoListView;
+    private boolean isProcessing = false;
+
     private Set<String> uniqueLicensePlates;
 
     private DatabaseReference mDatabase;
@@ -77,15 +80,16 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
     private void fetchVistoriasEmAndamento() {
         vistoriasEmAndamento = new ArrayList<>();
-        Set<String> uniqueKeys = new HashSet<>();
-
+        Map<Pair<String, String>, ItensVistorias> groupedVistorias = new LinkedHashMap<>();
+        adapter = new VistoriaAndamentoAdapter(VistoriasEmAndamentoActivity.this, R.layout.itensvistoria, vistoriasEmAndamento);
+        vistoriasAndamentoListView.setAdapter(adapter);
         Query query = mDatabase.child("vistorias");
 
         if (vistoriasEventListener != null) {
             query.removeEventListener(vistoriasEventListener);
         }
-
         vistoriasEventListener = new ChildEventListener() {
+
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.d("fetchVistorias", "onChildAdded called");
@@ -93,22 +97,46 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                     ItensVistorias vistoria = vistoriaSnapshot.getValue(ItensVistorias.class);
 
                     if (!vistoria.isConcluida() && !vistoria.isExcluidaVistoria()) {
-                        String licensePlate = vistoria.getPlaca();
                         String date = vistoria.getData();
-                        String location = vistoria.getLocalizacao();
-                        String uniqueKey = licensePlate + "_" + date + "_" + location;
+                        String time = String.valueOf(vistoria.getHour());
+                        Pair<String, String> dateTimePair = new Pair<>(date, time);
 
-                        if (!uniqueKeys.contains(uniqueKey)) {
-                            uniqueKeys.add(uniqueKey);
-                            vistoriasEmAndamento.add(vistoria);
+                        if (groupedVistorias.containsKey(dateTimePair)) {
+                            ItensVistorias existingVistoria = groupedVistorias.get(dateTimePair);
+
+                            // Verificar se a vistoria já está na lista de vistorias em andamento
+                            boolean isInList = false;
+                            for (ItensVistorias itemVistoria : existingVistoria.getItens()) {
+                                if (itemVistoria.getIdAnuncio().equals(vistoria.getIdAnuncio())) {
+                                    isInList = true;
+                                    break;
+                                }
+                            }
+
+                            if (!isInList) {
+                                existingVistoria.getItens().add(vistoria);
+                            }
+                        } else {
+                            ItensVistorias newVistoria = new ItensVistorias();
+                            newVistoria.setData(date);
+                            newVistoria.setNomePerfilU(vistoria.getNomePerfilU());
+                            newVistoria.setNomeItem(vistoria.getNomeItem());
+                            newVistoria.setLocalizacao(vistoria.getLocalizacao());
+                            newVistoria.setPlaca(vistoria.getPlaca());
+                            newVistoria.setOutrasInformacoes(vistoria.getOutrasInformacoes());
+                            newVistoria.getItens().add(vistoria);
+                            newVistoria.setHour(Integer.parseInt(time));
+                            groupedVistorias.put(dateTimePair, newVistoria);
                         }
                     }
                 }
 
-                adapter = new VistoriaAndamentoAdapter(VistoriasEmAndamentoActivity.this, R.layout.itensvistoria, vistoriasEmAndamento);
-                vistoriasAndamentoListView.setAdapter(adapter);
+                // Atualize a lista de vistorias em andamento e notifique o adaptador
+                vistoriasEmAndamento.clear();
+                vistoriasEmAndamento.addAll(groupedVistorias.values());
                 adapter.notifyDataSetChanged();
             }
+
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
@@ -127,12 +155,19 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
                 // Trate os erros aqui
             }
-        };
-        query.addChildEventListener(vistoriasEventListener);
+        };query.addChildEventListener(vistoriasEventListener);
     }
 
 
-    public void concluirVistoria(ItensVistorias vistoriaAtual) {
+
+    public void concluirVistoria(ItensVistorias vistoriaAtual, int position) {
+        if (isProcessing) {
+            return;
+        }
+        isProcessing = true;
+        vistoriaAtual.setConcluida(true); // Marque a vistoria atual como concluída
+        // Atualize a lista de vistorias e notifique o adaptador
+        adapter.notifyDataSetChanged();
         String localizacao = vistoriaAtual.getLocalizacao();
         String dataVistoria = vistoriaAtual.getData();
         String uniqueGroupKey = localizacao + "_" + dataVistoria;
@@ -143,6 +178,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         builder.setMessage("Deseja concluir todas as vistorias da localização: " + localizacao + " na data: " + dataVistoria + "?");
         builder.setPositiveButton("Sim", (dialog, which) -> {
             DatabaseReference anunciosRef = ConFirebase.getFirebaseDatabase().child("vistorias");
+            DatabaseReference vistoriasConcluidasRef = ConFirebase.getFirebaseDatabase().child("vistoriasConcluidas");
 
             anunciosRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -160,7 +196,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                                         ItensVistorias vistoria = vistoriaSnapshot.getValue(ItensVistorias.class);
                                         if (vistoria != null && !vistoria.isConcluida()) {
                                             vistoriasList.add(vistoria);
-                                            Log.d("DEBUG", "Vistoria item: " + vistoria); // Adicionado para rastrear itens da vistoria
+                                            Log.d("DEBUG", "Vistoria item: " + vistoria);
                                         }
                                     }
                                 } else {
@@ -176,28 +212,58 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                         });
                     }
 
-                    // Combinar os itens das várias vistorias em uma única vistoria concluída
-                    ItensVistorias vistoriaConcluida = combineVistorias(vistoriasList);
-                    vistoriaConcluida.setLocalizacao(localizacao);
-                    vistoriaConcluida.setData(dataVistoria);
-                    vistoriaConcluida.setConcluida(true);
+                    Query vistoriasConcluidasQuery = vistoriasConcluidasRef.orderByChild("localizacao_data").equalTo(uniqueGroupKey);
+                    vistoriasConcluidasQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            ItensVistorias vistoriaConcluidaExistente = null;
+                            String vistoriaConcluidaId = null;
+                            if (dataSnapshot.exists()) {
+                                for (DataSnapshot vistoriaConcluidaSnapshot : dataSnapshot.getChildren()) {
+                                    vistoriaConcluidaExistente = vistoriaConcluidaSnapshot.getValue(ItensVistorias.class);
+                                    vistoriaConcluidaId = vistoriaConcluidaSnapshot.getKey();
+                                    break;
+                                }
+                            }
 
-                    // Salvar a vistoria concluída no nó "vistoriasConcluidas"
-                    DatabaseReference vistoriasConcluidasRef = ConFirebase.getFirebaseDatabase().child("vistoriasConcluidas");
-                    String vistoriaConcluidaId = vistoriasConcluidasRef.push().getKey();
-                    if (vistoriaConcluidaId != null) {
-                        vistoriasConcluidasRef.child(vistoriaConcluidaId).setValue(vistoriaConcluida.toMap());
-                    }                // Atualizar o status das vistorias originais para "concluida = true"
-                    for (ItensVistorias vistoria : vistoriasList) {
-                        String inspectorId = vistoria.getIdInspector();
-                        String vistoriaId = vistoria.getIdAnuncio();
-                        if (inspectorId != null && vistoriaId != null) {
-                            anunciosRef.child(inspectorId).child(vistoriaId).child("concluida").setValue(true);
+                            ItensVistorias vistoriaConcluida;
+                            if (vistoriaConcluidaExistente != null) {
+                                vistoriaConcluida = combineVistorias(vistoriasList, vistoriaConcluidaExistente);
+                            } else {
+                                vistoriaConcluida = combineVistorias(vistoriasList, null);
+                            }
+
+                            vistoriaConcluida.setLocalizacao(localizacao);
+                            vistoriaConcluida.setData(dataVistoria);
+                            vistoriaConcluida.setConcluida(true);
+
+                            if (vistoriaConcluidaId != null) {
+                                vistoriasConcluidasRef.child(vistoriaConcluidaId).setValue(vistoriaConcluida.toMap());
+                            } else {
+                                vistoriaConcluidaId = vistoriasConcluidasRef.push().getKey();
+                                if (vistoriaConcluidaId != null) {
+                                    vistoriasConcluidasRef.child(vistoriaConcluidaId).setValue(vistoriaConcluida.toMap());
+                                }
+                            }
+
+                            for (ItensVistorias vistoria : vistoriasList) {
+                                String inspectorId = vistoria.getIdInspector();
+                                String vistoriaId = vistoria.getIdAnuncio();
+                                if (inspectorId != null && vistoriaId != null) {
+                                    anunciosRef.child(inspectorId).child(vistoriaId).child("concluida").setValue(true);
+                                }
+                            }
+
+                            fetchVistoriasEmAndamento();
+                            isProcessing = false;
                         }
-                    }
 
-                    // Atualizar a lista de vistorias em andamento
-                    fetchVistoriasEmAndamento();
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            // Tratar o erro aqui
+                            Log.d("DEBUG", "onCancelled - databaseError: " + databaseError);
+                        }
+                    });
                 }
 
                 @Override
@@ -212,13 +278,58 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    private ItensVistorias combineVistorias(List<ItensVistorias> vistoriasList) {
-        ItensVistorias vistoriaConcluida = new ItensVistorias();
-        // Inicializar campos adicionais conforme necessário
 
-        for (ItensVistorias vistoria : vistoriasList) {
-            // Combine os itens das várias vistorias aqui
-            // Exemplo: vistoriaConcluida.setCampoX(vistoriaConcluida.getCampoX() + vistoria.getCampoX());
+                private ItensVistorias combineVistorias(List<ItensVistorias> vistoriasList, ItensVistorias vistoriaConcluidaExistente) {
+        if (vistoriasList.isEmpty()) {
+            if (vistoriaConcluidaExistente != null) {
+                return vistoriaConcluidaExistente;
+            } else {
+                throw new IllegalArgumentException("A lista de vistorias não pode estar vazia");
+            }
+        }
+
+        ItensVistorias vistoriaConcluida;
+        if (vistoriaConcluidaExistente != null) {
+            vistoriaConcluida = vistoriaConcluidaExistente;
+        } else {
+            vistoriaConcluida = new ItensVistorias();
+            ItensVistorias firstVistoria = vistoriasList.get(0);
+
+            // Copiar campos que não serão modificados
+            vistoriaConcluida.setIdAnuncio(firstVistoria.getIdAnuncio());
+            vistoriaConcluida.setLocalizacao(firstVistoria.getLocalizacao());
+            vistoriaConcluida.setLocalizacao_data(firstVistoria.getLocalizacao_data());
+            vistoriaConcluida.setPlaca(firstVistoria.getPlaca());
+            vistoriaConcluida.setData(firstVistoria.getData());
+            vistoriaConcluida.setLatitude(firstVistoria.getLatitude());
+            vistoriaConcluida.setLongetude(firstVistoria.getLongetude());
+            vistoriaConcluida.setTipoItem(firstVistoria.getTipoItem());
+
+            // Inicializar campos que serão combinados
+            vistoriaConcluida.setNomePerfilU(firstVistoria.getNomePerfilU());
+            vistoriaConcluida.setIdInspector(firstVistoria.getIdInspector());
+            vistoriaConcluida.setFotos(new ArrayList<>(firstVistoria.getFotos()));
+            vistoriaConcluida.setOutrasInformacoes(firstVistoria.getOutrasInformacoes());
+        }
+
+        for (int i = (vistoriaConcluidaExistente != null) ? 0 : 1; i < vistoriasList.size(); i++) {
+            ItensVistorias vistoria = vistoriasList.get(i);
+
+            // Verifique se a localização e data são as mesmas
+            if (!vistoriaConcluida.getLocalizacao().equalsIgnoreCase(vistoria.getLocalizacao()) ||
+                    !vistoriaConcluida.getData().equalsIgnoreCase(vistoria.getData())) {
+                throw new IllegalArgumentException("As vistorias devem ter a mesma localização e data");
+            }
+
+            // Combine os campos relevantes
+            if (!vistoriaConcluida.getIdInspector().equals(vistoria.getIdInspector())) {
+                vistoriaConcluida.setIdInspector(vistoriaConcluida.getIdInspector() + "," + vistoria.getIdInspector());
+            }
+            if (!vistoriaConcluida.getNomePerfilU().equals(vistoria.getNomePerfilU())) {
+                vistoriaConcluida.setNomePerfilU(vistoriaConcluida.getNomePerfilU() + "," + vistoria.getNomePerfilU());
+            }
+            vistoriaConcluida.getFotos().addAll(vistoria.getFotos());
+            vistoriaConcluida.setOutrasInformacoes(vistoriaConcluida.getOutrasInformacoes() + "\n\n" + vistoria.getOutrasInformacoes());
         }
 
         return vistoriaConcluida;

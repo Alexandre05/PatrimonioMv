@@ -14,7 +14,7 @@ import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import Mode.ItensVistorias;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 
 public class DisplayInfoActivity extends AppCompatActivity {

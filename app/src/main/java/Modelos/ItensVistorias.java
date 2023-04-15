@@ -1,5 +1,4 @@
-package Mode;
-import android.util.Log;
+package Modelos;
 
 import androidx.annotation.NonNull;
 
@@ -8,10 +7,8 @@ import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.PropertyName;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.Serializable;
@@ -20,8 +17,49 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import Helper.ConFirebase;
+import Ajuda.ConFirebase;
 public class ItensVistorias implements Serializable {
+    @PropertyName("itens")
+    private List<ItensVistorias> itens;
+    private int hour, minute, second;
+
+    public int getHour() {
+        return hour;
+    }
+
+    public void setHour(int hour) {
+        this.hour = hour;
+    }
+
+    public int getMinute() {
+        return minute;
+    }
+
+    public void setMinute(int minute) {
+        this.minute = minute;
+    }
+
+    public int getSecond() {
+        return second;
+    }
+
+    public void setSecond(int second) {
+        this.second = second;
+    }
+
+    // Adicione getters e setters para a propriedade 'itens'
+    @PropertyName("itens")
+    public List<ItensVistorias> getItens() {
+        if (itens == null) {
+            itens = new ArrayList<>();
+        }
+        return itens;
+    }
+
+    @PropertyName("itens")
+    public void setItens(List<ItensVistorias> itens) {
+        this.itens = itens;
+    }
     @PropertyName("idAnuncio")
     private String idAnuncio;
     private String idVistoria;

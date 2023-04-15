@@ -1,7 +1,6 @@
-package Adapter;
+package Adaptadores;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +13,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import Atividades.DetalhesAc;
-import Mode.ItensVistorias;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewHolder> {

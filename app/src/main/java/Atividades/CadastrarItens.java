@@ -50,18 +50,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 
-import Helper.ConFirebase;
-import Helper.DataCuston;
-import Mode.ItensVistorias;
-import Helper.Permissoes;
-import Mode.Usuario;
+import Ajuda.ConFirebase;
+import Ajuda.DataCuston;
+import Modelos.ItensVistorias;
+import Ajuda.Permissoes;
+import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 import de.hdodenhof.circleimageview.CircleImageView;
 import dmax.dialog.SpotsDialog;
@@ -108,7 +106,7 @@ public class CadastrarItens extends AppCompatActivity
         setContentView(R.layout.activity_cadastrar_itens);
         Permissoes.validarPermissoes(permissoes, this, 1);
         FirebaseUser usuario = ConFirebase.getUsuarioAtaul();
-        iniciarCampo();
+        iniciarCamponentes();
         carregarSpi();
 
         storage = ConFirebase.getFirebaseStorage();
@@ -124,7 +122,7 @@ public class CadastrarItens extends AppCompatActivity
     }
 
 // savar Anuncios
-public void salvarAnuncios() {
+public void salvarVistorias() {
     dialog = new SpotsDialog.Builder(this)
             .setMessage("Salvando...")
             .setCancelable(false)
@@ -179,7 +177,7 @@ public void salvarAnuncios() {
     });
 }
 
-    private ItensVistorias ConfiAnuncio() {
+    private ItensVistorias ConfigurarVistoria() {
         String recebe = ConFirebase.getDadosUsarioLogado().getNome();
 
 
@@ -214,8 +212,8 @@ public void salvarAnuncios() {
     }
 
 
-    public void validarAnuncio(android.view.View view) {
-        anuncios = ConfiAnuncio();
+    public void validarVistorias(android.view.View view) {
+        anuncios = ConfigurarVistoria();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -256,7 +254,7 @@ public void salvarAnuncios() {
                                             startActivity(intent);
                                         }
 
-                                        salvarAnuncios();
+                                        salvarVistorias();
                                         recreate();
 
                                     } else {
@@ -427,7 +425,7 @@ public void salvarAnuncios() {
         campocidade.setAdapter(Adapter2);
     }
 
-    private void iniciarCampo() {
+    private void iniciarCamponentes() {
 
         campoNome = findViewById(R.id.editNome);
         imageCada1 = findViewById(R.id.imageCada1);

@@ -1,8 +1,8 @@
-package Mode;
+package Modelos;
 
 import com.google.firebase.database.DatabaseReference;
 
-import Helper.ConFirebase;
+import Ajuda.ConFirebase;
 
 public class ConversaAssunto {
 

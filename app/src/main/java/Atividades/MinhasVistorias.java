@@ -11,7 +11,6 @@ import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.media2.exoplayer.external.util.Log;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,11 +24,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import Adapter.AdapterAnuncios;
-import Helper.ConFirebase;
-import Mode.ItensVistorias;
-import Mode.RecyclerItemClickListener;
-import Mode.Usuario;
+import Adaptadores.AdapterAnuncios;
+import Ajuda.ConFirebase;
+import Modelos.ItensVistorias;
+import Modelos.RecyclerItemClickListener;
+import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 import br.com.patrimoniomv.databinding.ActivityMeusAnimaisBinding;
 

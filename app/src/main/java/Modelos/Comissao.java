@@ -1,4 +1,4 @@
-package Mode;
+package Modelos;
 
 
 import java.io.Serializable;

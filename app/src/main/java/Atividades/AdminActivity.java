@@ -2,12 +2,10 @@ package Atividades;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.media2.exoplayer.external.util.Log;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -20,20 +18,17 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import Adapter.PendingUserAdapter;
-import Adapter.VistoriaAdapter;
-import Helper.ConFirebase;
-import Helper.QRCodeGenerator;
-import Mode.ItensVistorias;
-import Mode.Usuario;
+import Adaptadores.PendingUserAdapter;
+import Adaptadores.VistoriaAdapter;
+import Ajuda.ConFirebase;
+import Ajuda.QRCodeGenerator;
+import Modelos.ItensVistorias;
+import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 
 public class AdminActivity extends AppCompatActivity {

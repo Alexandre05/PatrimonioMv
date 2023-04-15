@@ -1,4 +1,4 @@
-package Helper;
+package Ajuda;
 
 import android.net.Uri;
 import android.util.Log;
@@ -15,7 +15,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import Mode.Usuario;
+import Modelos.Usuario;
 
 public class ConFirebase {
 

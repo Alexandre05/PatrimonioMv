@@ -1,4 +1,4 @@
-package Adapter;
+package Adaptadores;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import Mode.Usuario;
+import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 
 public class PendingUserAdapter extends RecyclerView.Adapter<PendingUserAdapter.ViewHolder> {

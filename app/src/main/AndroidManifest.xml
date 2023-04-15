@@ -94,7 +94,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name="Atividades.Animais"
+            android:name="Atividades.Vistorias"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

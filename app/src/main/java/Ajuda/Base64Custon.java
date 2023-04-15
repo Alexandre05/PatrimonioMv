@@ -1,4 +1,4 @@
-package Helper;
+package Ajuda;
 
 import android.util.Base64;
 

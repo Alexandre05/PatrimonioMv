@@ -1,4 +1,4 @@
-package Helper;
+package Ajuda;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;

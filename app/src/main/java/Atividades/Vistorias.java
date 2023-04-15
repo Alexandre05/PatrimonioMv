@@ -1,14 +1,9 @@
 package Atividades;
 
 import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -16,7 +11,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
@@ -27,12 +21,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -42,16 +32,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import Adapter.AdapterAnuncios;
-import Helper.ConFirebase;
-import Mode.ItensVistorias;
-import Mode.RecyclerItemClickListener;
+import Adaptadores.AdapterAnuncios;
+import Ajuda.ConFirebase;
+import Modelos.ItensVistorias;
+import Modelos.RecyclerItemClickListener;
 
-import Mode.Usuario;
+import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 import dmax.dialog.SpotsDialog;
 
-public class Animais extends AppCompatActivity {
+public class Vistorias extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerViewPu;
@@ -99,7 +89,7 @@ public class Animais extends AppCompatActivity {
                 }
             });
         }
-        recuperaAnuncioPublicos(true);
+        recuperarVistoriasPublicas(true);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -114,7 +104,7 @@ public class Animais extends AppCompatActivity {
                 Log.e("DETAILED_ACTIVITY", "Onclik.");
                 ItensVistorias anuncioSelecionado = listacioItens.get(position);
 
-                Intent i = new Intent(Animais.this, DetalhesAc.class);
+                Intent i = new Intent(Vistorias.this, DetalhesAc.class);
                 i.putExtra("idAnuncio", anuncioSelecionado.getIdAnuncio()); // Altere esta linha
                 i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
                 startActivity(i);
@@ -200,7 +190,7 @@ public class Animais extends AppCompatActivity {
 
         }
     };
-    private void recuperaAnuncioPublicos(boolean firTime) {
+    private void recuperarVistoriasPublicas(boolean firTime) {
         alertDialog = new SpotsDialog.Builder(this)
                 .setMessage("Recuperando  Vistorias").setCancelable(false).show();
         alertDialog.show();
@@ -220,7 +210,7 @@ public class Animais extends AppCompatActivity {
         }
 
         // Recupere os dados novamente do Firebase
-        recuperaAnuncioPublicos(false);
+        recuperarVistoriasPublicas(false);
 
         // Atualize o RecyclerView
         adapterAnuncios.notifyDataSetChanged();
@@ -305,7 +295,7 @@ public class Animais extends AppCompatActivity {
                         startActivity(new Intent(getApplicationContext(), MinhasVistorias.class));
                         break;
                     case R.id.ic_perfil:
-                        Intent intent = new Intent(Animais.this, VistoriasEmAndamentoActivity.class);
+                        Intent intent = new Intent(Vistorias.this, VistoriasEmAndamentoActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.inicial:

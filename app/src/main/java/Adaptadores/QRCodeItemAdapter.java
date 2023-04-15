@@ -1,4 +1,4 @@
-package Adapter;
+package Adaptadores;
 
 import android.content.Context;
 import android.util.Log;
@@ -15,7 +15,7 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
-import Mode.ItensVistorias;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 
 public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QRCodeItemViewHolder> {

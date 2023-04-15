@@ -1,6 +1,6 @@
 package Api;
 
-import Mode.NotificacaoDados;
+import Modelos.NotificacaoDados;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Headers;

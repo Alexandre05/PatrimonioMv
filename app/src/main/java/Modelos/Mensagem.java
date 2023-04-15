@@ -1,4 +1,4 @@
-package Mode;
+package Modelos;
 
 public class Mensagem {
 

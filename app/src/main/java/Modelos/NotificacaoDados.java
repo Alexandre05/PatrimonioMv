@@ -1,4 +1,4 @@
-package Mode;
+package Modelos;
 
 public class NotificacaoDados {
     //Estrutura de dados para enviar ao firebase

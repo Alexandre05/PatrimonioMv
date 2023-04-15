@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:text="Nome do Vistoriador"
         android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/dataTextView"
@@ -19,8 +19,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/nomePerfilUTextView"
         android:text="Data da Vistoria"
-        android:textSize="14sp"
-        android:layout_marginTop="5dp" />
+        android:textSize="16sp"
+        android:layout_marginTop="8dp" />
 
     <TextView
         android:id="@+id/localizacaoTextView"
@@ -28,18 +28,44 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/dataTextView"
         android:text="Localização da Vistoria"
-        android:textSize="14sp"
-        android:layout_marginTop="5dp" />
+        android:textSize="16sp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/nomeItemTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/localizacaoTextView"
+        android:text="Nome do Item"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/numeroPlacaTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/nomeItemTextView"
+        android:text="Número da Placa"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/outrasInformacoesTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/numeroPlacaTextView"
+        android:text="Outras Informações"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp" />
 
     <Button
         android:id="@+id/concluirVistoriaButton"
         android:layout_width="wrap_content"
-
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:backgroundTint="@color/accentColor"
-        android:layout_below="@+id/localizacaoTextView"
+        android:layout_below="@+id/outrasInformacoesTextView"
         android:text="Concluir Vistoria"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="12dp" />
 
 </RelativeLayout>

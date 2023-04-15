@@ -1,4 +1,4 @@
-package Mode;
+package Modelos;
 
 import android.util.Log;
 
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import Helper.ConFirebase;
+import Ajuda.ConFirebase;
 
 public class Usuario implements Serializable {
 

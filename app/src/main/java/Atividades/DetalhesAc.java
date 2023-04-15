@@ -25,8 +25,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 import java.util.Locale;
 
-import Adapter.ViewPagerAdapter;
-import Mode.ItensVistorias;
+import Adaptadores.ViewPagerAdapter;
+import Modelos.ItensVistorias;
 import br.com.patrimoniomv.R;
 
 public class DetalhesAc extends AppCompatActivity {

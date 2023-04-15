@@ -1,20 +1,14 @@
-package Adapter;
+package Adaptadores;
 
 import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.util.List;
 
-import Mode.ItensVistorias;
-import br.com.patrimoniomv.R;
+import Modelos.ItensVistorias;
 
 public class VistoriaAdapter extends ArrayAdapter<ItensVistorias> {
 
