@@ -15,14 +15,14 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QRCodeItemViewHolder> {
-    private List<ItensVistorias> itemList;
+    private List<Vistorias> itemList;
     private Context context;
 
-    public QRCodeItemAdapter(List<ItensVistorias> itemList, Context context) {
+    public QRCodeItemAdapter(List<Vistorias> itemList, Context context) {
         this.itemList = itemList;
         this.context = context;
         Log.d("QRCodeItemAdapter", "Item list in adapter constructor: " + itemList);
@@ -36,7 +36,7 @@ public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QR
 
     @Override
     public void onBindViewHolder(@NonNull QRCodeItemViewHolder holder, int position) {
-        ItensVistorias item = itemList.get(position);
+        Vistorias item = itemList.get(position);
         Log.d("QRCodeItemAdapter", "Binding view holder at position: " + position + " with item: " + item);
         holder.bind(item);
     }
@@ -67,7 +67,7 @@ public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QR
             imageViewFoto = itemView.findViewById(R.id.Imagem);
         }
 
-        public void bind(ItensVistorias item) {
+        public void bind(Vistorias item) {
             textViewItemName.setText("Nome do item: " + item.getNomeItem());
             textViewItemLocation.setText("Localização: " + item.getLocalizacao());
             textViewItemInspector.setText("ID Inspetor: " + item.getIdInspector());

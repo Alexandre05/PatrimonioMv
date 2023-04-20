@@ -14,7 +14,7 @@ import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class DisplayInfoActivity extends AppCompatActivity {
@@ -25,20 +25,20 @@ public class DisplayInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_info);
         String itemListJson = getIntent().getStringExtra(EXTRA_ITEM_LIST_JSON);
-        List<ItensVistorias> itemList = jsonToItemList(itemListJson);
+        List<Vistorias> itemList = jsonToItemList(itemListJson);
 
-        for (ItensVistorias item : itemList) {
+        for (Vistorias item : itemList) {
             showItemInfo(item);
         }
     }
 
-    private List<ItensVistorias> jsonToItemList(String jsonString) {
+    private List<Vistorias> jsonToItemList(String jsonString) {
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<ItensVistorias>>() {}.getType();
+        Type listType = new TypeToken<List<Vistorias>>() {}.getType();
         return gson.fromJson(jsonString, listType);
     }
 
-    private void showItemInfo(ItensVistorias item) {
+    private void showItemInfo(Vistorias item) {
         TextView textViewItemInfo = findViewById(R.id.textViewItemInfo);
         String formattedInfo = formatItemInfo(item);
         textViewItemInfo.setText(formattedInfo);
@@ -60,7 +60,7 @@ public class DisplayInfoActivity extends AppCompatActivity {
         }
     }
 
-    private String formatItemInfo(ItensVistorias item) {
+    private String formatItemInfo(Vistorias item) {
         String formattedInfo = "";
 
         formattedInfo += "Data: " + item.getData() + "\n";

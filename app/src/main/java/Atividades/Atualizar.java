@@ -14,11 +14,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 
 import Ajuda.ConFirebase;
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class Atualizar extends AppCompatActivity {
-    private ItensVistorias anuncio;
+    private Vistorias anuncio;
 
     private EditText tipoItem;
     private EditText localizacao;
@@ -31,7 +31,7 @@ public class Atualizar extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_atualizar);
-        anuncio = (ItensVistorias) getIntent().getSerializableExtra("vistorias");
+        anuncio = (Vistorias) getIntent().getSerializableExtra("vistorias");
 
         // Inicializa os campos da tela
 
@@ -64,7 +64,7 @@ public class Atualizar extends AppCompatActivity {
     private void salvarDados() {
         String novaPlaca = placa.getText().toString().toUpperCase();
         if (!anuncio.getPlaca().equalsIgnoreCase(novaPlaca)) {
-            ItensVistorias.verificarPlacaExistente(novaPlaca).addOnCompleteListener(new OnCompleteListener<Boolean>() {
+            Vistorias.verificarPlacaExistente(novaPlaca).addOnCompleteListener(new OnCompleteListener<Boolean>() {
                 @Override
                 public void onComplete(@NonNull Task<Boolean> task) {
                     if (task.isSuccessful()) {
@@ -93,8 +93,8 @@ public class Atualizar extends AppCompatActivity {
 
         // Chama o método atualizarAnuncio do model Anuncios
         String idUsuario = ConFirebase.getIdUsuario();
-        Task<Void> atualizarAnuncioTask = ItensVistorias.atualizarAnuncio(anuncio, idUsuario);
-        Task<Void> atualizarAnuncioPuTask = ItensVistorias.atualizarAnuncioPu(anuncio, idUsuario);
+        Task<Void> atualizarAnuncioTask = Vistorias.atualizarAnuncio(anuncio, idUsuario);
+        Task<Void> atualizarAnuncioPuTask = Vistorias.atualizarAnuncioPu(anuncio, idUsuario);
 
         // Combina as tarefas para garantir que ambas sejam concluídas com sucesso
         Task<Void> combinedTask = Tasks.whenAll(atualizarAnuncioTask, atualizarAnuncioPuTask);

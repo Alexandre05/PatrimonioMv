@@ -4,6 +4,7 @@ import static android.graphics.ImageDecoder.decodeBitmap;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,6 +24,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.google.zxing.BarcodeFormat;
@@ -51,13 +54,17 @@ import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 import Ajuda.ConFirebase;
 import Ajuda.DataCuston;
-import Modelos.ItensVistorias;
+import Modelos.Item;
+import Modelos.Vistorias;
 import Ajuda.Permissoes;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
@@ -66,49 +73,75 @@ import dmax.dialog.SpotsDialog;
 
 public class CadastrarItens extends AppCompatActivity
         implements android.view.View.OnClickListener, LocationListener {
-    private EditText campoNome, campoPorte, campoObs;
-    private TextView campoNomeRes ;
+    private EditText campoNome, campoPlaca, campoObs,campoNomeRes;
+    private String ultimoUrlImagem = null;
+    private List<Item> listaItens = new ArrayList<>();
+    private boolean itemAdicionado = false;
     private CircleImageView imageCada1;
     private HorizontalScrollView imageContainer;
-    private ItensVistorias anuncios;
+    private List<Vistorias> itensVistoria;
+    private Vistorias vistorias;
     private Usuario usuario;
     private int imageSize;
+    private double currentLatitude;
+    private double currentLongitude;
 
     private AlertDialog dialog;
     private Usuario usuarioLogado;
     Bitmap imagem=null;
     Bitmap imagem2=null;
-    private Button salvar;
+    private Button salvar,botaoAdicionarItem;
     private TextView campoData;
+    private int uploadedImagesCount = 0;
     private List<Bitmap> imagens = new ArrayList<>();
 
     private static final int seleCame = 100;
     private static final int seleGale = 200;
-    private Spinner campoanimais, campocidade;
+    private Spinner campoLocalizacao;
     private StorageReference storage;
     private String[] permissoes = new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA};
 
     private List<String> listasFotoRe = new ArrayList<>();
+    private AtomicInteger successfulUploads = new AtomicInteger(0);
+
+
     private List<String> listaURLFotos = new ArrayList<>();
     private LocationManager locationManager;
+    private Vistorias vistoriaAtual;
     private double latitude;
+    private int itemCount = 0;
+    private TextView itemCountTextView;
     private double longitude;
     private DatabaseReference databaseReference;
     private ChildEventListener childEventListener;
-
+    private double getDistanceInKm(double lat1, double lon1, double lat2, double lon2) {
+        int R = 6371; // Raio da Terra em quilômetros
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c;
+        return distance;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         imageSize = getResources().getDimensionPixelSize(R.dimen.image_size);
-
+        vistoriaAtual = new Vistorias();
+        vistoriaAtual.setData(DataCuston.dataAtual());
+        vistoriaAtual.setItens(new ArrayList<Item>());
         setContentView(R.layout.activity_cadastrar_itens);
         Permissoes.validarPermissoes(permissoes, this, 1);
         FirebaseUser usuario = ConFirebase.getUsuarioAtaul();
         iniciarCamponentes();
         carregarSpi();
-
+        storage = FirebaseStorage.getInstance().getReference();
+        vistoriaAtual.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
+        itensVistoria = new ArrayList<>();
         storage = ConFirebase.getFirebaseStorage();
         usuarioLogado= ConFirebase.getDadosUsarioLogado();
         campoNomeRes.setText(usuario.getDisplayName());
@@ -117,103 +150,223 @@ public class CadastrarItens extends AppCompatActivity
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
-
-
+    }
+// limpa os capos
+    private void limparCampos() {
+        campoNome.setText("");
+        campoObs.setText("");
+        campoPlaca.setText("");
+        imagens.clear();
+        uploadedImagesCount = 0;
     }
 
-// savar Anuncios
-public void salvarVistorias() {
-    dialog = new SpotsDialog.Builder(this)
-            .setMessage("Salvando...")
-            .setCancelable(false)
-            .show();
-    dialog.show();
-    anuncios.setLatitude(latitude);
-    anuncios.setLongetude(longitude);
+    private Item criarItem() {
+        Item item = new Item();
+        item.setNome(campoNome.getText().toString());
+        item.setObservacao(campoObs.getText().toString());
+        item.setPlaca(campoPlaca.getText().toString());
+        item.setFotos(listaURLFotos);
 
-    for (int i = 0; i < imagens.size(); i++) {
-        Bitmap imagem = imagens.get(i);
-        int tamanhoLista = imagens.size();
-        salvarFotoStorage(imagem, tamanhoLista, i);
+        // Gere um ID único para o item usando o Firebase
+        DatabaseReference itemsRef = FirebaseDatabase.getInstance().getReference("Itens");
+        String itemId = itemsRef.push().getKey();
+        item.setId(itemId);
+
+        return item;
     }
 
-}
 
-    // salva
-    private void salvarFotoStorage(Bitmap imagem, final int totalFotos, int contador) {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        imagem.compress(Bitmap.CompressFormat.JPEG, 80, bao);
-        byte[] dadosImagem = bao.toByteArray();
-    final StorageReference imagemAnuncio = storage
-            .child("imagens")
-            .child("Itens")
-            .child(anuncios.getIdAnuncio())
-            .child("imagem" + contador);
-
-    UploadTask uploadTask = imagemAnuncio.putBytes(dadosImagem);
-    uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-        @Override
-        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-            imagemAnuncio.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                @Override
-                public void onSuccess(Uri uri) {
-                    String urlConverted = uri.toString();
-                    listaURLFotos.add(urlConverted);
-                    anuncios.setFotos(listaURLFotos);
-                    anuncios.salvar();
-                    listasFotoRe.clear();
-                    dialog.dismiss();
-                    finish();
-
-                }
-            });
-        }
-    }).addOnFailureListener(new OnFailureListener() {
-        @Override
-        public void onFailure(@NonNull Exception e) {
-            exibirMensagemErro("Falha ao fazer uplad");
-            Log.e("INFO", "Falha ao fazer upload:" + e.getMessage());
-        }
-    });
-}
-
-    private ItensVistorias ConfigurarVistoria() {
-        String recebe = ConFirebase.getDadosUsarioLogado().getNome();
-
-
-        //String tipoIten = campoanimais.getSelectedItem().toString();
-        String localizacao = campocidade.getSelectedItem().toString();
-        String nomeItem = campoNome.getText().toString();
-        String placa = campoPorte.getText().toString();
+    private Vistorias configurarVistoria(Item item) {
         String nomeCampo = campoNomeRes.getText().toString();
-
         usuarioLogado.setNome(nomeCampo);
 
-        String outrasInformacoes = campoObs.getText().toString();
-        //String fone = campoData.toString();
+        Vistorias vistoria = new Vistorias();
+        vistoria.setLatitude(latitude);
+        vistoria.setLongetude(longitude);
+        vistoria.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
+        vistoria.setNomePerfilU(nomeCampo);
+        vistoria.setOutrasInformacoes(campoObs.getText().toString());
+        vistoria.setIdInspector(usuarioLogado.getIdU());
+        vistoria.setData(DataCuston.dataAtual());
+        vistoria.setLocalizacao_data(vistoria.getLocalizacao() + "_" + vistoria.getData());
+        vistoria.getItens().add(item);
+        //vistoria.setFotos(item.getFotos());
+        return vistoria;
+    }
+    private void salvarVistoriaNoFirebase(Vistorias vistoria, String localizacaoSelecionada, String nomePerfilUsuario) {
+        DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias");
+        DatabaseReference anuncioPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
+        DatabaseReference localizacaoRef = vistoriasRef.child(localizacaoSelecionada);
+        DatabaseReference localizacaoPuRef = anuncioPuRef.child(localizacaoSelecionada);
 
-        // Inicialize o objeto Anuncios antes de configurar latitude e longitude.
-        ItensVistorias anuncios = new ItensVistorias();
+        // Adicionar o nome do perfil do usuário ao objeto Vistorias
+        vistoria.setNomePerfilU(nomePerfilUsuario);
 
-        anuncios.setLatitude(latitude);
-        anuncios.setLongetude(longitude);
-        //anuncios.setTipoItem(tipoIten);
-        anuncios.setLocalizacao(localizacao);
-        anuncios.setNomeItem(nomeItem);
-        anuncios.setNomePerfilU(nomeCampo);
+        // Converter a lista de itens em um mapa
+        Map<String, Object> itensMap = new HashMap<>();
+        for (Item item : vistoria.getItens()) {
+            itensMap.put(item.getId(), item.toMap());
+        }
 
-        anuncios.setOutrasInformacoes(outrasInformacoes);
-        anuncios.setPlaca(placa);
-        anuncios.setIdInspector(usuarioLogado.getIdU());
+        // Adicionar o mapa de itens ao objeto Vistorias
+        vistoria.setItensMap(itensMap);
 
-        anuncios.setData(DataCuston.dataAtual());
-        anuncios.setLocalizacao_data(anuncios.getLocalizacao() + "_" + anuncios.getData());
-        return anuncios;
+        // Salvar Vistorias em "vistorias"
+        localizacaoRef.child("DadosGerais").setValue(vistoria.toMap());
+
+        // Salvar Vistorias em "anuncioPu"
+        localizacaoPuRef.child("DadosGerais").setValue(vistoria.toMap());
+    }
+
+    public void adicionarItemVistoria(View view) {
+        listaURLFotos.clear();
+
+        if (!campoNome.getText().toString().trim().isEmpty() &&
+                !campoObs.getText().toString().trim().isEmpty() &&
+                imagens.size() > 0) {
+
+            String placa = campoPlaca.getText().toString();
+            if (isPlacaDuplicada(placa)) {
+                Toast.makeText(CadastrarItens.this, "Placa já adicionada! Por favor, insira uma placa diferente.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double distance = getDistanceInKm(latitude, longitude, currentLatitude, currentLongitude);
+            if (distance < 0.001) {
+                // Adicione o diálogo de progresso aqui
+                ProgressDialog progressDialog = new ProgressDialog(this);
+                progressDialog.setMessage("Adicionando item à lista, aguarde...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+                uploadedImagesCount = 0;
+                for (int i = 0; i < imagens.size(); i++) {
+                    Bitmap imagem = imagens.get(i);
+                    int tamanhoLista = imagens.size();
+                    salvarFotoStorage(imagem, tamanhoLista, i, vistoriaAtual, () -> {
+                        uploadedImagesCount++;
+                        if (uploadedImagesCount == imagens.size()) {
+                            Item item = criarItem();
+                            item.setFotos(new ArrayList<>(listaURLFotos));
+                            listaItens.add(item);
+                            vistoriaAtual.setItens(listaItens);
+                            Toast.makeText(CadastrarItens.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
+                            incrementItemCount();
+                            limparCampos();
+                            recriarLayoutImagens();
+                            itemAdicionado = true;
+                            campoLocalizacao.setEnabled(false);
+                            progressDialog.dismiss(); // Feche o diálogo de progresso quando o item for adicionado
+                        }
+                    });
+                }
+            } else {
+                Toast.makeText(CadastrarItens.this, "Você está muito longe da localização inicial do vistoriado. Por favor, vá até a localização correta para adicionar o item.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(CadastrarItens.this, "Por favor, preencha todos os campos obrigatórios antes de adicionar o item!", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
+
+
+    public void FinalizarVistoria(View view) {
+        Log.d("CadastrarItens", "FinalizarVistoria chamado");
+        if (vistoriaAtual.getItens().isEmpty()) {
+            Toast.makeText(CadastrarItens.this, "Por favor, adicione pelo menos um item antes de finalizar a vistoria!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        exibirDialogSalvando();
+        vistoriaAtual.setLatitude(latitude);
+        vistoriaAtual.setLongetude(longitude);
+        vistoriaAtual.setItens(listaItens);
+        // Salvar a vistoria na localização selecionada
+        String localizacaoSelecionada = campoLocalizacao.getSelectedItem().toString();
+        vistoriaAtual.setLocalizacao(localizacaoSelecionada);
+        String nomePerfilUsuario = Usuario.getUsuarioAtual().getDisplayName();
+        salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario); // Salva a vistoria no Firebase, incluindo os itens
+        listaItens.clear(); // Limpe a lista de itens para a próxima vistoria
+        dialog.dismiss();
+        finish();
+        itemAdicionado = false;
+        campoLocalizacao.setEnabled(true);
+    }
+
+    private void salvarFotoStorage(Bitmap imagem, int totalFotos, int contador, Vistorias vistoria, Runnable onSuccess) {
+        if (vistoria.getIdVistoria() == null) {
+            Log.e("INFO", "Vistoria ID não está disponível!");
+            return;
+        }
+
+        byte[] dadosImagem = convertBitmapToByteArray(imagem);
+        StorageReference imagemRef = createImageStorageReference(vistoria, contador);
+
+        uploadImageToStorage(dadosImagem, imagemRef, onSuccess);
+    }
+
+
+    private byte[] convertBitmapToByteArray(Bitmap imagem) {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        imagem.compress(Bitmap.CompressFormat.JPEG, 80, bao);
+        return bao.toByteArray();
+    }
+
+    private StorageReference createImageStorageReference(Vistorias vistoria, int contador) {
+        String idVistoria = vistoria.getIdVistoria();
+        String nomeImagem = "imagem_" + contador + "_" + System.currentTimeMillis() + ".jpeg";
+
+        return storage
+                .child("imagens")
+                .child("Itens")
+                .child(idVistoria)
+                .child(nomeImagem);
+    }
+
+
+
+    private void uploadImageToStorage(byte[] dadosImagem, StorageReference imagemRef, Runnable onSuccess) {
+        UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
+        uploadTask.addOnSuccessListener(taskSnapshot -> imagemRef.getDownloadUrl()
+                .addOnSuccessListener(uri -> {
+                    String urlConverted = uri.toString();
+                    listaURLFotos.add(urlConverted);
+                    vistoriaAtual.setFotos(listaURLFotos);
+                    listasFotoRe.clear();
+
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+
+                    onSuccess.run();
+                    //limparImagens();
+                })
+                .addOnFailureListener(e -> {
+                    exibirMensagemErro("Falha ao fazer upload");
+                    Log.e("INFO", "Falha ao fazer upload:" + e.getMessage());
+                }));
+    }
+    private void exibirDialogSalvando() {
+        dialog = new SpotsDialog.Builder(this)
+                .setMessage("Salvando...")
+                .setCancelable(false)
+                .show();
+        dialog.show();
+    }
+
     public void validarVistorias(android.view.View view) {
-        anuncios = ConfigurarVistoria();
+        solicitarPermissaoLocalizacao();
+
+        Item item = criarItem(); // Crie o objeto item
+        vistorias = configurarVistoria(item);
+
+        if (imagens.size() != 0) {
+            validarCamposEObrigatorios();
+        } else {
+            exibirMensagemErro("Selecione ao menos uma foto!");
+        }
+    }
+
+    private void solicitarPermissaoLocalizacao() {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -222,67 +375,72 @@ public void salvarVistorias() {
             if (location != null) {
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
-                // Aqui você pode atualizar a localização do item no objeto Anuncios
             }
         }
+    }
 
-        if (imagens.size() != 0) {
-            if (!anuncios.getLocalizacao().isEmpty()) {
-                if (!anuncios.getNomeItem().isEmpty()) {
-                    ItensVistorias.verificarPlacaExistente(anuncios.getPlaca()).addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Boolean> task) {
-                            if (task.isSuccessful()) {
-                                if (task.getResult()) {
-                                    Toast.makeText(CadastrarItens.this, "A placa já está em uso.", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    if (!anuncios.getOutrasInformacoes().isEmpty()) {
-                                        // Adicionar informações da vistoria em uma string e gerar o QR Code
-                                        String qrCodeData = "Nome do item: " + anuncios.getNomeItem()
-                                                + "\nPlaca: " + anuncios.getPlaca()
-                                                + "\nNome do responsável: " + anuncios.getNomePerfilU()
-                                                + "\nLocalização: " + anuncios.getLocalizacao()
-                                                + "\nData: " + anuncios.getData()
-                                                + "\nOutras informações: " + anuncios.getOutrasInformacoes();
-                                        Bitmap qrCodeBitmap = generateQRCode(qrCodeData);
-                                        if (qrCodeBitmap != null) {
-                                            salvarQRCodeStorage(qrCodeBitmap);
-                                            // imagens.add(qrCodeBitmap);
-                                            // Adicione este código após adicionar o QR Code à lista de imagens
-                                            Intent intent = new Intent(CadastrarItens.this, ViewQRCodeActivity.class);
-                                            intent.putExtra("qrCodeData", qrCodeData);
-                                            startActivity(intent);
-                                        }
 
-                                        salvarVistorias();
-                                        recreate();
-
-                                    } else {
-                                        exibirMensagemErro("Preencha o campo descrição");
-                                    }
-                                }
-                            } else {
-                                Toast.makeText(CadastrarItens.this, "Erro ao verificar a placa: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                } else {
-                    exibirMensagemErro("Preencha o campo Nome");
-                }
+    private void validarCamposEObrigatorios() {
+        if (!vistorias.getLocalizacao().isEmpty()) {
+            if (!vistorias.getNomeItem().isEmpty()) {
+                verificarPlacaExistente();
             } else {
-                exibirMensagemErro("Localização");
+                exibirMensagemErro("Preencha o campo Nome");
             }
         } else {
-            exibirMensagemErro("Selecione ao menos uma foto!");
+            exibirMensagemErro("Localização");
         }
+    }
+
+    private void verificarPlacaExistente() {
+        Vistorias.verificarPlacaExistente(vistorias.getPlaca()).addOnCompleteListener(new OnCompleteListener<Boolean>() {
+            @Override
+            public void onComplete(@NonNull Task<Boolean> task) {
+                if (task.isSuccessful()) {
+                    if (task.getResult()) {
+                        Toast.makeText(CadastrarItens.this, "A placa já está em uso.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        validarOutrasInformacoes();
+                    }
+                } else {
+                    Toast.makeText(CadastrarItens.this, "Erro ao verificar a placa: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void validarOutrasInformacoes() {
+        if (!vistorias.getOutrasInformacoes().isEmpty()) {
+            gerarEExibirQRCode();
+        } else {
+            exibirMensagemErro("Preencha o campo descrição");
+        }
+    }
+
+    private void gerarEExibirQRCode() {
+        String qrCodeData = "Nome do item: " + vistorias.getNomeItem()
+                + "\nPlaca: " + vistorias.getPlaca()
+                + "\nNome do responsável: " + vistorias.getNomePerfilU()
+                + "\nLocalização: " + vistorias.getLocalizacao()
+                + "\nData: " + vistorias.getData()
+                + "\nOutras informações: " + vistorias.getOutrasInformacoes();
+        Bitmap qrCodeBitmap = generateQRCode(qrCodeData);
+        if (qrCodeBitmap != null) {
+            salvarQRCodeStorage(qrCodeBitmap);
+            Intent intent = new Intent(CadastrarItens.this, ViewQRCodeActivity.class);
+            intent.putExtra("qrCodeData", qrCodeData);
+            startActivity(intent);
+        }
+
+
+        recreate();
     }
 
     private void exibirMensagemErro(String mensagem) {
-        Toast.makeText(this,
-                mensagem, Toast.LENGTH_SHORT).show();
-
-
+        Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show();
     }
+
+
 
  // metodo que clica na imagem, e abre e as abrem
     @Override
@@ -315,6 +473,19 @@ public void salvarVistorias() {
             return null;
         }
     }
+    private void incrementItemCount() {
+        itemCount++;
+        itemCountTextView.setText("Itens adicionados: " + itemCount);
+    }
+    // verifica se a placa é duplicada
+    private boolean isPlacaDuplicada(String placa) {
+        for (Item i : vistoriaAtual.getItens()) {
+            if (i.getPlaca().equalsIgnoreCase(placa)) {
+                return true;
+            }
+        }
+        return false;
+    }
     private void salvarQRCodeStorage(Bitmap qrCodeBitmap) {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         qrCodeBitmap.compress(Bitmap.CompressFormat.PNG, 100, bao);
@@ -323,7 +494,7 @@ public void salvarVistorias() {
         final StorageReference qrCodeAnuncio = storage
                 .child("qrcodes")
                 .child("Itens")
-                .child(anuncios.getIdAnuncio())
+                .child(vistorias.getIdVistoria())
                 .child("qrcode");
 
         UploadTask uploadTask = qrCodeAnuncio.putBytes(dadosQRCode);
@@ -334,8 +505,8 @@ public void salvarVistorias() {
                     @Override
                     public void onSuccess(Uri uri) {
                         String qrCodeURL = uri.toString();
-                        anuncios.setQrCodeURL(qrCodeURL);
-                        anuncios.salvar();
+                        vistorias.setQrCodeURL(qrCodeURL);
+                        vistorias.salvar();
                     }
                 });
             }
@@ -413,8 +584,38 @@ public void salvarVistorias() {
             }
         }
     }
+    private void recriarLayoutImagens() {
+        LinearLayout imagesLayout = findViewById(R.id.imagesLayout);
+        ViewGroup parent = (ViewGroup) imagesLayout.getParent();
+
+        // Remove o LinearLayout atual
+        parent.removeView(imagesLayout);
+
+        // Cria um novo LinearLayout com as mesmas configurações
+        LinearLayout newImagesLayout = new LinearLayout(this);
+        newImagesLayout.setId(R.id.imagesLayout);
+        newImagesLayout.setLayoutParams(imagesLayout.getLayoutParams());
+        newImagesLayout.setOrientation(imagesLayout.getOrientation());
+
+        // Adiciona o novo LinearLayout ao mesmo ViewGroup do antigo
+        parent.addView(newImagesLayout);
+
+        // Adiciona o CircleImageView ao novo LinearLayout
+        de.hdodenhof.circleimageview.CircleImageView newImageCada1 = new de.hdodenhof.circleimageview.CircleImageView(this);
+        newImageCada1.setId(R.id.imageCada1);
+        newImageCada1.setLayoutParams(imageCada1.getLayoutParams());
+        newImageCada1.setScaleType(imageCada1.getScaleType());
+        newImageCada1.setImageResource(R.drawable.camera);
+        newImageCada1.setBorderColor(imageCada1.getBorderColor());
+        newImagesLayout.addView(newImageCada1);
+
+        // Atualiza a referência do CircleImageView e do LinearLayout
+        newImageCada1.setOnClickListener(v -> adicionarImagem());
+        imagesLayout = newImagesLayout;
+    }
 
 
+    // carrega A localização
     public void carregarSpi() {
         String[] Localização = getResources().getStringArray(R.array.Localização);
         ArrayAdapter<String> Adapter2 = new ArrayAdapter<String>(
@@ -422,34 +623,10 @@ public void salvarVistorias() {
         );
 
         Adapter2.setDropDownViewResource(R.layout.spinner_item);
-        campocidade.setAdapter(Adapter2);
+        campoLocalizacao.setAdapter(Adapter2);
     }
 
-    private void iniciarCamponentes() {
 
-        campoNome = findViewById(R.id.editNome);
-        imageCada1 = findViewById(R.id.imageCada1);
-        imageContainer = findViewById(R.id.imageContainer);
-        LinearLayout linearLayout = new LinearLayout(this);
-        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-        //imageContainer.addView(linearLayout);
-        campoObs = findViewById(R.id.editObs);
-
-        findViewById(R.id.imageCada1).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                adicionarImagem();
-            }
-        });
-        //campoanimais = findViewById(R.id.tipo);
-        campocidade = findViewById(R.id.cidade);
-        campoData = findViewById(R.id.fone);
-        campoNomeRes = findViewById(R.id.editNomeRes);
-        campoPorte = findViewById(R.id.editPlaca);
-        salvar=findViewById(R.id.SalvarA);
-        Locale locale = new Locale("pt", "BR");
-
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -486,9 +663,48 @@ public void salvarVistorias() {
 
     @Override
     public void onLocationChanged(Location location) {
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
+        currentLatitude = location.getLatitude();
+        currentLongitude = location.getLongitude();
         // Aqui você pode atualizar a localização do item no objeto Anuncios
+    }
+    private void iniciarCamponentes() {
+        itemCountTextView = findViewById(R.id.itemCountTextView);
+        campoNome = findViewById(R.id.editNome);
+        imageCada1 = findViewById(R.id.imageCada1);
+        imageContainer = findViewById(R.id.imageContainer);
+        //campoanimais = findViewById(R.id.tipo);
+        campoLocalizacao = findViewById(R.id.localizacao);
+        campoData = findViewById(R.id.fone);
+        botaoAdicionarItem=findViewById(R.id.adicionarItemVistoria);
+        campoNomeRes = findViewById(R.id.editNomeRes);
+        campoPlaca = findViewById(R.id.editPlaca);
+        salvar=findViewById(R.id.finalizarVistoria);
+        Locale locale = new Locale("pt", "BR");
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        //imageContainer.addView(linearLayout);
+        campoObs = findViewById(R.id.editObs);
+
+        findViewById(R.id.imageCada1).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                adicionarImagem();
+            }
+        });
+
+        botaoAdicionarItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                adicionarItemVistoria(v);
+            }
+        });
+        salvar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FinalizarVistoria(v);
+            }
+        });
+
     }
 
     @Override

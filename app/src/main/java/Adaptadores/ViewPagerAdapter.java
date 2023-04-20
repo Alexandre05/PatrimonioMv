@@ -13,16 +13,16 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewHolder> {
 
     private List<String> imageUrls;
     private Context context;
-    private ItensVistorias anuncioSele;
+    private Vistorias anuncioSele;
 
-    public ViewPagerAdapter(Context context, List<String> imageUrls, ItensVistorias anuncioSele) {
+    public ViewPagerAdapter(Context context, List<String> imageUrls, Vistorias anuncioSele) {
         this.context = context;
         this.imageUrls = imageUrls;
         this.anuncioSele = anuncioSele;
@@ -47,13 +47,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         }
 
     }
-
-
-
     @Override
     public int getItemCount() {
-        return imageUrls.size();
+        return imageUrls != null ? imageUrls.size() : 0;
     }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;

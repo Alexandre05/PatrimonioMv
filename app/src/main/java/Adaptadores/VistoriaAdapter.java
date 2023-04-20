@@ -8,14 +8,14 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 
-public class VistoriaAdapter extends ArrayAdapter<ItensVistorias> {
+public class VistoriaAdapter extends ArrayAdapter<Vistorias> {
 
     private Context context;
-    private List<ItensVistorias> vistorias;
+    private List<Vistorias> vistorias;
 
-    public VistoriaAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<ItensVistorias> vistorias) {
+    public VistoriaAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Vistorias> vistorias) {
         super(context, resource, vistorias);
         this.context = context;
         this.vistorias = vistorias;

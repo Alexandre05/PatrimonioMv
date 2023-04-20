@@ -12,20 +12,20 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class MapasActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private ItensVistorias anuncio;
+    private Vistorias anuncio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapas);
 
-        anuncio = (ItensVistorias) getIntent().getSerializableExtra("anuncio");
+        anuncio = (Vistorias) getIntent().getSerializableExtra("anuncio");
 
         // Obtenha o SupportMapFragment e seja notificado quando o mapa estiver pronto para ser usado.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -48,6 +48,8 @@ public class MapasActivity extends FragmentActivity implements OnMapReadyCallbac
 
         // Adicione um marcador para a localização do item e mova a câmera.
         LatLng itemLocation = new LatLng(anuncio.getLatitude(), anuncio.getLongetude());
+
+
         Marker marker = mMap.addMarker(new MarkerOptions().position(itemLocation).title(anuncio.getNomeItem()));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(itemLocation, 15));
 

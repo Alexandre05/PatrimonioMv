@@ -13,7 +13,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class QRCodeDetailsActivity extends AppCompatActivity {
@@ -27,7 +27,7 @@ public class QRCodeDetailsActivity extends AppCompatActivity {
 
         if (getIntent().hasExtra("qr_code_data")) {
             String qrCodeData = getIntent().getStringExtra("qr_code_data");
-            List<ItensVistorias> itemList = parseQRCodeData(qrCodeData);
+            List<Vistorias> itemList = parseQRCodeData(qrCodeData);
 
             if (itemList != null && !itemList.isEmpty()) {
                 displayFormattedQRData(itemList);
@@ -37,24 +37,24 @@ public class QRCodeDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private List<ItensVistorias> parseQRCodeData(String qrCodeData) {
+    private List<Vistorias> parseQRCodeData(String qrCodeData) {
         Log.d("QRCodeDetailsActivity", "QR Code data received in activity: " + qrCodeData);
 
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<ItensVistorias>>() {
+        Type listType = new TypeToken<List<Vistorias>>() {
         }.getType();
-        List<ItensVistorias> itemList = gson.fromJson(qrCodeData, listType);
+        List<Vistorias> itemList = gson.fromJson(qrCodeData, listType);
 
         Log.d("QRCodeDetailsActivity", "Item list after parsing: " + itemList);
         return itemList;
     }
 
-    private void displayFormattedQRData(List<ItensVistorias> itemList) {
+    private void displayFormattedQRData(List<Vistorias> itemList) {
         Log.d("QRCodeDetailsActivity", "Displaying formatted QR data: " + itemList);
 
         StringBuilder sb = new StringBuilder();
 
-        for (ItensVistorias item : itemList) {
+        for (Vistorias item : itemList) {
             sb.append("Nome do item: ").append(item.getNomeItem()).append("\n");
             sb.append("Localização: ").append(item.getLocalizacao()).append("\n");
             sb.append("ID Inspetor: ").append(item.getIdInspector()).append("\n");

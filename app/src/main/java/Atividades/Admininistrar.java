@@ -27,13 +27,13 @@ import Adaptadores.PendingUserAdapter;
 import Adaptadores.VistoriaAdapter;
 import Ajuda.ConFirebase;
 import Ajuda.QRCodeGenerator;
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 
 public class Admininistrar extends AppCompatActivity {
     private ListView listViewVistorias;
-    private List<ItensVistorias> vistorias;
+    private List<Vistorias> vistorias;
     private VistoriaAdapter vistoriaAdapter;
     private EditText novoCodigoEspecial;
     private Button botaoAlterarCodigoEspecial;
@@ -117,7 +117,7 @@ public class Admininistrar extends AppCompatActivity {
         vistoriaRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                ItensVistorias vistoria = dataSnapshot.getValue(ItensVistorias.class);
+                Vistorias vistoria = dataSnapshot.getValue(Vistorias.class);
                 if (vistoria != null && vistoria.isConcluida()) {
                     String textoQRCode = "Localização: " + vistoria.getLocalizacao() + ", Vistoriador: " + vistoria.getNomePerfilU() + ", Data: " + vistoria.getData();
                     Bitmap bitmap = null;

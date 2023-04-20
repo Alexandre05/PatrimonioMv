@@ -10,6 +10,8 @@
         android:title="Relatório"/>
     <item android:id="@+id/menu_perfil"
         android:title="Perfil"/>
+    <item android:id="@+id/menuChat"
+           android:title="Chat"/>
     <item android:id="@+id/menu_compartilhar"
         android:title="Compartilhar"/>
     <item android:id="@+id/menu_sair"

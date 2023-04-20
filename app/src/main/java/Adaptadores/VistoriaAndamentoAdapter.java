@@ -13,14 +13,14 @@ import androidx.core.content.ContextCompat;
 import java.util.List;
 
 import Atividades.VistoriasEmAndamentoActivity;
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
-public class VistoriaAndamentoAdapter extends ArrayAdapter<ItensVistorias> {
+public class VistoriaAndamentoAdapter extends ArrayAdapter<Vistorias> {
     private VistoriasEmAndamentoActivity activity;
     private int resource;
 
-    public VistoriaAndamentoAdapter(@NonNull VistoriasEmAndamentoActivity activity, int resource, @NonNull List<ItensVistorias> vistorias) {
+    public VistoriaAndamentoAdapter(@NonNull VistoriasEmAndamentoActivity activity, int resource, @NonNull List<Vistorias> vistorias) {
         super(activity, resource, vistorias);
         this.activity = activity;
         this.resource = resource;
@@ -46,7 +46,7 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<ItensVistorias> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        ItensVistorias vistoriaAtual = getItem(position);
+        Vistorias vistoriaAtual = getItem(position);
         viewHolder.nomePerfilTextView.setText(vistoriaAtual.getNomePerfilU());
         viewHolder.dataTextView.setText(vistoriaAtual.getData());
         viewHolder.localizacaoTextView.setText(vistoriaAtual.getLocalizacao());
@@ -65,7 +65,7 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<ItensVistorias> {
         viewHolder.concluirVistoriaButton.setTag(position);
         viewHolder.concluirVistoriaButton.setOnClickListener(view -> {
             int pos = (int) view.getTag();
-            ItensVistorias vistoriaAtualClick = getItem(pos);
+            Vistorias vistoriaAtualClick = getItem(pos);
             activity.concluirVistoria(vistoriaAtualClick, pos); // Adicione pos como um parâmetro adicional
         });
 
@@ -73,9 +73,9 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<ItensVistorias> {
     }
 
 
-    private boolean isDuplicateVistoria(ItensVistorias vistoriaAtual) {
+    private boolean isDuplicateVistoria(Vistorias vistoriaAtual) {
         for (int i = 0; i < getCount(); i++) {
-            ItensVistorias vistoria = getItem(i);
+            Vistorias vistoria = getItem(i);
             if (vistoria != null && vistoriaAtual != null &&
                     vistoria.getLocalizacao() != null && vistoria.getData() != null &&
                     vistoria.getLocalizacao().equals(vistoriaAtual.getLocalizacao()) &&

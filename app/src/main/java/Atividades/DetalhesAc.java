@@ -1,6 +1,7 @@
 package Atividades;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,6 +11,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
@@ -22,17 +25,24 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import Adaptadores.AdapterVistorias;
+import Adaptadores.DetalhesVistoriaAdapter;
 import Adaptadores.ViewPagerAdapter;
-import Modelos.ItensVistorias;
+import Modelos.Item;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class DetalhesAc extends AppCompatActivity {
 
     private TextView nome, ob, porte, localiza, nomeVistoriador, latitudeTextView, longitudeTextView;
-    private ItensVistorias anuncioSele;
+    private Vistorias anuncioSele;
+    private String idVistoria;
+    private RecyclerView recyclerView;
+    private DetalhesVistoriaAdapter detalhesVistoriaAdapter;
     private Button btnChat;
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
@@ -41,130 +51,189 @@ public class DetalhesAc extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalhes);
         iniciarComponentesUI();
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // Obter o ID da vistoria da Intent
         Intent intent = getIntent();
-        String idAnuncio = getIntent().getStringExtra("idAnuncio");
-        Log.e("DETAILED_ACTIVITY", "IdAnu." + idAnuncio);
+        // Obter o ID da vistoria e a localização da Intent
+        idVistoria = getIntent().getStringExtra("idAnuncio");
+        String localizacao = getIntent().getStringExtra("localizacao");;
 
-        String localizacao = intent.getStringExtra("localizacao");
+        carregarDados(idVistoria, localizacao);
 
 
-
-        if (idAnuncio == null) {
-            Log.e("DETAILED_ACTIVITY", "idAnuncio não foi passado para a Activity");
+        // Verificar se o ID da vistoria foi passado para a Activity
+        if (idVistoria == null) {
+            Log.e("DETAILED_ACTIVITY", "idVistoria não foi passado para a Activity");
+            return;
         } else {
-            Log.d("DETAILED_ACTIVITY", "idAnuncio: " + idAnuncio);
+            Log.d("DETAILED_ACTIVITY", "idVistoria: " + idVistoria);
         }
 
+        // Verificar se a localização foi passada para a Activity
         if (localizacao == null) {
-            Log.e("DETAILED_ACTIVITY", "localizacao não foi passado para a Activity");
+            Log.e("DETAILED_ACTIVITY", "localizacao não foi passada para a Activity");
+            return;
         } else {
             Log.d("DETAILED_ACTIVITY", "localizacao: " + localizacao);
         }
 
-        carregarDados(idAnuncio, localizacao);
+        // Carregar os dados da vistoria usando o adaptador
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("vistorias").child(idVistoria);
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Vistorias vistoria = snapshot.getValue(Vistorias.class);
+
+                if (vistoria != null) {
+                    DetalhesVistoriaAdapter adapter = new DetalhesVistoriaAdapter(vistoria, DetalhesAc.this);
+                    recyclerView.setAdapter(adapter);
+                } else {
+                    Log.e("DETAILED_ACTIVITY", "Vistoria não encontrada com o ID: " + idVistoria);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("DETAILED_ACTIVITY", "Erro ao carregar os dados da vistoria: " + error.getMessage());
+            }
+        });
 
         // Definir o listener do botão para abrir a tela de mapas
-        Button btnViewOnMap = findViewById(R.id.btnViewOnMap);
+        Button btnViewOnMap = findViewById(R.id.btnViewOnMapA);
         btnViewOnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(DetalhesAc.this, MapasActivity.class);
-                intent.putExtra("vistorias", anuncioSele);
-                startActivity(intent);
+                viewOnMap();
             }
         });
-        btnChat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                abrirTelaChat();
-            }
-        });
-
     }
 
-    private void carregarDados(String idAnuncio, String localizacao) {
+    private void viewOnMap() {
+        String idVistoria = getIntent().getStringExtra("idVistoria");
+        String localizacao = getIntent().getStringExtra("localizacao");
 
-        if (idAnuncio == null) {
-            Log.e("DETAILED_ACTIVITY", "idAnuncio é nulo");
-            return;
-        }
-
-        DatabaseReference anunciosPuRef = FirebaseDatabase.getInstance()
+        DatabaseReference vistoriasRef = FirebaseDatabase.getInstance()
                 .getReference("vistoriaPu")
-                .child(localizacao) // cai aqui o erro
-                .child(idAnuncio);
+                .child(localizacao)
+                .child(idVistoria);
 
-        Log.d("DETAILED_ACTIVITY", "caminho da consulta: " + anunciosPuRef.toString());
-        anunciosPuRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        vistoriasRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    anuncioSele = dataSnapshot.getValue(ItensVistorias.class);
-                    Log.d("DETAILED_ACTIVITY", "Dados do anúncio carregados: " + anuncioSele.toString());
-                    exibirDados(anuncioSele);
+                    Vistorias vistoria = dataSnapshot.getValue(Vistorias.class);
+
+                    if (vistoria.getLatitude() != null && vistoria.getLongetude() != null) {
+                        double latitude = (vistoria.getLatitude());
+                        double longitude = (vistoria.getLongetude());
+
+                        // Abrir o aplicativo de mapas na localização da vistoria
+                        Uri gmmIntentUri = Uri.parse("geo:" + latitude + "," + longitude + "?q=" + latitude + "," + longitude + "(" + vistoria.getNomeItem() + ")");
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+                        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                            startActivity(mapIntent);
+                        } else {
+                            Toast.makeText(DetalhesAc.this, "Não foi possível abrir o mapa. Por favor, instale o Google Maps.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(DetalhesAc.this, "Coordenadas não disponíveis para esta vistoria.", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Log.e("DETAILED_ACTIVITY", "Anúncio não encontrado no Firebase.");
+                    Log.e("DETAILED_ACTIVITY", "Nenhuma vistoria encontrada no Firebase.");
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.w("DETAILED_ACTIVITY", "Erro ao carregar dados do anúncio.", databaseError.toException());
+                Log.w("DETAILED_ACTIVITY", "Erro ao carregar dados da vistoria.", databaseError.toException());
             }
         });
     }
 
-    private void exibirDados(ItensVistorias anuncioSele) {
-        if (anuncioSele != null) {
-            Log.d("DETAILED_ACTIVITY", "vistorias: " + anuncioSele.toString());
-            // Definir o nome, outras informações, placa, nome do perfil do usuário e localização nos TextViews
-            nome.setText(anuncioSele.getNomeItem());
-            ob.setText(anuncioSele.getOutrasInformacoes());
-            porte.setText(anuncioSele.getPlaca());
-            nomeVistoriador.setText(anuncioSele.getNomePerfilU());
-            localiza.setText(anuncioSele.getLocalizacao());
+    private void carregarDados(String idVistoria, String localizacao) {
+        if (idVistoria == null || localizacao == null) {
+            Log.e("DETAILED_ACTIVITY", "idVistoria ou localizacao é nulo");
+            return;
+        }
 
+        DatabaseReference vistoriasRef = FirebaseDatabase.getInstance()
+                .getReference("vistoriaPu")
+                .child(localizacao)
+                .child(idVistoria);
+
+        vistoriasRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Vistorias vistoria = dataSnapshot.getValue(Vistorias.class);
+                    exibirDados(vistoria);
+                    carregarLista(vistoria);
+                } else {
+                    Log.e("DETAILED_ACTIVITY", "Nenhuma vistoria encontrada no Firebase.");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("DETAILED_ACTIVITY", "Erro ao carregar dados da vistoria.", databaseError.toException());
+            }
+        });
+    }
+
+    // Nova função para configurar o RecyclerView e o Adapter
+    private void carregarLista(Vistorias vistoria) {
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        List<Vistorias> vistoriasList = new ArrayList<>();
+        vistoriasList.add(vistoria);
+        AdapterVistorias adapterVistorias = new AdapterVistorias(vistoriasList, this);
+        recyclerView.setAdapter(adapterVistorias);
+    }
+
+    private void exibirDados(Vistorias vistoriaSelecionada) {
+        if (vistoriaSelecionada != null) {
+            Log.d("DETAILED_ACTIVITY", "vistoria: " + vistoriaSelecionada.toString());
+            // Definir o nome, outras informações, placa, nome do perfil do usuário e localização nos TextViews
+            nome.setText(vistoriaSelecionada.getNomeItem());
+            ob.setText(vistoriaSelecionada.getOutrasInformacoes());
+            porte.setText(vistoriaSelecionada.getPlaca());
+            nomeVistoriador.setText(vistoriaSelecionada.getNomePerfilU());
+            localiza.setText(vistoriaSelecionada.getLocalizacao());
             // Definir a latitude e longitude nos TextViews correspondentes
-            String latitudeString = String.format(Locale.getDefault(), "%.6f", anuncioSele.getLatitude());
+            String latitudeString = String.valueOf(vistoriaSelecionada.getLatitude());
             latitudeTextView.setText(getString(R.string.latitude_value, latitudeString));
-            String longitudeString = String.format(Locale.getDefault(), "%.6f", anuncioSele.getLongetude());
+            String longitudeString = String.valueOf(vistoriaSelecionada.getLongetude());
             longitudeTextView.setText(getString(R.string.longitude_value, longitudeString));
 
+
+
             // Obter as URLs das imagens do Firebase Storage
-            List<String> imageUrls = anuncioSele.getFotos();
+            List<String> imageUrls = vistoriaSelecionada.getFotos();
 
-            // Definir as imagens no ViewPager
-            ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(this, imageUrls, anuncioSele);
-            viewPager.setAdapter(viewPagerAdapter);
-            new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {}).attach();
+            if (imageUrls != null && imageUrls.size() > 0) {
+                // Definir as imagens no ViewPager
+                ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(this, imageUrls, vistoriaSelecionada);
+                viewPager.setAdapter(viewPagerAdapter);
+                new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {}).attach();
+            }
         }
     }
-    private void abrirTelaChat() {
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        if (currentUser != null) {
-            // Se o usuário estiver logado, inicie a atividade de chat
-            Intent chatIntent = new Intent(DetalhesAc.this, Chat.class);
-            startActivity(chatIntent);
-        } else {
-            // Se o usuário não estiver logado, mostre um aviso
-            Toast.makeText(this, "Você precisa estar logado para acessar o chat.", Toast.LENGTH_SHORT).show();
-        }
-    }
+
+
 
     private void iniciarComponentesUI() {
-        viewPager = findViewById(R.id.view_pager3);
-        btnChat=findViewById(R.id.buttonMsf);
-        tabLayout = findViewById(R.id.tab_layout);
-        viewPager = findViewById(R.id.view_pager3);
-        nome = findViewById(R.id.textView4);
-        localiza = findViewById(R.id.textView5);
-        ob = findViewById(R.id.textView6);
-        nomeVistoriador = findViewById(R.id.Vistoriador);
-        porte = findViewById(R.id.Placa);
-        latitudeTextView = findViewById(R.id.textLatitude);
-        longitudeTextView = findViewById(R.id.textLongitude);
+        nome=findViewById(R.id.nomeItemA);
+        localiza=findViewById(R.id.localizacaoA);
+        porte=findViewById(R.id.placaA);
+        ob=findViewById(R.id.informacoesGeraisA);
+        nomeVistoriador=findViewById(R.id.vistoriadorA);
+        latitudeTextView=findViewById(R.id.latitude);
+        longitudeTextView=findViewById(R.id.longitude);
     }
+
 }

@@ -21,13 +21,15 @@
             android:layout_marginBottom="16dp">
 
             <LinearLayout
+                android:id="@+id/imagesLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/imageCada1"
-                    android:layout_width="56dp"
+                    android:layout_width="150dp"
+                    android:onClick="selecionarImagem"
                     android:layout_height="100dp"
                     android:layout_gravity="center_horizontal"
                     android:src="@drawable/camera"
@@ -46,11 +48,12 @@
             android:layout_marginBottom="4dp"/>
 
         <Spinner
-            android:id="@+id/cidade"
+            android:id="@+id/localizacao"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
+        <!-- Atributo android:inputType="textCapWords" foi adicionado para tornar a primeira letra de cada palavra maiúscula -->
         <EditText
             android:id="@+id/editNome"
             android:layout_width="match_parent"
@@ -59,7 +62,7 @@
             android:background="@drawable/custonnoecao"
             android:ems="10"
             android:hint="Nome Item"
-            android:inputType="textPersonName"
+            android:inputType="textPersonName|textCapWords"
             android:padding="10dp"
             android:textSize="16sp" />
 
@@ -86,6 +89,7 @@
             android:padding="10dp"
             android:hint="Observações"
             android:textSize="16sp" />
+
         <EditText
             android:id="@+id/editNomeRes"
             android:layout_width="match_parent"
@@ -93,7 +97,7 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/custonnoecao"
             android:ems="10"
-            android:inputType="textPersonName"
+            android:inputType="textPersonName|textCapWords"
             android:padding="10dp"
             android:hint="Nome"
             android:textSize="16sp" />
@@ -110,17 +114,56 @@
             app:maskStyle="completable"/>
 
         <Button
-            android:id="@+id/SalvarA"
+            android:id="@+id/finalizarVistoria"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/botoaentrar"
-            android:onClick="validarVistorias"
-            android:text="Cadastrar Item"
+            android:onClick="FinalizarVistoria"
+            android:text="Finalizar Vistoria"
             android:textSize="18sp"
             android:textColor="#FFFFFF"
-            android:theme="@style/Theme.AppCompat.Dialog.MinWidth"
-            tools:ignore="OnClick" />
+            android:theme="@style/Theme.AppCompat.Dialog.MinWidth" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal">
+            <Button
+                android:id="@+id/adicionarItemVistoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/botoaentrar"
+                android:onClick="adicionarItemVistoria"
+                android:text="Adicionar Item"
+                android:textSize="18sp"
+                android:textColor="#FFFFFF"/>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/itemCountTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/item_count_background"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="Itens adicionados: 0"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>
+

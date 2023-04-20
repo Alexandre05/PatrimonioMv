@@ -6,10 +6,12 @@ import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
@@ -23,111 +25,186 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import Adaptadores.AdapterAnuncios;
+import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
-import Modelos.ItensVistorias;
+import Modelos.Item;
 import Modelos.RecyclerItemClickListener;
 
 import Modelos.Usuario;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 import dmax.dialog.SpotsDialog;
 
-public class Vistorias extends AppCompatActivity {
+public class MostraVistorias extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerViewPu;
-    private EditText nomeUsuario;
-    private Button animais, bairoo;
-    private EditText campoEmail, campoSenha;
+
     private DatabaseReference anunciosRef;
-    private List<ItensVistorias> listacioItens = new ArrayList<>();
-    private AdapterAnuncios adapterAnuncios;
+
+
     private AlertDialog alertDialog;
     private String filtroItens = "";
     private boolean filtrandoPorLocalizacao = false;
     private String filtroBairro = "";
+    private AdapterVistorias adapterAnuncios;
+    private List<Modelos.Vistorias> vistoriasList = new ArrayList<>();
 
     private boolean isAdmin = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-        setContentView(R.layout.activity_animais);
-        //Toolbar tolbar= findViewById(R.id.Toolbar);
-        this.setTitle("Comissão  de Patrimonio ");
-        String idAnuncio = getIntent().getStringExtra("idAnuncio");
+        setContentView(R.layout.mostrar_vistoriaspublica);
+        setTitle("Comissão de Patrimonio");
 
         navigation();
         inicializarCompo();
 
-        autenticacao = ConFirebase.getReferenciaAutencicacao();
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistorias");
-        //autenticacao.signOut();
-        recyclerViewPu.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewPu.setHasFixedSize(true);
-        adapterAnuncios = new AdapterAnuncios(listacioItens, this);
+        setupFirebase();
+        setupRecyclerView();
+        setupSwipeRefresh();
+
+        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
+        recuperarVistoriasPublicasAsync();
+        vistoriasList = new ArrayList<>();
+        adapterAnuncios = new AdapterVistorias(vistoriasList, this);
+        // recyclerViewPu.setAdapter(adapterAnuncios);
+        getCurrentUser();
+    }
+
+    private void setupFirebase() {
+        FirebaseApp.initializeApp(this);
+        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
+    }
+
+    private void setupRecyclerView() {
         recyclerViewPu.setAdapter(adapterAnuncios);
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            getUserFromFirebase(currentUser.getUid(), new OnUserLoadedListener() {
-                @Override
-                public void onUserLoaded(Usuario usuario) {
-                    if (usuario != null) {
-                        isAdmin = usuario.isUserAdmin();
-
-                    }
-                }
-            });
-        }
-        recuperarVistoriasPublicas(true);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                atualizarDados();
-            }
-        });
-// aqui faz o toque na tela para abrir
         recyclerViewPu.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerViewPu, new RecyclerItemClickListener.OnItemClickListener() {
-
             @Override
             public void onItemClick(View view, int position) {
-                Log.e("DETAILED_ACTIVITY", "Onclik.");
-                ItensVistorias anuncioSelecionado = listacioItens.get(position);
+                Modelos.Vistorias anuncioSelecionado = vistoriasList.get(position);
 
-                Intent i = new Intent(Vistorias.this, DetalhesAc.class);
-                i.putExtra("idAnuncio", anuncioSelecionado.getIdAnuncio()); // Altere esta linha
+                Intent i = new Intent(MostraVistorias.this, DetalhesAc.class);
+                i.putExtra("idAnuncio", anuncioSelecionado.getIdVistoria());
                 i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
                 startActivity(i);
             }
 
             @Override
             public void onLongItemClick(View view, int position) {
-
             }
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
             }
-        }
+        }));
+    }
 
-        ));
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(this::recuperarVistoriasPublicasAsync);
+    }
+    private void recuperarVistoriasPublicasAsync() {
+        showProgressDialog(true);
 
+        anunciosRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                vistoriasList.clear();
 
+                for (DataSnapshot localizacaoSnapshot : dataSnapshot.getChildren()) {
+                    for (DataSnapshot vistoriaSnapshot : localizacaoSnapshot.getChildren()) {
+                        DataSnapshot dadosGeraisSnapshot = vistoriaSnapshot.child("DadosGerais");
+                        Modelos.Vistorias vistoria;
+
+                        try {
+                            vistoria = dadosGeraisSnapshot.getValue(Modelos.Vistorias.class);
+                        } catch (DatabaseException e) {
+                            // Se ocorrer uma exceção ao converter os campos, pule esta vistoria
+                            continue;
+                        }
+
+                        // Verifica se a vistoria é válida antes de adicioná-la à lista
+                        if (vistoria != null) {
+                            vistoria.setLocalizacao(localizacaoSnapshot.getKey());
+
+                            // Recuperar itens dentro da vistoria
+                            List<Modelos.Item> itemList = new ArrayList<>();
+                            for (DataSnapshot itemSnapshot : dadosGeraisSnapshot.child("itens").getChildren()) {
+                                Modelos.Item item;
+                                try {
+                                    item = itemSnapshot.getValue(Modelos.Item.class);
+                                } catch (DatabaseException e) {
+                                    // Se ocorrer uma exceção ao converter os campos, pule este item
+                                    continue;
+                                }
+
+                                // Verifica se o item é válido antes de adicioná-lo à lista
+                                if (item != null) {
+                                    itemList.add(item);
+                                }
+                            }
+                            vistoria.setItens(itemList); // Adicione a lista de itens à vistoria
+
+                            vistoriasList.add(vistoria);
+                        }
+                    }
+                }
+
+                Log.i("recuperarVistorias", "Tamanho da lista de vistorias: " + vistoriasList.size());
+                adapterAnuncios.notifyDataSetChanged();
+                showProgressDialog(false);
+                swipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("recuperarVistorias", "Error: " + databaseError.getMessage());
+                showProgressDialog(false);
+            }
+        });
     }
 
 
-    private void getUserFromFirebase(String uid, final OnUserLoadedListener listener) {
+
+
+
+    private void showProgressDialog(boolean show) {
+        if (show) {
+            if (alertDialog == null || !alertDialog.isShowing()) {
+                alertDialog = new SpotsDialog.Builder(this).setMessage("Recuperando Vistorias").setCancelable(false).create();
+                alertDialog.show();
+            }
+        } else {
+            if (alertDialog != null && alertDialog.isShowing()) {
+                alertDialog.dismiss();
+            }
+        }
+    }
+
+
+    private void getCurrentUser() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            getUserFromFirebase(currentUser.getUid(), usuario -> {
+                if (usuario != null) {
+                    isAdmin = usuario.isUserAdmin();
+                }
+            });
+        }
+
+        //recuperarVistoriasPublicas();
+    }
+
+    private void getUserFromFirebase(String uid, OnUserLoadedListener listener) {
         DatabaseReference userRef = ConFirebase.getFirebaseDatabase().child("usuarios").child(uid);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -147,77 +224,12 @@ public class Vistorias extends AppCompatActivity {
         });
     }
 
-
     private interface OnUserLoadedListener {
         void onUserLoaded(Usuario usuario);
     }
-    @Override
-    protected void onStart() {
-        super.onStart();
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        anunciosRef.removeEventListener(valueEventListenerAnuncios);
-    }
-
-    private ValueEventListener valueEventListenerAnuncios = new ValueEventListener() {
-        @Override
-        public void onDataChange(@NonNull DataSnapshot snapshot) {
-            listacioItens.clear();
-            for (DataSnapshot localizacao : snapshot.getChildren()) {
-                for (DataSnapshot lo : localizacao.getChildren()) {
-                    // Verifique se o anúncio ainda existe antes de adicioná-lo à lista
-                    if (lo.exists()) {
-                        ItensVistorias anuncio = lo.getValue(ItensVistorias.class);
-
-                        // Adicione uma verificação adicional para garantir que o anúncio seja válido
-                        if (anuncio != null && anuncio.getIdAnuncio() != null && !anuncio.getIdAnuncio().isEmpty()) {
-                            listacioItens.add(anuncio);
-                        }
-                    }
-                }
-            }
-            Collections.reverse(listacioItens);
-            adapterAnuncios.notifyDataSetChanged();
-            alertDialog.dismiss();
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-
-        }
-    };
-    private void recuperarVistoriasPublicas(boolean firTime) {
-        alertDialog = new SpotsDialog.Builder(this)
-                .setMessage("Recuperando  Vistorias").setCancelable(false).show();
-        alertDialog.show();
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
-
-        // Adicione esta linha para remover o listener anterior antes de adicionar um novo
-        anunciosRef.removeEventListener(valueEventListenerAnuncios);
-
-        anunciosRef.addValueEventListener(valueEventListenerAnuncios);
-    }
 
 
-    private void atualizarDados() {
-        // Remova o listener anterior, caso exista
-        if (valueEventListenerAnuncios != null) {
-            anunciosRef.removeEventListener(valueEventListenerAnuncios);
-        }
 
-        // Recupere os dados novamente do Firebase
-        recuperarVistoriasPublicas(false);
-
-        // Atualize o RecyclerView
-        adapterAnuncios.notifyDataSetChanged();
-
-        // Pare o ícone de carregamento do SwipeRefreshLayout
-        swipeRefreshLayout.setRefreshing(false);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -249,6 +261,9 @@ public class Vistorias extends AppCompatActivity {
             case R.id.menu_perfil:
                 startActivity(new Intent(getApplicationContext(), Perfil.class));
                 break;
+            case R.id.menuChat:
+                startActivity(new Intent(getApplicationContext(), Chat.class));
+                break;
             case R.id.menu_compartilhar:
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/play");
@@ -268,10 +283,11 @@ public class Vistorias extends AppCompatActivity {
 
     private void inicializarCompo() {
         recyclerViewPu = findViewById(R.id.ryclePublico);
-        campoEmail = findViewById(R.id.emialLog);
-        campoSenha = findViewById(R.id.senhaLog);
+
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
     }
+
     private void navigation() {
         BottomNavigationView bottom = findViewById(R.id.bnve);
         loadNavigation(bottom);
@@ -295,7 +311,7 @@ public class Vistorias extends AppCompatActivity {
                         startActivity(new Intent(getApplicationContext(), MinhasVistorias.class));
                         break;
                     case R.id.ic_perfil:
-                        Intent intent = new Intent(Vistorias.this, VistoriasEmAndamentoActivity.class);
+                        Intent intent = new Intent(MostraVistorias.this, VistoriasEmAndamentoActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.inicial:

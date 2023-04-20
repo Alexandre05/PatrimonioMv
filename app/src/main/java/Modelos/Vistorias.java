@@ -2,6 +2,7 @@ package Modelos;
 
 import androidx.annotation.NonNull;
 
+
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.firebase.database.DataSnapshot;
@@ -15,12 +16,32 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
-public class ItensVistorias implements Serializable {
-    @PropertyName("itens")
-    private List<ItensVistorias> itens;
+
+public class Vistorias implements Serializable {
+    private List<Item> itens;
+    private Map<String, Object> itensMap;
+
+    public Map<String, Object> getItensMap() {
+        return itensMap;
+    }
+
+    public void setItensMap(Map<String, Object> itensMap) {
+        this.itensMap = itensMap;
+    }
+
+    public List<Item> getItens() {
+        return itens;
+    }
+
+    public void setItens(List<Item> itens) {
+        this.itens = itens;
+    }
+
     private int hour, minute, second;
 
     public int getHour() {
@@ -47,22 +68,11 @@ public class ItensVistorias implements Serializable {
         this.second = second;
     }
 
-    // Adicione getters e setters para a propriedade 'itens'
-    @PropertyName("itens")
-    public List<ItensVistorias> getItens() {
-        if (itens == null) {
-            itens = new ArrayList<>();
-        }
-        return itens;
-    }
 
-    @PropertyName("itens")
-    public void setItens(List<ItensVistorias> itens) {
-        this.itens = itens;
-    }
-    @PropertyName("idAnuncio")
-    private String idAnuncio;
+
     private String idVistoria;
+
+
     private String localizacao_data;
 
     public String getLocalizacao_data() {
@@ -106,8 +116,25 @@ public class ItensVistorias implements Serializable {
     @PropertyName("latitude")
     private Double latitude;
 
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongetude() {
+        return longetude;
+    }
+
+    public void setLongetude(Double longetude) {
+        this.longetude = longetude;
+    }
+
     @PropertyName("longetude")
     private Double longetude;
+
     @PropertyName("outrasInformacoes")
     private String outrasInformacoes;
     @PropertyName("nomePerfilU")
@@ -126,11 +153,11 @@ public class ItensVistorias implements Serializable {
     public String getQrCodeURL() {
         return qrCodeURL;
     }
+
     @PropertyName("qrCodeURL")
     public void setQrCodeURL(String qrCodeURL) {
         this.qrCodeURL = qrCodeURL;
     }
-
 
 
     public String getIdInspector() {
@@ -142,12 +169,9 @@ public class ItensVistorias implements Serializable {
     }
 
 
-
     public boolean isExcluidaVistoria() {
         return excluidaVistoria;
     }
-
-
 
 
     public boolean isConcluida() {
@@ -159,77 +183,145 @@ public class ItensVistorias implements Serializable {
     }
 
 
-    @PropertyName("idAnuncio")
-    public String getIdAnuncio() {
-        return idAnuncio;
-    }
-    @PropertyName("idAnuncio")
-    public void setIdAnuncio(String idAnuncio) {
-        this.idAnuncio = idAnuncio;
-    }
 
 
 
-    public Double getLatitude() {
-        return latitude;
-    }
 
 
 
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongetude() {
-        return longetude;
-    }
-
-    public void setLongetude(Double longetude) {
-        this.longetude = longetude;
-    }
 
     public String getData() {
-        return data;    }
+        return data;
+    }
 
     public void setData(String data) {
         this.data = data;
     }
+
     public String getNomePerfilU() {
         return nomePerfilU;
     }
+
     public void setNomePerfilU(String nomePerfilU) {
         this.nomePerfilU = nomePerfilU;
     }
+
     @PropertyName("fotos")
-  private List<String> fotos;
-  public ItensVistorias() {
-    DatabaseReference anuncioRefe=ConFirebase.getFirebaseDatabase().child("vistorias") ;
+    private List<String> fotos;
 
-    setIdAnuncio(anuncioRefe.push().getKey());
-  }
-  public  void  salvar(){
-    String idUsuario= ConFirebase.getIdUsuario();
-      setIdInspector(idUsuario);
-    DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-            .child("vistorias");
-    anuncioRefe.child(idUsuario)
-            .child(getIdAnuncio())
-            .setValue(this);
-  salvarAnuncioPublico();
-  }
+    public Vistorias() {
+        DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
 
-  public  void remover(){
-    String idiUsuario= ConFirebase.getIdUsuario();
+        setIdVistoria(anuncioRefe.push().getKey());
+        itens = new ArrayList<>();
+    }
 
-    DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-            .child("vistorias")
-            .child("vistoriaPu")
-            .child(idiUsuario)
-            .child(getIdAnuncio());
-    anuncioRefe.removeValue();
-    removerAPu();
-  }
+    public static Task<List<Vistorias>> buscarVistorias() {
+        TaskCompletionSource<List<Vistorias>> taskCompletionSource = new TaskCompletionSource<>();
 
+        DatabaseReference vistoriasRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<Vistorias> vistoriasList = new ArrayList<>();
+                for (DataSnapshot locationSnapshot : dataSnapshot.getChildren()) {
+                    for (DataSnapshot vistoriaSnapshot : locationSnapshot.getChildren()) {
+                        Vistorias vistoria = vistoriaSnapshot.getValue(Vistorias.class);
+                        vistoriasList.add(vistoria);
+                    }
+                }
+                taskCompletionSource.setResult(vistoriasList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                taskCompletionSource.setException(databaseError.toException());
+            }
+        };
+
+        vistoriasRef.addListenerForSingleValueEvent(valueEventListener);
+
+        return taskCompletionSource.getTask();
+    }
+
+    public String getTipoItem() {
+        return tipoItem;
+    }
+
+    public void setTipoItem(String tipoItem) {
+        this.tipoItem = tipoItem;
+    }
+
+    public String getLocalizacao() {
+        return localizacao;
+    }
+
+    public void setLocalizacao(String localizacao) {
+        this.localizacao = localizacao.toUpperCase();
+    }
+
+    public String getNomeItem() {
+        return nomeItem;
+    }
+
+    public void setNomeItem(String nomeItem) {
+        this.nomeItem = nomeItem;
+    }
+
+    @PropertyName("outrasInformacoes")
+    public String getOutrasInformacoes() {
+        return outrasInformacoes;
+    }
+
+    @PropertyName("outrasInformacoes")
+    public void setOutrasInformacoes(String outrasInformacoes) {
+        this.outrasInformacoes = outrasInformacoes;
+    }
+
+    public String getPlaca() {
+        return placa;
+    }
+
+    public void setPlaca(String placa) {
+        this.placa = placa;
+    }
+
+    @PropertyName("fotos")
+    public List<String> getFotos() {
+        return fotos;
+    }
+
+    @PropertyName("fotos")
+    public void setFotos(List<String> fotos) {
+        this.fotos = fotos;
+    }
+
+    // metodos
+    public void salvar() {
+        String idUsuario = ConFirebase.getIdUsuario();
+        setIdInspector(idUsuario);
+        DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase()
+                .child("vistorias");
+        anuncioRefe.child(idUsuario)
+                .child(getLocalizacao())
+                .child(getNomePerfilU())
+                .child(getIdVistoria())
+
+                .setValue(this);
+        salvarAnuncioPublico();
+    }
+
+    public void remover() {
+        String idiUsuario = ConFirebase.getIdUsuario();
+
+        DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase()
+                .child("vistorias")
+                .child("vistoriaPu")
+                .child(idiUsuario)
+                .child(getIdVistoria());
+        anuncioRefe.removeValue();
+        removerAPu();
+    }
 
 
     public static Task<Boolean> verificarPlacaExistente(String placa) {
@@ -242,7 +334,7 @@ public class ItensVistorias implements Serializable {
                 boolean placaExistente = false;
                 for (DataSnapshot locationSnapshot : dataSnapshot.getChildren()) {
                     for (DataSnapshot anuncioSnapshot : locationSnapshot.getChildren()) {
-                        ItensVistorias anuncio = anuncioSnapshot.getValue(ItensVistorias.class);
+                        Vistorias anuncio = anuncioSnapshot.getValue(Vistorias.class);
                         if (anuncio.getPlaca().equalsIgnoreCase(placa)) {
                             placaExistente = true;
                             break;
@@ -265,42 +357,45 @@ public class ItensVistorias implements Serializable {
 
         return taskCompletionSource.getTask();
     }
-    public static Task<Void> atualizarAnuncio(ItensVistorias anuncio, String idUsuario) {
+
+    public static Task<Void> atualizarAnuncio(Vistorias anuncio, String idUsuario) {
         // Recupera a referência do nó do anúncio
-        DatabaseReference anunciosRef = ConFirebase.getFirebaseDatabase().child("vistorias").child(idUsuario).child(anuncio.getIdAnuncio());
+        DatabaseReference anunciosRef = ConFirebase.getFirebaseDatabase().child("vistorias").child(idUsuario).child(anuncio.getIdVistoria());
 
         // Atualiza os dados do anúncio no Firebase
         return anunciosRef.setValue(anuncio);
     }
 
-    public static Task<Void> atualizarAnuncioPu(ItensVistorias anuncio, String idUsuario) {
+    public static Task<Void> atualizarAnuncioPu(Vistorias anuncio, String idUsuario) {
         DatabaseReference anuncioPuRef = ConFirebase.getFirebaseDatabase()
                 .child("vistoriaPu")
                 .child(idUsuario)
-                .child(anuncio.getIdAnuncio());
+                .child(anuncio.getIdVistoria());
 
         return anuncioPuRef.setValue(anuncio);
     }
 
     // DETERA OS ANUNCIOS PARA TODOS
-  public  void removerAPu(){
-      DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-              .child("vistoriaPu")
-              .child(getLocalizacao())
-              .child(getIdAnuncio());
-    anuncioRefe.removeValue();
-  }
-// SALVA ANUNCIOS PARA TODOS
-  public  void  salvarAnuncioPublico(){
-    DatabaseReference anuncioRefe= ConFirebase.getFirebaseDatabase()
-            .child("vistoriaPu");
-    anuncioRefe.child(getLocalizacao())
-            .child(getIdAnuncio())
-            .setValue(this);
-  }
+    public void removerAPu() {
+        DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase()
+                .child("vistoriaPu")
+                .child(getLocalizacao())
+                .child(getIdVistoria());
+        anuncioRefe.removeValue();
+    }
+
+    // SALVA ANUNCIOS PARA TODOS
+    public void salvarAnuncioPublico() {
+        DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase()
+                .child("vistoriaPu");
+        anuncioRefe.child(getLocalizacao())
+                .child(getIdVistoria())
+                .child(getNomePerfilU())
+                .setValue(this);
+    }
+
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        result.put("idAnuncio", idAnuncio);
         result.put("idVistoria", idVistoria);
         result.put("localizacao_data", localizacao_data);
         result.put("qrCodeURL", qrCodeURL);
@@ -317,52 +412,8 @@ public class ItensVistorias implements Serializable {
         result.put("idInspector", idInspector);
         result.put("excluidaVistoria", excluidaVistoria);
         result.put("fotos", fotos);
+        result.put("itens", itens);
+        result.put("itens", itensMap);
         return result;
     }
-
-
-    public String getTipoItem()
-    {
-        return tipoItem;
-  }
-
-    public void setTipoItem(String tipoItem) {
-        this.tipoItem = tipoItem;
-    }
-    public String getLocalizacao() {
-        return localizacao;    }
-
-    public void setLocalizacao(String localizacao) {
-        this.localizacao = localizacao.toUpperCase();
-    }
-    public String getNomeItem() {
-        return nomeItem;
-    }
-    public void setNomeItem(String nomeItem) {
-        this.nomeItem = nomeItem;
-    }
-    @PropertyName("outrasInformacoes")
-    public String getOutrasInformacoes() {
-        return outrasInformacoes;
-    }
-    @PropertyName("outrasInformacoes")
-    public void setOutrasInformacoes(String outrasInformacoes) {
-        this.outrasInformacoes = outrasInformacoes;
-    }
-
-    public String getPlaca() {
-        return placa;
-    }
-
-    public void setPlaca(String placa) {
-        this.placa = placa;
-    }
-    @PropertyName("fotos")
-    public List<String> getFotos() {
-        return fotos;
-    }
-    @PropertyName("fotos")
-  public void setFotos(List<String> fotos) {
-    this.fotos = fotos;
-  }
 }

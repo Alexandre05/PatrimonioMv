@@ -78,9 +78,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import Adaptadores.AdapterAnuncios;
+import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 
 public class Relatorios extends AppCompatActivity {
@@ -88,18 +88,18 @@ public class Relatorios extends AppCompatActivity {
 
     private EditText editTextLocation, editTextEndDate;
     private Button buttonSearch, btn_imprimir;
-    private List<ItensVistorias> currentSearchResults = new ArrayList<>();
+    private List<Vistorias> currentSearchResults = new ArrayList<>();
 
     private RecyclerView recyclerView;
-    private List<ItensVistorias> anuncios = new ArrayList<>();
-    private AdapterAnuncios adapterAnuncios;
+    private List<Vistorias> vistoriasList;
+    private AdapterVistorias adapterAnuncios;
     private DatabaseReference anunciosRef;
     private FirebaseUser currentUser;
     private EditText editTextLicensePlate, editTextStartDate;
     private RadioGroup radioGroupSearchCriteria;
     private RadioButton radioButtonLocation;
     private RadioButton radioButtonLicensePlate;
-    private ItensVistorias selectedItem;
+    private Vistorias selectedItem;
     private Button buttonGeneratePdf, buttonGenerateQrCode;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 11;
     private static final int REQUEST_WRITE_STORAGE = 112;
@@ -132,7 +132,7 @@ public class Relatorios extends AppCompatActivity {
         Log.d("FIREBASE_STRUCTURE", "anunciosRef: " + anunciosRef);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
-        adapterAnuncios = new AdapterAnuncios(anuncios, this);
+        adapterAnuncios = new AdapterVistorias(vistoriasList, this);
         recyclerView.setAdapter(adapterAnuncios);
         editTextLocation.setVisibility(View.GONE);
         createNotificationChannel();
@@ -232,7 +232,7 @@ public class Relatorios extends AppCompatActivity {
 
                 SearchCallback searchCallback = new SearchCallback() {
                     @Override
-                    public void onSearchCompleted(List<ItensVistorias> searchResults) {
+                    public void onSearchCompleted(List<Vistorias> searchResults) {
                         updateRecyclerView(searchResults);
                         currentSearchResults = searchResults;
                     }
@@ -298,23 +298,21 @@ public class Relatorios extends AppCompatActivity {
 
 
         // metodo gerar PDF
-        buttonGeneratePdf.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d("PDF_CLICK", "Botão Gerar PDF");
-                String startDate = "01/01/2023";
-                String endDate = "31/12/2023";
+        buttonGeneratePdf.setOnClickListener(view -> {
+            Log.d("PDF_CLICK", "Botão Gerar PDF");
+            String startDate = "01/01/2023";
+            String endDate = "31/12/2023";
 
-                List<ItensVistorias> filteredAnuncios = filterByDate(anuncios, startDate, endDate);
-                if (ContextCompat.checkSelfPermission(Relatorios.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("PDF_CLICK", "Permissão concedida, chamando createPdf");
-                    createPdf(filteredAnuncios);
-                } else {
-                    Log.d("PDF_CLICK", "Permissão não concedida, solicitando permissão");
-                    ActivityCompat.requestPermissions(Relatorios.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
-                }
+            List<Vistorias> filteredVistorias = filterByDate(vistoriasList, startDate, endDate);
+            if (ContextCompat.checkSelfPermission(Relatorios.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Log.d("PDF_CLICK", "Permissão concedida, chamando createPdf");
+                createPdf(filteredVistorias);
+            } else {
+                Log.d("PDF_CLICK", "Permissão não concedida, solicitando permissão");
+                ActivityCompat.requestPermissions(Relatorios.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
             }
         });
+
     }
 
     private void fetchAllData(String inspectorId, String startDate, String endDate, SearchCallback callback) {
@@ -325,9 +323,9 @@ public class Relatorios extends AppCompatActivity {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<ItensVistorias> vistorias = new ArrayList<>();
+                List<Vistorias> vistorias = new ArrayList<>();
                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                    ItensVistorias vistoria = childSnapshot.getValue(ItensVistorias.class);
+                    Vistorias vistoria = childSnapshot.getValue(Vistorias.class);
                     if (vistoria != null) {
                         vistorias.add(vistoria);
                     }
@@ -361,9 +359,9 @@ public class Relatorios extends AppCompatActivity {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<ItensVistorias> vistorias = new ArrayList<>();
+                List<Vistorias> vistorias = new ArrayList<>();
                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                    ItensVistorias vistoria = childSnapshot.getValue(ItensVistorias.class);
+                    Vistorias vistoria = childSnapshot.getValue(Vistorias.class);
                     if (vistoria != null && vistoria.getPlaca().equals(licensePlate)) {
                         vistorias.add(vistoria);
 
@@ -379,9 +377,9 @@ public class Relatorios extends AppCompatActivity {
         });
     }
 
-    private void updateRecyclerView(List<ItensVistorias> searchResults) {
-        anuncios.clear();
-        anuncios.addAll(searchResults);
+    private void updateRecyclerView(List<Vistorias> searchResults) {
+        vistoriasList.clear();
+        vistoriasList.addAll(searchResults);
         Log.d("SearchResults", "updateRecyclerView: searchResults=" + searchResults);
         adapterAnuncios.notifyDataSetChanged();
     }
@@ -400,17 +398,17 @@ public class Relatorios extends AppCompatActivity {
             query.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    List<ItensVistorias> filteredResults = new ArrayList<>();
+                    List<Vistorias> filteredResults = new ArrayList<>();
 
                     for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                         for (DataSnapshot snapshot : userSnapshot.getChildren()) {
-                            ItensVistorias item = snapshot.getValue(ItensVistorias.class);
+                            Vistorias item = snapshot.getValue(Vistorias.class);
 
                             if (item != null && item.getData() != null && item.getLocalizacao() != null) {
                                 try {
                                     Date itemDate = sdf.parse(item.getData());
                                     // Verifique se a localização contém a substring digitada pelo usuário (ignorando a diferença entre maiúsculas e minúsculas)
-                                    if (itemDate != null && (itemDate.after(start) || itemDate.equals(start)) && (itemDate.before(end) || itemDate.equals(end)) && item.getLocalizacao().toUpperCase().contains(location)) {
+                                    if (itemDate != null && (itemDate.after(start) || itemDate.equals(start)) && (itemDate.before(end) || itemDate.equals(end)) && item.getLocalizacao().toUpperCase().contains(location.toUpperCase())) {
                                         filteredResults.add(item);
                                     }
                                 } catch (ParseException e) {
@@ -420,16 +418,12 @@ public class Relatorios extends AppCompatActivity {
                         }
                     }
 
-                    // Atualize a lista de anúncios e notifique o adaptador
-                    anuncios.clear();
-                    anuncios.addAll(filteredResults);
-                    Log.d("Filtro", "Erro ao buscar dados: " + filteredResults);
-                    adapterAnuncios.notifyDataSetChanged();
+                    // Atualize a lista de vistorias e notifique o adaptador
+                    updateRecyclerView(filteredResults);
 
                     // Atualize a variável currentSearchResults
                     currentSearchResults = filteredResults;
                 }
-
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -442,6 +436,7 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
+
     // fim do oncrete
     private void fetchDataAndFilterByLocation(String location) {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
@@ -450,26 +445,23 @@ public class Relatorios extends AppCompatActivity {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<ItensVistorias> filteredResults = new ArrayList<>();
+                List<Vistorias> filteredResults = new ArrayList<>();
 
                 for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                     for (DataSnapshot snapshot : userSnapshot.getChildren()) {
-                        ItensVistorias item = snapshot.getValue(ItensVistorias.class);
+                        Vistorias item = snapshot.getValue(Vistorias.class);
 
                         if (item != null && item.getLocalizacao() != null) {
                             // Verifique se a localização contém a substring digitada pelo usuário (ignorando a diferença entre maiúsculas e minúsculas)
-                            if (item.getLocalizacao().toUpperCase().contains(location)) {
+                            if (item.getLocalizacao().toUpperCase().contains(location.toUpperCase())) {
                                 filteredResults.add(item);
                             }
                         }
                     }
                 }
 
-                // Atualize a lista de anúncios e notifique o adaptador
-                anuncios.clear();
-                anuncios.addAll(filteredResults);
-                Log.d("Filtro", "Erro ao buscar dados: " + filteredResults);
-                adapterAnuncios.notifyDataSetChanged();
+                // Atualize a lista de vistorias e notifique o adaptador
+                updateRecyclerView(filteredResults);
 
                 // Atualize a variável currentSearchResults
                 currentSearchResults = filteredResults;
@@ -482,7 +474,8 @@ public class Relatorios extends AppCompatActivity {
         });
     }
 
-    private String itemListToJson(List<ItensVistorias> itemList) {
+
+    private String itemListToJson(List<Vistorias> itemList) {
         Gson gson = new Gson();
         String json = gson.toJson(itemList);
         json = json.replace("\\u003d", "=").replace("\\u0026", "&");
@@ -490,7 +483,7 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
-    private Bitmap gerarteQRCode(String data, List<ItensVistorias> itemList) {
+    private Bitmap gerarteQRCode(String data, List<Vistorias> itemList) {
         Log.d("QRCode", "Generating QR Code with data: " + data + " and item list: " + itemList);
 
         Gson gson = new Gson();
@@ -544,42 +537,34 @@ public class Relatorios extends AppCompatActivity {
 
         final AlertDialog qrCodeDialog = builder.create();
 
-        buttonSaveQRCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Verifique a permissão de armazenamento
+        buttonSaveQRCode.setOnClickListener(view -> {
+            Log.d("QRCode", "Botão Gerar QR Code clicado");
+            if (ContextCompat.checkSelfPermission(Relatorios.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                // Salve o QR Code no dispositivo
+                String filePath = saveQRCodeToStorage(qrCodeBitmap);
 
-                Log.d("QRCode", "Botão Gerar QR Code clicado");
-                if (ContextCompat.checkSelfPermission(Relatorios.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    // Salve o QR Code no dispositivo
-                    String filePath = saveQRCodeToStorage(qrCodeBitmap);
-
-                    // Compartilhe o QR Code
-                    shareQRCode(filePath);
-
-                    // Feche o diálogo
-                    qrCodeDialog.dismiss();
-                } else {
-                    // Solicite a permissão de armazenamento
-                    ActivityCompat.requestPermissions(Relatorios.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
-                }
-            }
-        });
-
-        buttonPrintQRCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                // Implemente a função para imprimir o QR Code
-                printQRCode(qrCodeBitmap);
+                // Compartilhe o QR Code
+                shareQRCode(filePath);
 
                 // Feche o diálogo
                 qrCodeDialog.dismiss();
+            } else {
+                // Solicite a permissão de armazenamento
+                ActivityCompat.requestPermissions(Relatorios.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
             }
+        });
+
+        buttonPrintQRCode.setOnClickListener(view -> {
+            // Implemente a função para imprimir o QR Code
+            printQRCode(qrCodeBitmap);
+
+            // Feche o diálogo
+            qrCodeDialog.dismiss();
         });
 
         qrCodeDialog.show();
     }
+
 
     private void printQRCode(Bitmap qrCodeBitmap) {
         PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
@@ -631,28 +616,29 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
-    public List<ItensVistorias> filterByDate(List<ItensVistorias> anuncios, String startDate, String endDate) {
-        List<ItensVistorias> filteredAnuncios = new ArrayList<>();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    private List<Vistorias> filterByDate(List<Vistorias> anuncios, String startDate, String endDate) {
+        List<Vistorias> filteredAnuncios = new ArrayList<>();
 
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         try {
-            Date start = dateFormat.parse(startDate);
-            Date end = dateFormat.parse(endDate);
+            Date start = sdf.parse(startDate);
+            Date end = sdf.parse(endDate);
 
-            for (ItensVistorias anuncio : anuncios) {
-                Date anuncioDate = dateFormat.parse(anuncio.getData());
+            for (Vistorias vistoria : anuncios) {
+                Date anuncioDate = sdf.parse(vistoria.getData());
 
                 if ((anuncioDate.equals(start) || anuncioDate.after(start)) && (anuncioDate.equals(end) || anuncioDate.before(end))) {
-                    filteredAnuncios.add(anuncio);
+                    filteredAnuncios.add(vistoria);
                 }
             }
         } catch (ParseException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erro ao filtrar por data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
         return filteredAnuncios;
     }
+
+
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -711,13 +697,14 @@ public class Relatorios extends AppCompatActivity {
         startActivityForResult(intent, CREATE_FILE_REQUEST);
     }
 
-    private void createPdf(List<ItensVistorias> vistorias) {
+    private void createPdf(List<Vistorias> vistoriasList) {
         Log.d("PDF_CREATE", "createPdf() called");
-        if (vistorias.isEmpty()) {
+
+        if (vistoriasList.isEmpty()) {
             Toast.makeText(this, "Não há dados para gerar o PDF!", Toast.LENGTH_SHORT).show();
             return;
         }
-        Log.d("PDF", "Número de vistorias filtradas: " + vistorias.size());
+        Log.d("PDF", "Número de vistorias filtradas: " + vistoriasList.size());
 
         // Solicitar permissão de armazenamento externo antes de criar o arquivo
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -727,53 +714,55 @@ public class Relatorios extends AppCompatActivity {
         }
     }
 
-    @Override
+
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("PDF_RESULT", "onActivityResult() called");
 
+        if (data == null) return;
+
         if (requestCode == CREATE_FILE_REQUEST && resultCode == RESULT_OK) {
-            if (data != null) {
-                Log.d("PDF_RESULT", "Uri obtido com sucesso");
-                Uri uri = data.getData();
-                Log.d("PDF_RESULT", "Uri: " + uri.toString()); // Adicione esta linha
-
-                String startDate = "01/01/2023";
-                String endDate = "31/12/2023";
-
-                List<ItensVistorias> filteredAnuncios = filterByDate(anuncios, startDate, endDate);
-                salvaPdfToFile(uri, filteredAnuncios); // Adicione os anúncios filtrados como parâmetro
-
-                // Adicione o Toast para informar o usuário sobre a localização do arquivo PDF salvo
-                String filePath = uri.getPath();
-                Toast.makeText(Relatorios.this, "PDF salvo em: " + filePath, Toast.LENGTH_LONG).show();
-
-                showNotification("PDF salvo com sucesso!", "O PDF foi salvo em: " + filePath, uri);
-
-
-            }
+            handleCreateFileRequestResult(data);
         } else if (requestCode == SCAN_QR_REQUEST_CODE && resultCode == RESULT_OK) {
-            Log.d("PDF_RESULT", "Uri obtido com sucesso");
-            if (data != null) {
-                String qrContent = data.getStringExtra("SCAN_RESULT");
-                if (qrContent != null && qrContent.startsWith("vistoriaapp://scan?data=")) {
-                    String jsonPart = qrContent.substring("vistoriaapp://scan?data=".length());
-
-                    Gson gson = new Gson();
-                    Type listType = new TypeToken<List<ItensVistorias>>() {}.getType();
-                    List<ItensVistorias> itemList = gson.fromJson(jsonPart, listType);
-
-                    Intent displayInfoIntent = new Intent(this, DisplayInfoActivity.class);
-                    displayInfoIntent.putExtra(DisplayInfoActivity.EXTRA_ITEM_LIST_JSON, jsonPart);
-                    startActivity(displayInfoIntent);
-
-                    //showNotification("QR Code escaneado com sucesso!", "O QR Code foi escaneado com sucesso!");
-
-                }
-
-            }
+            handleScanQrRequestResult(data);
         }
     }
+
+    private void handleCreateFileRequestResult(Intent data) {
+        Log.d("PDF_RESULT", "Uri obtido com sucesso");
+        Uri uri = data.getData();
+        Log.d("PDF_RESULT", "Uri: " + uri.toString());
+
+        String startDate = "01/01/2023";
+        String endDate = "31/12/2023";
+
+        List<Vistorias> filteredAnuncios = filterByDate(vistoriasList, startDate, endDate);
+        salvaPdfToFile(uri, filteredAnuncios);
+
+        String filePath = uri.getPath();
+        Toast.makeText(Relatorios.this, "PDF salvo em: " + filePath, Toast.LENGTH_LONG).show();
+
+        showNotification("PDF salvo com sucesso!", "O PDF foi salvo em: " + filePath, uri);
+    }
+
+    private void handleScanQrRequestResult(Intent data) {
+        Log.d("PDF_RESULT", "Uri obtido com sucesso");
+        String qrContent = data.getStringExtra("SCAN_RESULT");
+
+        if (qrContent == null || !qrContent.startsWith("vistoriaapp://scan?data=")) return;
+
+        String jsonPart = qrContent.substring("vistoriaapp://scan?data=".length());
+
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Vistorias>>() {}.getType();
+        List<Vistorias> itemList = gson.fromJson(jsonPart, listType);
+
+        Intent displayInfoIntent = new Intent(this, DisplayInfoActivity.class);
+        displayInfoIntent.putExtra(DisplayInfoActivity.EXTRA_ITEM_LIST_JSON, jsonPart);
+        startActivity(displayInfoIntent);
+    }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -781,7 +770,7 @@ public class Relatorios extends AppCompatActivity {
         if (requestCode == REQUEST_WRITE_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d("PDF", "Permissão de escrita em armazenamento externo concedida após solicitação do usuário!");
-                createPdf(anuncios);
+                createPdf(vistoriasList);
             } else {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                     Log.d("STORAGE_PERMISSION", "Permissão de armazenamento externo negada pelo usuário");
@@ -799,7 +788,7 @@ public class Relatorios extends AppCompatActivity {
             }
         }
     }
-    private void salvaPdfToFile(Uri uri, List<ItensVistorias> filteredAnuncios) {
+    private void salvaPdfToFile(Uri uri, List<Vistorias> filteredAnuncios) {
         Log.d("PDF_SAVE", "PdfDocument criado e iniciado");
         try {
             PdfDocument document = new PdfDocument();
@@ -845,7 +834,7 @@ public class Relatorios extends AppCompatActivity {
             canvas.drawText("Localização", startX + 5 * cellWidth + 10, startY + 30, paint);
 
             int rowIndex = 1;
-            for (ItensVistorias vistoria : filteredAnuncios) {
+            for (Vistorias vistoria : filteredAnuncios) {
                 canvas.drawText(vistoria.getNomeItem(), startX + 10, startY + 30 + rowIndex * 50, paint);
                 canvas.drawText(vistoria.getPlaca(), startX + cellWidth + 10, startY + 30 + rowIndex * 50, paint);
                 canvas.drawText(vistoria.getOutrasInformacoes(), startX + 2 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
@@ -924,7 +913,7 @@ public class Relatorios extends AppCompatActivity {
 
 
     public interface SearchCallback {
-        void onSearchCompleted(List<ItensVistorias> vistorias);
+        void onSearchCompleted(List<Vistorias> vistorias);
         void onSearchFailed(String errorMessage);
     }
 

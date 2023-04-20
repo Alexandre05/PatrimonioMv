@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
@@ -24,9 +25,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import Adaptadores.AdapterAnuncios;
+import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import Modelos.RecyclerItemClickListener;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
@@ -40,16 +41,14 @@ public class MinhasVistorias extends AppCompatActivity {
     private ActivityMeusAnimaisBinding binding;
     private ActivityMeusAnimaisBinding binding2;
     private DatabaseReference anunciosUsuarioRef;
-    private ItensVistorias anuncioSele;
-    private RecyclerView recycleAnuncios;
-    private AlertDialog alert;
-    private Button irOutraSala;
-
+    private Vistorias anuncioSele;
+    private RecyclerView recyclerViewAnuncios;
+    private AlertDialog alertDialog;
+    private Button btnOutraSala;
 
     private Usuario usuario;
-    private List<ItensVistorias> anuncios = new ArrayList<>();
-    private AdapterAnuncios adapterAnuncios;
-
+    private List<Vistorias> vistoriasList = new ArrayList<>();
+    private AdapterVistorias adapterAnuncios;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,129 +57,107 @@ public class MinhasVistorias extends AppCompatActivity {
         binding = ActivityMeusAnimaisBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        initializeComponents();
+        setTitle("Minhas Vistorias");
 
-        inicializarCompo();
-        //setSupportActionBar(binding.toolbar);
-        this.setTitle("Minhas Vistorias");
-
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                startActivity(new Intent(getApplicationContext(), CadastrarItens.class));
-                recuperarAnucnis();
-            }
+        binding.fab.setOnClickListener(view -> {
+            startActivity(new Intent(getApplicationContext(), CadastrarItens.class));
         });
 
-        binding.impriB.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-
-                Intent intent = new Intent(MinhasVistorias.this, ImprimirActivity.class);
-                startActivity(intent);
-            }
+        binding.impriB.setOnClickListener(view -> {
+            Intent intent = new Intent(MinhasVistorias.this, ImprimirActivity.class);
+            startActivity(intent);
         });
 
-        recycleAnuncios.setLayoutManager(new LinearLayoutManager(this));
-        recycleAnuncios.setHasFixedSize(true);
-        adapterAnuncios = new AdapterAnuncios(anuncios, this);
-        recycleAnuncios.setAdapter(adapterAnuncios);
+        recyclerViewAnuncios.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewAnuncios.setHasFixedSize(true);
+        adapterAnuncios = new AdapterVistorias(vistoriasList, this);
+        recyclerViewAnuncios.setAdapter(adapterAnuncios);
 
-        recuperarAnucnis();
-        recycleAnuncios.addOnItemTouchListener(
-
+        recuperarAnuncios();
+        recyclerViewAnuncios.addOnItemTouchListener(
                 new RecyclerItemClickListener(
                         this,
-                        recycleAnuncios,
+                        recyclerViewAnuncios,
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
                             public void onItemClick(View view, int position) {
-                                ItensVistorias anuncioSelecionado = anuncios.get(position);
+                                Vistorias vistoriaSelecionada = vistoriasList.get(position);
                                 Intent intent = new Intent(getApplicationContext(), Atualizar.class);
-                                intent.putExtra("vistorias", anuncioSelecionado);
+                                intent.putExtra("vistorias", vistoriaSelecionada);
                                 startActivity(intent);
                             }
 
-
                             @Override
                             public void onLongItemClick(View view, int position) {
-                                AlertDialog.Builder builder = new AlertDialog.Builder(MinhasVistorias.this);
-                                builder.setMessage("Tem certeza que deseja excluir o item?")
+                                new AlertDialog.Builder(MinhasVistorias.this)
+                                        .setMessage("Tem certeza que deseja excluir o item?")
                                         .setCancelable(false)
-                                        .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                ItensVistorias anunciosSelecionado = anuncios.get(position);
-                                                String anuncioId = anunciosSelecionado.getIdAnuncio();
-                                                anunciosUsuarioRef.child(anuncioId).removeValue(); // Remover o anúncio do Firebase
-                                                anunciosSelecionado.remover();
-                                                adapterAnuncios.notifyDataSetChanged();
-                                                recuperarAnucnis();
-                                                recreate();
-                                            }
+                                        .setPositiveButton("Sim", (dialog, id) -> {
+                                            Vistorias vistoriaSelecionada = vistoriasList.get(position);
+                                            String vistoriaId = vistoriaSelecionada.getIdVistoria();
+                                            anunciosUsuarioRef.child(vistoriaId).removeValue();
+                                            vistoriaSelecionada.remover();
+                                            adapterAnuncios.notifyDataSetChanged();
+                                            recuperarAnuncios();
                                         })
-                                        .setNegativeButton("Não", new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                dialog.cancel();
-                                            }
-                                        });
-                                AlertDialog alert = builder.create();
-                                alert.show();
+                                        .setNegativeButton("Não", (dialog, id) -> dialog.cancel())
+                                        .create()
+                                        .show();
                             }
-
-
 
                             @Override
                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-
                             }
                         }
                 )
         );
-
-
     }
-    private void recuperarAnucnis() {
-        alert = new AlertDialog.Builder(this)
-                .setMessage("Recuperando Meus Anuncios...")
+
+    private void recuperarAnuncios() {
+        alertDialog = new AlertDialog.Builder(this)
+                .setMessage("Recuperando Minhas Vistorias...")
                 .setCancelable(false)
                 .show();
-        alert.show();
+
         anunciosUsuarioRef = ConFirebase.getFirebaseDatabase()
-                // aqui pega e mostra os meus anuncios
                 .child("vistorias")
                 .child(ConFirebase.getIdUsuario());
 
         anunciosUsuarioRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                anuncios.clear();
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                vistoriasList.clear();
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                        Vistorias vistoria;
 
-                    anuncios.add(ds.getValue(ItensVistorias.class));
+                        try {
+                            vistoria = ds.getValue(Vistorias.class);
+                        } catch (DatabaseException e) {
+                            // Se ocorrer uma exceção ao converter os campos, pule esta vistoria
+                            continue;
+                        }
 
+                        if (vistoria != null) {
+                            vistoriasList.add(vistoria);
+                        }
+                    }
+                    Collections.reverse(vistoriasList);
                 }
-                Collections.reverse(anuncios);
                 adapterAnuncios.notifyDataSetChanged();
-                alert.dismiss();
+                alertDialog.dismiss();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                alertDialog.dismiss();
             }
         });
-
-    }
-
-    private void inicializarCompo() {
-
-        recycleAnuncios = findViewById(R.id.reclyAnim);
-
-
     }
 
 
+    private void initializeComponents() {
+        recyclerViewAnuncios = findViewById(R.id.reclyAnim);
+    }
 }

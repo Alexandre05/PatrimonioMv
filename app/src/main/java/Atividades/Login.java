@@ -170,7 +170,7 @@ public class Login extends AppCompatActivity {
 
     public void abrirTelaAni(){
 
-        startActivity(new Intent(this, Vistorias.class));
+        startActivity(new Intent(this, MostraVistorias.class));
     }
 
 

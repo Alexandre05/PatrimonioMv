@@ -38,12 +38,10 @@ public class ConFirebase {
 
 
     public static DatabaseReference getFirebaseDatabase() {
-
         if (referenciaFarebase == null) {
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-            referenciaFarebase = FirebaseDatabase.getInstance().getReference();
-
-
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            database.setPersistenceEnabled(true);
+            referenciaFarebase = database.getReference();
         }
         return referenciaFarebase;
     }

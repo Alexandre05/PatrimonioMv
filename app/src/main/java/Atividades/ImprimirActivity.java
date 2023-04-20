@@ -43,7 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import Modelos.ItensVistorias;
+import Modelos.Vistorias;
 import br.com.patrimoniomv.R;
 import android.util.Log;
 
@@ -51,10 +51,10 @@ public class ImprimirActivity extends AppCompatActivity {
     private FloatingActionButton floatingActionButtonImprimir;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
     private static final int CREATE_FILE_REQUEST = 1;
-    private List<ItensVistorias> anuncios;
+    private List<Vistorias> anuncios;
     private Button buttonImprimir;
     private DatePicker startDatePicker, endDatePicker;
-    private List<ItensVistorias> filteredAnuncios = new ArrayList<>();
+    private List<Vistorias> filteredAnuncios = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,7 +146,7 @@ public class ImprimirActivity extends AppCompatActivity {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     anuncios.clear();
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        ItensVistorias item = snapshot.getValue(ItensVistorias.class);
+                        Vistorias item = snapshot.getValue(Vistorias.class);
                         if (item != null) {
                             anuncios.add(item);
                             Log.d("Lista","Mensa"+anuncios);
@@ -210,8 +210,8 @@ public class ImprimirActivity extends AppCompatActivity {
 
 
 
-    public static List<ItensVistorias> filterByInspectorDate(List<ItensVistorias> anuncios, String inspectorId, String startDate, String endDate) {
-        List<ItensVistorias> filteredAnuncios = new ArrayList<>();
+    public static List<Vistorias> filterByInspectorDate(List<Vistorias> anuncios, String inspectorId, String startDate, String endDate) {
+        List<Vistorias> filteredAnuncios = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
         try {
@@ -219,7 +219,7 @@ public class ImprimirActivity extends AppCompatActivity {
             Date end = dateFormat.parse(endDate);
             Log.d("Filtro", "Data inicial: " + start + ", Data final: " + end);
 
-            for (ItensVistorias anuncio : anuncios) {
+            for (Vistorias anuncio : anuncios) {
                 Date date = dateFormat.parse(anuncio.getData());
                 Log.d("Filtro", "Anúncio: " + anuncio.getNomeItem() + ", Data: " + date);
 
@@ -254,7 +254,7 @@ public class ImprimirActivity extends AppCompatActivity {
 
 
 
-    private void savePdfToFile(Uri uri ,List<ItensVistorias> filteredAnuncios) {
+    private void savePdfToFile(Uri uri ,List<Vistorias> filteredAnuncios) {
         Log.d("PDF","");
         Document document = new Document();
         try {
@@ -292,7 +292,7 @@ public class ImprimirActivity extends AppCompatActivity {
 
                 // Adicionando dados à tabela
                 Log.d("PDF", "Total de anúncios filtrados: " + filteredAnuncios.size());
-                for (ItensVistorias anuncio : filteredAnuncios) {
+                for (Vistorias anuncio : filteredAnuncios) {
                     table.addCell(anuncio.getNomeItem());
                     table.addCell(anuncio.getPlaca());
                     table.addCell(anuncio.getOutrasInformacoes());
