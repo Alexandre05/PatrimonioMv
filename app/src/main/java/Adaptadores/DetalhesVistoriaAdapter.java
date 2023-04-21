@@ -13,14 +13,14 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class DetalhesVistoriaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Vistorias vistoria;
+    private Vistoria vistoria;
     private Context context;
 
-    public DetalhesVistoriaAdapter(Vistorias vistoria, Context context) {
+    public DetalhesVistoriaAdapter(Vistoria vistoria, Context context) {
         this.vistoria = vistoria;
         this.context = context;
     }
@@ -36,10 +36,10 @@ public class DetalhesVistoriaAdapter extends RecyclerView.Adapter<RecyclerView.V
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof HeaderViewHolder) {
             HeaderViewHolder headerHolder = (HeaderViewHolder) holder;
-            headerHolder.nomeItem.setText(vistoria.getNomeItem());
+            //headerHolder.nomeItem.setText(vistoria.getNomeItem());
             headerHolder.localizacao.setText(vistoria.getLocalizacao());
-            headerHolder.placa.setText(vistoria.getPlaca());
-            headerHolder.informacoesGerais.setText(vistoria.getOutrasInformacoes());
+            //headerHolder.placa.setText(vistoria.getPlaca());
+            //headerHolder.informacoesGerais.setText(vistoria.getOutrasInformacoes());
             headerHolder.vistoriador.setText(vistoria.getNomePerfilU());
         } else if (holder instanceof FotosViewHolder) {
             FotosViewHolder fotosHolder = (FotosViewHolder) holder;

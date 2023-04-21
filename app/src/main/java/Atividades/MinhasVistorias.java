@@ -2,7 +2,6 @@ package Atividades;
 
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -27,7 +26,7 @@ import java.util.List;
 
 import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import Modelos.RecyclerItemClickListener;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
@@ -41,13 +40,13 @@ public class MinhasVistorias extends AppCompatActivity {
     private ActivityMeusAnimaisBinding binding;
     private ActivityMeusAnimaisBinding binding2;
     private DatabaseReference anunciosUsuarioRef;
-    private Vistorias anuncioSele;
+    private Vistoria anuncioSele;
     private RecyclerView recyclerViewAnuncios;
     private AlertDialog alertDialog;
     private Button btnOutraSala;
 
     private Usuario usuario;
-    private List<Vistorias> vistoriasList = new ArrayList<>();
+    private List<Vistoria> vistoriasList = new ArrayList<>();
     private AdapterVistorias adapterAnuncios;
 
     @Override
@@ -82,7 +81,7 @@ public class MinhasVistorias extends AppCompatActivity {
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
                             public void onItemClick(View view, int position) {
-                                Vistorias vistoriaSelecionada = vistoriasList.get(position);
+                                Vistoria vistoriaSelecionada = vistoriasList.get(position);
                                 Intent intent = new Intent(getApplicationContext(), Atualizar.class);
                                 intent.putExtra("vistorias", vistoriaSelecionada);
                                 startActivity(intent);
@@ -94,7 +93,7 @@ public class MinhasVistorias extends AppCompatActivity {
                                         .setMessage("Tem certeza que deseja excluir o item?")
                                         .setCancelable(false)
                                         .setPositiveButton("Sim", (dialog, id) -> {
-                                            Vistorias vistoriaSelecionada = vistoriasList.get(position);
+                                            Vistoria vistoriaSelecionada = vistoriasList.get(position);
                                             String vistoriaId = vistoriaSelecionada.getIdVistoria();
                                             anunciosUsuarioRef.child(vistoriaId).removeValue();
                                             vistoriaSelecionada.remover();
@@ -130,10 +129,10 @@ public class MinhasVistorias extends AppCompatActivity {
                 vistoriasList.clear();
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                        Vistorias vistoria;
+                        Vistoria vistoria;
 
                         try {
-                            vistoria = ds.getValue(Vistorias.class);
+                            vistoria = ds.getValue(Vistoria.class);
                         } catch (DatabaseException e) {
                             // Se ocorrer uma exceção ao converter os campos, pule esta vistoria
                             continue;

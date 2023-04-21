@@ -13,16 +13,16 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewHolder> {
 
     private List<String> imageUrls;
     private Context context;
-    private Vistorias anuncioSele;
+    private Vistoria anuncioSele;
 
-    public ViewPagerAdapter(Context context, List<String> imageUrls, Vistorias anuncioSele) {
+    public ViewPagerAdapter(Context context, List<String> imageUrls, Vistoria anuncioSele) {
         this.context = context;
         this.imageUrls = imageUrls;
         this.anuncioSele = anuncioSele;

@@ -6,13 +6,12 @@ import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
@@ -23,14 +22,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import Adaptadores.AdapterVistorias;
@@ -39,7 +37,7 @@ import Modelos.Item;
 import Modelos.RecyclerItemClickListener;
 
 import Modelos.Usuario;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 import dmax.dialog.SpotsDialog;
 
@@ -47,16 +45,13 @@ public class MostraVistorias extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerViewPu;
-
     private DatabaseReference anunciosRef;
-
-
     private AlertDialog alertDialog;
     private String filtroItens = "";
     private boolean filtrandoPorLocalizacao = false;
     private String filtroBairro = "";
-    private AdapterVistorias adapterAnuncios;
-    private List<Modelos.Vistorias> vistoriasList = new ArrayList<>();
+    private AdapterVistorias adapterVistorias;
+    List<Vistoria> Listadevistorias = new ArrayList<>();
 
     private boolean isAdmin = false;
 
@@ -66,37 +61,41 @@ public class MostraVistorias extends AppCompatActivity {
         setContentView(R.layout.mostrar_vistoriaspublica);
         setTitle("Comissão de Patrimonio");
 
+
         navigation();
         inicializarCompo();
 
         setupFirebase();
-        setupRecyclerView();
         setupSwipeRefresh();
 
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
-        recuperarVistoriasPublicasAsync();
-        vistoriasList = new ArrayList<>();
-        adapterAnuncios = new AdapterVistorias(vistoriasList, this);
-        // recyclerViewPu.setAdapter(adapterAnuncios);
+        Listadevistorias = new ArrayList<>();
+        //adapterVistorias = new AdapterVistorias(Listadevistorias, this); // Inicialize o adapterAnuncios aqui
+
+        setupRecyclerView();
+        recuperarVistoriasTelaMostrar();
         getCurrentUser();
     }
 
     private void setupFirebase() {
-        FirebaseApp.initializeApp(this);
         anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
     }
 
     private void setupRecyclerView() {
-        recyclerViewPu.setAdapter(adapterAnuncios);
+        recyclerViewPu.setAdapter(adapterVistorias);
         recyclerViewPu.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerViewPu, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Modelos.Vistorias anuncioSelecionado = vistoriasList.get(position);
+                Vistoria anuncioSelecionado = Listadevistorias.get(position);
 
-                Intent i = new Intent(MostraVistorias.this, DetalhesAc.class);
-                i.putExtra("idAnuncio", anuncioSelecionado.getIdVistoria());
-                i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
-                startActivity(i);
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    Intent i = new Intent(MostraVistorias.this, DetalhesAc.class);
+                    i.putExtra("idAnuncio", anuncioSelecionado.getIdVistoria());
+                    i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
+                    startActivity(i);
+                } else {
+                    Toast.makeText(MostraVistorias.this, "Por favor, cadastre-se para ver mais detalhes sobre a vistoria.", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
@@ -110,70 +109,84 @@ public class MostraVistorias extends AppCompatActivity {
     }
 
     private void setupSwipeRefresh() {
-        swipeRefreshLayout.setOnRefreshListener(this::recuperarVistoriasPublicasAsync);
+        swipeRefreshLayout.setOnRefreshListener(this::recuperarVistoriasTelaMostrar);
     }
-    private void recuperarVistoriasPublicasAsync() {
+
+
+    // metodo para recupera vistorias
+    private void recuperarVistoriasTelaMostrar() {
+        Log.d("recuperarVistoriasTelaMostrar", "Iniciando o método...");
         showProgressDialog(true);
 
-        anunciosRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference anunciosPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
+        ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                vistoriasList.clear();
+                Listadevistorias.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Vistoria vistoria = new Vistoria();
 
-                for (DataSnapshot localizacaoSnapshot : dataSnapshot.getChildren()) {
-                    for (DataSnapshot vistoriaSnapshot : localizacaoSnapshot.getChildren()) {
-                        DataSnapshot dadosGeraisSnapshot = vistoriaSnapshot.child("DadosGerais");
-                        Modelos.Vistorias vistoria;
-
-                        try {
-                            vistoria = dadosGeraisSnapshot.getValue(Modelos.Vistorias.class);
-                        } catch (DatabaseException e) {
-                            // Se ocorrer uma exceção ao converter os campos, pule esta vistoria
-                            continue;
-                        }
-
-                        // Verifica se a vistoria é válida antes de adicioná-la à lista
-                        if (vistoria != null) {
-                            vistoria.setLocalizacao(localizacaoSnapshot.getKey());
-
-                            // Recuperar itens dentro da vistoria
-                            List<Modelos.Item> itemList = new ArrayList<>();
-                            for (DataSnapshot itemSnapshot : dadosGeraisSnapshot.child("itens").getChildren()) {
-                                Modelos.Item item;
-                                try {
-                                    item = itemSnapshot.getValue(Modelos.Item.class);
-                                } catch (DatabaseException e) {
-                                    // Se ocorrer uma exceção ao converter os campos, pule este item
-                                    continue;
-                                }
-
-                                // Verifica se o item é válido antes de adicioná-lo à lista
-                                if (item != null) {
-                                    itemList.add(item);
-                                }
-                            }
-                            vistoria.setItens(itemList); // Adicione a lista de itens à vistoria
-
-                            vistoriasList.add(vistoria);
-                        }
+                    if (snapshot.hasChild("concluida")) {
+                        vistoria.setConcluida(snapshot.child("concluida").getValue(Boolean.class));
                     }
-                }
 
-                Log.i("recuperarVistorias", "Tamanho da lista de vistorias: " + vistoriasList.size());
-                adapterAnuncios.notifyDataSetChanged();
+                    if (snapshot.hasChild("data")) {
+                        vistoria.setData(snapshot.child("data").getValue(String.class));
+                    }
+
+                    if (snapshot.hasChild("excluidaVistoria")) {
+                        vistoria.setExcluidaVistoria(snapshot.child("excluidaVistoria").getValue(Boolean.class));
+                    }
+
+                    if (snapshot.hasChild("idVistoria")) {
+                        vistoria.setIdVistoria(snapshot.child("idVistoria").getValue(String.class));
+                    }
+
+                    if (snapshot.hasChild("latitude")) {
+                        vistoria.setLatitude(snapshot.child("latitude").getValue(Double.class));
+                    }
+
+                    if (snapshot.hasChild("localizacao")) {
+                        vistoria.setLocalizacao(snapshot.child("localizacao").getValue(String.class));
+                    }
+
+                    if (snapshot.hasChild("longetude")) {
+                        vistoria.setLongetude(snapshot.child("longetude").getValue(Double.class));
+                    }
+
+                    if (snapshot.hasChild("nomePerfilU")) {
+                        vistoria.setNomePerfilU(snapshot.child("nomePerfilU").getValue(String.class));
+                    }
+
+                    DataSnapshot itensSnapshot = snapshot.child("itens");
+                    if (itensSnapshot.exists()) {
+                        List<Item> itemList = new ArrayList<>();
+                        for (DataSnapshot itemSnapshot : itensSnapshot.getChildren()) {
+                            Item itemObj = itemSnapshot.getValue(Item.class);
+                            itemList.add(itemObj);
+                        }
+                        vistoria.setItens(itemList);
+                    }
+
+                    Listadevistorias.add(vistoria);
+                    Log.d("recuperarVistoriasTelaMostrar", "Adicionando vistoria à lista: " + vistoria.getIdVistoria());
+                }
+                adapterVistorias = new AdapterVistorias(Listadevistorias, MostraVistorias.this);
+                recyclerViewPu.setAdapter(adapterVistorias);
+                adapterVistorias.notifyDataSetChanged();
                 showProgressDialog(false);
                 swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("recuperarVistorias", "Error: " + databaseError.getMessage());
                 showProgressDialog(false);
+                Log.d("recuperarVistoriasTelaMostrar", "Erro ao recuperar vistorias: " + databaseError.getMessage());
             }
-        });
+        };
+
+        anunciosPuRef.addListenerForSingleValueEvent(valueEventListener);
     }
-
-
 
 
 
@@ -190,7 +203,6 @@ public class MostraVistorias extends AppCompatActivity {
         }
     }
 
-
     private void getCurrentUser() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -201,7 +213,7 @@ public class MostraVistorias extends AppCompatActivity {
             });
         }
 
-        //recuperarVistoriasPublicas();
+
     }
 
     private void getUserFromFirebase(String uid, OnUserLoadedListener listener) {
@@ -228,7 +240,12 @@ public class MostraVistorias extends AppCompatActivity {
         void onUserLoaded(Usuario usuario);
     }
 
+    private void inicializarCompo() {
+        recyclerViewPu = findViewById(R.id.ryclePublico);
 
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+    }
 
 
     @Override
@@ -280,13 +297,6 @@ public class MostraVistorias extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-    private void inicializarCompo() {
-        recyclerViewPu = findViewById(R.id.ryclePublico);
-
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-
-    }
 
     private void navigation() {
         BottomNavigationView bottom = findViewById(R.id.bnve);

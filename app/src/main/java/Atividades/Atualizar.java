@@ -14,11 +14,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 
 import Ajuda.ConFirebase;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class Atualizar extends AppCompatActivity {
-    private Vistorias anuncio;
+    private Vistoria anuncio;
 
     private EditText tipoItem;
     private EditText localizacao;
@@ -31,7 +31,7 @@ public class Atualizar extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_atualizar);
-        anuncio = (Vistorias) getIntent().getSerializableExtra("vistorias");
+        anuncio = (Vistoria) getIntent().getSerializableExtra("vistorias");
 
         // Inicializa os campos da tela
 
@@ -42,9 +42,7 @@ public class Atualizar extends AppCompatActivity {
         //imprimir=findViewById(R.id.TelaImpri);
         if (anuncio != null) {
             localizacao.setText(anuncio.getLocalizacao());
-            nomeItem.setText(anuncio.getNomeItem());
-            outrasInformacoes.setText(anuncio.getOutrasInformacoes());
-            placa.setText(anuncio.getPlaca());
+
         } else {
             // Lida com o caso em que o objeto 'anuncio' é nulo
             Toast.makeText(this, "Anúncio inválido!", Toast.LENGTH_SHORT).show();
@@ -55,46 +53,22 @@ public class Atualizar extends AppCompatActivity {
         btnSalvar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                salvarDados();
+               // salvarDados();
             }
         });
 
     }
 
-    private void salvarDados() {
-        String novaPlaca = placa.getText().toString().toUpperCase();
-        if (!anuncio.getPlaca().equalsIgnoreCase(novaPlaca)) {
-            Vistorias.verificarPlacaExistente(novaPlaca).addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                @Override
-                public void onComplete(@NonNull Task<Boolean> task) {
-                    if (task.isSuccessful()) {
-                        boolean placaExistente = task.getResult();
-                        if (placaExistente) {
-                            Toast.makeText(Atualizar.this, "A placa já existe em outro anúncio!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            atualizarAnuncio(novaPlaca);
-                        }
-                    } else {
-                        Toast.makeText(Atualizar.this, "Erro ao verificar a placa.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-        } else {
-            atualizarAnuncio(novaPlaca);
-        }
-    }
+
 
     private void atualizarAnuncio(String novaPlaca) {
         // Atualiza os dados do anúncio
-        anuncio.setLocalizacao(localizacao.getText().toString());
-        anuncio.setNomeItem(nomeItem.getText().toString());
-        anuncio.setOutrasInformacoes(outrasInformacoes.getText().toString());
-        anuncio.setPlaca(novaPlaca);
+
 
         // Chama o método atualizarAnuncio do model Anuncios
         String idUsuario = ConFirebase.getIdUsuario();
-        Task<Void> atualizarAnuncioTask = Vistorias.atualizarAnuncio(anuncio, idUsuario);
-        Task<Void> atualizarAnuncioPuTask = Vistorias.atualizarAnuncioPu(anuncio, idUsuario);
+        Task<Void> atualizarAnuncioTask = Vistoria.atualizarAnuncio(anuncio, idUsuario);
+        Task<Void> atualizarAnuncioPuTask = Vistoria.atualizarAnuncioPu(anuncio, idUsuario);
 
         // Combina as tarefas para garantir que ambas sejam concluídas com sucesso
         Task<Void> combinedTask = Tasks.whenAll(atualizarAnuncioTask, atualizarAnuncioPuTask);

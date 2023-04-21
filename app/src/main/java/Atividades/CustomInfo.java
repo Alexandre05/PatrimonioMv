@@ -10,7 +10,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.squareup.picasso.Picasso;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 
@@ -18,11 +18,11 @@ public class CustomInfo  implements GoogleMap.InfoWindowAdapter  {
 
 
     private final View mView;
-    private final Vistorias anuncio;
+    private final Vistoria anuncio;
     private final Context context;
 
 
-    public CustomInfo(Context context, Vistorias anuncio) {
+    public CustomInfo(Context context, Vistoria anuncio) {
         this.context = context;
         this.anuncio = anuncio;
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -40,7 +40,7 @@ public class CustomInfo  implements GoogleMap.InfoWindowAdapter  {
         TextView tvTitle = mView.findViewById(R.id.title);
         ImageView imageView = mView.findViewById(R.id.imageView);
 
-        tvTitle.setText(anuncio.getNomeItem());
+        //tvTitle.setText(anuncio.getNomeItem());
 
         // Use o Picasso ou outra biblioteca de carregamento de imagens para carregar a imagem.
         if (anuncio.getFotos() != null && !anuncio.getFotos().isEmpty()) {

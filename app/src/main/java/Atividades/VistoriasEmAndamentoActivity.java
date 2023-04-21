@@ -27,7 +27,7 @@ import java.util.Set;
 import Adaptadores.VistoriaAndamentoAdapter;
 import Ajuda.ConFirebase;
 import Modelos.Item;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -42,7 +42,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private Button concluir;
     private VistoriaAndamentoAdapter adapter;
-    private List<Vistorias> vistoriasEmAndamento;
+    private List<Vistoria> vistoriasEmAndamento;
     private ChildEventListener vistoriasEventListener;
 
     @Override
@@ -81,7 +81,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
     private void fetchVistoriasEmAndamento() {
         vistoriasEmAndamento = new ArrayList<>();
-        Map<Pair<String, String>, Vistorias> groupedVistorias = new LinkedHashMap<>();
+        Map<Pair<String, String>, Vistoria> groupedVistorias = new LinkedHashMap<>();
         adapter = new VistoriaAndamentoAdapter(VistoriasEmAndamentoActivity.this, R.layout.itensvistoria, vistoriasEmAndamento);
         vistoriasAndamentoListView.setAdapter(adapter);
         Query query = mDatabase.child("vistorias");
@@ -118,10 +118,10 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         query.addChildEventListener(vistoriasEventListener);
     }
 
-    private void processVistoriaSnapshot(DataSnapshot dataSnapshot, Map<Pair<String, String>, Vistorias> groupedVistorias) {
+    private void processVistoriaSnapshot(DataSnapshot dataSnapshot, Map<Pair<String, String>, Vistoria> groupedVistorias) {
         Log.d("fetchVistorias", "onChildAdded called");
         for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
-            Vistorias vistoria = vistoriaSnapshot.getValue(Vistorias.class);
+            Vistoria vistoria = vistoriaSnapshot.getValue(Vistoria.class);
 
             if (!vistoria.isConcluida() && !vistoria.isExcluidaVistoria()) {
                 String date = vistoria.getData();
@@ -129,7 +129,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                 Pair<String, String> dateTimePair = new Pair<>(date, time);
 
                 if (groupedVistorias.containsKey(dateTimePair)) {
-                    Vistorias existingVistoria = groupedVistorias.get(dateTimePair);
+                    Vistoria existingVistoria = groupedVistorias.get(dateTimePair);
                     addVistoriaIfNotInList(existingVistoria, vistoria);
                 } else {
                     addNewVistoria(groupedVistorias, vistoria, date, time, dateTimePair);
@@ -138,7 +138,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         }
     }
 
-    private void addVistoriaIfNotInList(Vistorias existingVistoria, Vistorias vistoria) {
+    private void addVistoriaIfNotInList(Vistoria existingVistoria, Vistoria vistoria) {
         for (Item itemVistoria : vistoria.getItens()) {
             boolean isInList = false;
             for (Item existingItem : existingVistoria.getItens()) {
@@ -155,20 +155,17 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
     }
 
 
-    private void addNewVistoria(Map<Pair<String, String>, Vistorias> groupedVistorias, Vistorias vistoria, String date, String time, Pair<String, String> dateTimePair) {
-        Vistorias newVistoria = new Vistorias();
+    private void addNewVistoria(Map<Pair<String, String>, Vistoria> groupedVistorias, Vistoria vistoria, String date, String time, Pair<String, String> dateTimePair) {
+        Vistoria newVistoria = new Vistoria();
         newVistoria.setData(date);
         newVistoria.setNomePerfilU(vistoria.getNomePerfilU());
-        newVistoria.setNomeItem(vistoria.getNomeItem());
         newVistoria.setLocalizacao(vistoria.getLocalizacao());
-        newVistoria.setPlaca(vistoria.getPlaca());
-        newVistoria.setOutrasInformacoes(vistoria.getOutrasInformacoes());
         newVistoria.setItens(new ArrayList<>());
         newVistoria.getItens().addAll(vistoria.getItens());
         newVistoria.setHour(Integer.parseInt(time));
         groupedVistorias.put(dateTimePair, newVistoria);
     }
-    private void updateVistoriasList(Map<Pair<String, String>, Vistorias> groupedVistorias) {
+    private void updateVistoriasList(Map<Pair<String, String>, Vistoria> groupedVistorias) {
         // Atualize a lista de vistorias em andamento e notifique o adaptador
         vistoriasEmAndamento.clear();
         vistoriasEmAndamento.addAll(groupedVistorias.values());
@@ -177,7 +174,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
 
 
-        public void concluirVistoria(Vistorias vistoriaAtual, int position) {
+        public void concluirVistoria(Vistoria vistoriaAtual, int position) {
         if (isProcessing) {
             return;
         }
@@ -200,7 +197,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
             anunciosRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    List<Vistorias> vistoriasList = new ArrayList<>();
+                    List<Vistoria> vistoriasList = new ArrayList<>();
                     for (DataSnapshot inspectorSnapshot : dataSnapshot.getChildren()) {
                         String inspectorId = inspectorSnapshot.getKey();
                         DatabaseReference inspectorRef = ConFirebase.getFirebaseDatabase().child("vistorias").child(inspectorId);
@@ -210,7 +207,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 if (dataSnapshot.exists()) {
                                     for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
-                                        Vistorias vistoria = vistoriaSnapshot.getValue(Vistorias.class);
+                                        Vistoria vistoria = vistoriaSnapshot.getValue(Vistoria.class);
                                         if (vistoria != null && !vistoria.isConcluida()) {
                                             vistoriasList.add(vistoria);
                                             Log.d("DEBUG", "Vistoria item: " + vistoria);
@@ -233,17 +230,17 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                     vistoriasConcluidasQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            Vistorias vistoriaConcluidaExistente = null;
+                            Vistoria vistoriaConcluidaExistente = null;
                             String vistoriaConcluidaId = null;
                             if (dataSnapshot.exists()) {
                                 for (DataSnapshot vistoriaConcluidaSnapshot : dataSnapshot.getChildren()) {
-                                    vistoriaConcluidaExistente = vistoriaConcluidaSnapshot.getValue(Vistorias.class);
+                                    vistoriaConcluidaExistente = vistoriaConcluidaSnapshot.getValue(Vistoria.class);
                                     vistoriaConcluidaId = vistoriaConcluidaSnapshot.getKey();
                                     break;
                                 }
                             }
 
-                            Vistorias vistoriaConcluida;
+                            Vistoria vistoriaConcluida;
                             if (vistoriaConcluidaExistente != null) {
                                 vistoriaConcluida = combineVistorias(vistoriasList, vistoriaConcluidaExistente);
                             } else {
@@ -263,7 +260,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                                 }
                             }
 
-                            for (Vistorias vistoria : vistoriasList) {
+                            for (Vistoria vistoria : vistoriasList) {
                                 String inspectorId = vistoria.getIdInspector();
                                 String vistoriaId = vistoria.getIdVistoria();
                                 if (inspectorId != null && vistoriaId != null) {
@@ -296,7 +293,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
     }
 
 
-                private Vistorias combineVistorias(List<Vistorias> vistoriasList, Vistorias vistoriaConcluidaExistente) {
+                private Vistoria combineVistorias(List<Vistoria> vistoriasList, Vistoria vistoriaConcluidaExistente) {
         if (vistoriasList.isEmpty()) {
             if (vistoriaConcluidaExistente != null) {
                 return vistoriaConcluidaExistente;
@@ -305,32 +302,32 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
             }
         }
 
-        Vistorias vistoriaConcluida;
+        Vistoria vistoriaConcluida;
         if (vistoriaConcluidaExistente != null) {
             vistoriaConcluida = vistoriaConcluidaExistente;
         } else {
-            vistoriaConcluida = new Vistorias();
-            Vistorias firstVistoria = vistoriasList.get(0);
+            vistoriaConcluida = new Vistoria();
+            Vistoria firstVistoria = vistoriasList.get(0);
 
             // Copiar campos que não serão modificados
             vistoriaConcluida.setIdVistoria(firstVistoria.getIdVistoria());
             vistoriaConcluida.setLocalizacao(firstVistoria.getLocalizacao());
-            vistoriaConcluida.setPlaca(firstVistoria.getPlaca());
+
             vistoriaConcluida.setData(firstVistoria.getData());
             vistoriaConcluida.setLatitude(firstVistoria.getLatitude());
             vistoriaConcluida.setLongetude(firstVistoria.getLongetude());;
 
-            vistoriaConcluida.setTipoItem(firstVistoria.getTipoItem());
+
 
             // Inicializar campos que serão combinados
             vistoriaConcluida.setNomePerfilU(firstVistoria.getNomePerfilU());
             vistoriaConcluida.setIdInspector(firstVistoria.getIdInspector());
             vistoriaConcluida.setFotos(new ArrayList<>(firstVistoria.getFotos()));
-            vistoriaConcluida.setOutrasInformacoes(firstVistoria.getOutrasInformacoes());
+
         }
 
         for (int i = (vistoriaConcluidaExistente != null) ? 0 : 1; i < vistoriasList.size(); i++) {
-            Vistorias vistoria = vistoriasList.get(i);
+            Vistoria vistoria = vistoriasList.get(i);
 
             // Verifique se a localização e data são as mesmas
             if (!vistoriaConcluida.getLocalizacao().equalsIgnoreCase(vistoria.getLocalizacao()) ||
@@ -346,7 +343,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                 vistoriaConcluida.setNomePerfilU(vistoriaConcluida.getNomePerfilU() + "," + vistoria.getNomePerfilU());
             }
             vistoriaConcluida.getFotos().addAll(vistoria.getFotos());
-            vistoriaConcluida.setOutrasInformacoes(vistoriaConcluida.getOutrasInformacoes() + "\n\n" + vistoria.getOutrasInformacoes());
+
         }
 
         return vistoriaConcluida;

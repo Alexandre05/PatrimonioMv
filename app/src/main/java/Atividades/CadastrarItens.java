@@ -64,7 +64,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import Ajuda.ConFirebase;
 import Ajuda.DataCuston;
 import Modelos.Item;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import Ajuda.Permissoes;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
@@ -79,8 +79,9 @@ public class CadastrarItens extends AppCompatActivity
     private boolean itemAdicionado = false;
     private CircleImageView imageCada1;
     private HorizontalScrollView imageContainer;
-    private List<Vistorias> itensVistoria;
-    private Vistorias vistorias;
+    private List<Vistoria> itensVistoria;
+    private Vistoria vistorias;
+    private Item item;
     private Usuario usuario;
     private int imageSize;
     private double currentLatitude;
@@ -109,7 +110,7 @@ public class CadastrarItens extends AppCompatActivity
 
     private List<String> listaURLFotos = new ArrayList<>();
     private LocationManager locationManager;
-    private Vistorias vistoriaAtual;
+    private Vistoria vistoriaAtual;
     private double latitude;
     private int itemCount = 0;
     private TextView itemCountTextView;
@@ -131,7 +132,7 @@ public class CadastrarItens extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         imageSize = getResources().getDimensionPixelSize(R.dimen.image_size);
-        vistoriaAtual = new Vistorias();
+        vistoriaAtual = new Vistoria();
         vistoriaAtual.setData(DataCuston.dataAtual());
         vistoriaAtual.setItens(new ArrayList<Item>());
         setContentView(R.layout.activity_cadastrar_itens);
@@ -162,7 +163,7 @@ public class CadastrarItens extends AppCompatActivity
 
     private Item criarItem() {
         Item item = new Item();
-        item.setNome(campoNome.getText().toString());
+        item.setNomeItem(campoNome.getText().toString());
         item.setObservacao(campoObs.getText().toString());
         item.setPlaca(campoPlaca.getText().toString());
         item.setFotos(listaURLFotos);
@@ -176,16 +177,15 @@ public class CadastrarItens extends AppCompatActivity
     }
 
 
-    private Vistorias configurarVistoria(Item item) {
+    private Vistoria configurarVistoria(Item item) {
         String nomeCampo = campoNomeRes.getText().toString();
         usuarioLogado.setNome(nomeCampo);
 
-        Vistorias vistoria = new Vistorias();
+        Vistoria vistoria = new Vistoria();
         vistoria.setLatitude(latitude);
         vistoria.setLongetude(longitude);
         vistoria.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
         vistoria.setNomePerfilU(nomeCampo);
-        vistoria.setOutrasInformacoes(campoObs.getText().toString());
         vistoria.setIdInspector(usuarioLogado.getIdU());
         vistoria.setData(DataCuston.dataAtual());
         vistoria.setLocalizacao_data(vistoria.getLocalizacao() + "_" + vistoria.getData());
@@ -193,14 +193,14 @@ public class CadastrarItens extends AppCompatActivity
         //vistoria.setFotos(item.getFotos());
         return vistoria;
     }
-    private void salvarVistoriaNoFirebase(Vistorias vistoria, String localizacaoSelecionada, String nomePerfilUsuario) {
+    private void salvarVistoriaNoFirebase(Vistoria vistoria, String localizacaoSelecionada, String nomePerfilUsuario) {
         DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias");
         DatabaseReference anuncioPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
         DatabaseReference localizacaoRef = vistoriasRef.child(localizacaoSelecionada);
         DatabaseReference localizacaoPuRef = anuncioPuRef.child(localizacaoSelecionada);
 
         // Adicionar o nome do perfil do usuário ao objeto Vistorias
-        vistoria.setNomePerfilU(nomePerfilUsuario);
+          vistoria.setNomePerfilU(nomePerfilUsuario);
 
         // Converter a lista de itens em um mapa
         Map<String, Object> itensMap = new HashMap<>();
@@ -212,10 +212,10 @@ public class CadastrarItens extends AppCompatActivity
         vistoria.setItensMap(itensMap);
 
         // Salvar Vistorias em "vistorias"
-        localizacaoRef.child("DadosGerais").setValue(vistoria.toMap());
+        localizacaoRef.setValue(vistoria.toMap());
 
         // Salvar Vistorias em "anuncioPu"
-        localizacaoPuRef.child("DadosGerais").setValue(vistoria.toMap());
+        localizacaoPuRef.setValue(vistoria.toMap());
     }
 
     public void adicionarItemVistoria(View view) {
@@ -292,7 +292,7 @@ public class CadastrarItens extends AppCompatActivity
         campoLocalizacao.setEnabled(true);
     }
 
-    private void salvarFotoStorage(Bitmap imagem, int totalFotos, int contador, Vistorias vistoria, Runnable onSuccess) {
+    private void salvarFotoStorage(Bitmap imagem, int totalFotos, int contador, Vistoria vistoria, Runnable onSuccess) {
         if (vistoria.getIdVistoria() == null) {
             Log.e("INFO", "Vistoria ID não está disponível!");
             return;
@@ -311,7 +311,7 @@ public class CadastrarItens extends AppCompatActivity
         return bao.toByteArray();
     }
 
-    private StorageReference createImageStorageReference(Vistorias vistoria, int contador) {
+    private StorageReference createImageStorageReference(Vistoria vistoria, int contador) {
         String idVistoria = vistoria.getIdVistoria();
         String nomeImagem = "imagem_" + contador + "_" + System.currentTimeMillis() + ".jpeg";
 
@@ -382,7 +382,7 @@ public class CadastrarItens extends AppCompatActivity
 
     private void validarCamposEObrigatorios() {
         if (!vistorias.getLocalizacao().isEmpty()) {
-            if (!vistorias.getNomeItem().isEmpty()) {
+            if (!item.getNomeItem().isEmpty()) {
                 verificarPlacaExistente();
             } else {
                 exibirMensagemErro("Preencha o campo Nome");
@@ -393,7 +393,7 @@ public class CadastrarItens extends AppCompatActivity
     }
 
     private void verificarPlacaExistente() {
-        Vistorias.verificarPlacaExistente(vistorias.getPlaca()).addOnCompleteListener(new OnCompleteListener<Boolean>() {
+        Item.verificarPlacaExistente(item.getPlaca()).addOnCompleteListener(new OnCompleteListener<Boolean>() {
             @Override
             public void onComplete(@NonNull Task<Boolean> task) {
                 if (task.isSuccessful()) {
@@ -410,7 +410,7 @@ public class CadastrarItens extends AppCompatActivity
     }
 
     private void validarOutrasInformacoes() {
-        if (!vistorias.getOutrasInformacoes().isEmpty()) {
+        if (!item.getObservacao().isEmpty()) {
             gerarEExibirQRCode();
         } else {
             exibirMensagemErro("Preencha o campo descrição");
@@ -418,12 +418,23 @@ public class CadastrarItens extends AppCompatActivity
     }
 
     private void gerarEExibirQRCode() {
-        String qrCodeData = "Nome do item: " + vistorias.getNomeItem()
-                + "\nPlaca: " + vistorias.getPlaca()
-                + "\nNome do responsável: " + vistorias.getNomePerfilU()
-                + "\nLocalização: " + vistorias.getLocalizacao()
-                + "\nData: " + vistorias.getData()
-                + "\nOutras informações: " + vistorias.getOutrasInformacoes();
+        StringBuilder qrCodeDataBuilder = new StringBuilder();
+        qrCodeDataBuilder.append("Vistoria\n");
+
+        qrCodeDataBuilder.append("Nome do responsável: ").append(vistorias.getNomePerfilU()).append('\n');
+        qrCodeDataBuilder.append("Localização: ").append(vistorias.getLocalizacao()).append('\n');
+        qrCodeDataBuilder.append("Data: ").append(vistorias.getData()).append('\n');
+
+
+        if (vistorias.getItens() != null && !vistorias.getItens().isEmpty()) {
+            qrCodeDataBuilder.append("\nItens\n");
+            for (Item item : vistorias.getItens()) {
+                qrCodeDataBuilder.append("Nome do item: ").append(item.getNomeItem()).append('\n');
+                // Adicione mais informações do item, se necessário.
+            }
+        }
+
+        String qrCodeData = qrCodeDataBuilder.toString();
         Bitmap qrCodeBitmap = generateQRCode(qrCodeData);
         if (qrCodeBitmap != null) {
             salvarQRCodeStorage(qrCodeBitmap);
@@ -432,9 +443,9 @@ public class CadastrarItens extends AppCompatActivity
             startActivity(intent);
         }
 
-
         recreate();
     }
+
 
     private void exibirMensagemErro(String mensagem) {
         Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show();

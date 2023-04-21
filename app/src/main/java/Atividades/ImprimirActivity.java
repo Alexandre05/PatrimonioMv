@@ -43,7 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 import android.util.Log;
 
@@ -51,10 +51,10 @@ public class ImprimirActivity extends AppCompatActivity {
     private FloatingActionButton floatingActionButtonImprimir;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
     private static final int CREATE_FILE_REQUEST = 1;
-    private List<Vistorias> anuncios;
+    private List<Vistoria> anuncios;
     private Button buttonImprimir;
     private DatePicker startDatePicker, endDatePicker;
-    private List<Vistorias> filteredAnuncios = new ArrayList<>();
+    private List<Vistoria> filteredAnuncios = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,7 +146,7 @@ public class ImprimirActivity extends AppCompatActivity {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     anuncios.clear();
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        Vistorias item = snapshot.getValue(Vistorias.class);
+                        Vistoria item = snapshot.getValue(Vistoria.class);
                         if (item != null) {
                             anuncios.add(item);
                             Log.d("Lista","Mensa"+anuncios);
@@ -210,8 +210,8 @@ public class ImprimirActivity extends AppCompatActivity {
 
 
 
-    public static List<Vistorias> filterByInspectorDate(List<Vistorias> anuncios, String inspectorId, String startDate, String endDate) {
-        List<Vistorias> filteredAnuncios = new ArrayList<>();
+    public static List<Vistoria> filterByInspectorDate(List<Vistoria> anuncios, String inspectorId, String startDate, String endDate) {
+        List<Vistoria> filteredAnuncios = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
         try {
@@ -219,27 +219,27 @@ public class ImprimirActivity extends AppCompatActivity {
             Date end = dateFormat.parse(endDate);
             Log.d("Filtro", "Data inicial: " + start + ", Data final: " + end);
 
-            for (Vistorias anuncio : anuncios) {
+            for (Vistoria anuncio : anuncios) {
                 Date date = dateFormat.parse(anuncio.getData());
-                Log.d("Filtro", "Anúncio: " + anuncio.getNomeItem() + ", Data: " + date);
+                Log.d("Filtro", "Anúncio: " + anuncio.getLocalizacao() + ", Data: " + date);
 
                 boolean isInspectorMatch = anuncio.getIdInspector().equals(inspectorId);
                 boolean isDateInRange = date.compareTo(start) >= 0 && date.compareTo(end) <= 0;
 
                 if (isInspectorMatch) {
-                    Log.d("Filtro", "Anúncio corresponde ao inspetor: " + anuncio.getNomeItem() + ", Data: " + date);
+                   // Log.d("Filtro", "Anúncio corresponde ao inspetor: " + anuncio.getNomeItem() + ", Data: " + date);
                 } else {
-                    Log.d("Filtro", "Anúncio não corresponde ao inspetor: " + anuncio.getNomeItem() + ", Data: " + date);
+                    //Log.d("Filtro", "Anúncio não corresponde ao inspetor: " + anuncio.getNomeItem() + ", Data: " + date);
                 }
 
                 if (isDateInRange) {
-                    Log.d("Filtro", "Anúncio está no intervalo de datas: " + anuncio.getNomeItem() + ", Data: " + date);
+                   // Log.d("Filtro", "Anúncio está no intervalo de datas: " + anuncio.getNomeItem() + ", Data: " + date);
                 } else {
-                    Log.d("Filtro", "Anúncio não está no intervalo de datas: " + anuncio.getNomeItem() + ", Data: " + date);
+                    //Log.d("Filtro", "Anúncio não está no intervalo de datas: " + anuncio.getNomeItem() + ", Data: " + date);
                 }
 
                 if (isInspectorMatch && isDateInRange) {
-                    Log.d("Filtro", "Anúncio adicionado à lista filtrada: " + anuncio.getNomeItem() + ", Data: " + date);
+                   // Log.d("Filtro", "Anúncio adicionado à lista filtrada: " + anuncio.getNomeItem() + ", Data: " + date);
                     filteredAnuncios.add(anuncio);
                 }
             }
@@ -254,7 +254,7 @@ public class ImprimirActivity extends AppCompatActivity {
 
 
 
-    private void savePdfToFile(Uri uri ,List<Vistorias> filteredAnuncios) {
+    private void savePdfToFile(Uri uri ,List<Vistoria> filteredAnuncios) {
         Log.d("PDF","");
         Document document = new Document();
         try {
@@ -292,10 +292,8 @@ public class ImprimirActivity extends AppCompatActivity {
 
                 // Adicionando dados à tabela
                 Log.d("PDF", "Total de anúncios filtrados: " + filteredAnuncios.size());
-                for (Vistorias anuncio : filteredAnuncios) {
-                    table.addCell(anuncio.getNomeItem());
-                    table.addCell(anuncio.getPlaca());
-                    table.addCell(anuncio.getOutrasInformacoes());
+                for (Vistoria anuncio : filteredAnuncios) {
+                    table.addCell(anuncio.getLocalizacao());
                     table.addCell(anuncio.getNomePerfilU());
                     table.addCell(anuncio.getData());
                     table.addCell(anuncio.getLocalizacao());

@@ -19,7 +19,7 @@ import java.util.List;
 
 import Fragment.ContatosT1;
 import Fragment.Conversas;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 import retrofit2.Retrofit;
 
@@ -29,7 +29,7 @@ public class Chat extends AppCompatActivity {
     private TextView nome;
     private ViewPager viewPager;
     private SmartTabLayout smartTabLayout;
-    private List<Vistorias> listaciContatoVenda = new ArrayList<>();
+    private List<Vistoria> listaciContatoVenda = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 

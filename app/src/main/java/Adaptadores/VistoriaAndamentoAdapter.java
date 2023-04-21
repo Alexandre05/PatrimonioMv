@@ -13,14 +13,14 @@ import androidx.core.content.ContextCompat;
 import java.util.List;
 
 import Atividades.VistoriasEmAndamentoActivity;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
-public class VistoriaAndamentoAdapter extends ArrayAdapter<Vistorias> {
+public class VistoriaAndamentoAdapter extends ArrayAdapter<Vistoria> {
     private VistoriasEmAndamentoActivity activity;
     private int resource;
 
-    public VistoriaAndamentoAdapter(@NonNull VistoriasEmAndamentoActivity activity, int resource, @NonNull List<Vistorias> vistorias) {
+    public VistoriaAndamentoAdapter(@NonNull VistoriasEmAndamentoActivity activity, int resource, @NonNull List<Vistoria> vistorias) {
         super(activity, resource, vistorias);
         this.activity = activity;
         this.resource = resource;
@@ -46,13 +46,10 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<Vistorias> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        Vistorias vistoriaAtual = getItem(position);
+        Vistoria vistoriaAtual = getItem(position);
         viewHolder.nomePerfilTextView.setText(vistoriaAtual.getNomePerfilU());
         viewHolder.dataTextView.setText(vistoriaAtual.getData());
         viewHolder.localizacaoTextView.setText(vistoriaAtual.getLocalizacao());
-        viewHolder.outrasInformacoes.setText(vistoriaAtual.getOutrasInformacoes());
-        viewHolder.nomeItem.setText(vistoriaAtual.getNomeItem());
-        viewHolder.numeroPlaca.setText(vistoriaAtual.getPlaca());
 
         if (vistoriaAtual.isConcluida() && !isDuplicateVistoria(vistoriaAtual)) {
             viewHolder.concluirVistoriaButton.setBackgroundColor(ContextCompat.getColor(activity, R.color.green));
@@ -65,7 +62,7 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<Vistorias> {
         viewHolder.concluirVistoriaButton.setTag(position);
         viewHolder.concluirVistoriaButton.setOnClickListener(view -> {
             int pos = (int) view.getTag();
-            Vistorias vistoriaAtualClick = getItem(pos);
+            Vistoria vistoriaAtualClick = getItem(pos);
             activity.concluirVistoria(vistoriaAtualClick, pos); // Adicione pos como um parâmetro adicional
         });
 
@@ -73,9 +70,9 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<Vistorias> {
     }
 
 
-    private boolean isDuplicateVistoria(Vistorias vistoriaAtual) {
+    private boolean isDuplicateVistoria(Vistoria vistoriaAtual) {
         for (int i = 0; i < getCount(); i++) {
-            Vistorias vistoria = getItem(i);
+            Vistoria vistoria = getItem(i);
             if (vistoria != null && vistoriaAtual != null &&
                     vistoria.getLocalizacao() != null && vistoria.getData() != null &&
                     vistoria.getLocalizacao().equals(vistoriaAtual.getLocalizacao()) &&

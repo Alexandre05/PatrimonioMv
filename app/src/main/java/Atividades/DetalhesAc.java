@@ -17,8 +17,6 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,19 +25,17 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import Adaptadores.AdapterVistorias;
 import Adaptadores.DetalhesVistoriaAdapter;
 import Adaptadores.ViewPagerAdapter;
-import Modelos.Item;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class DetalhesAc extends AppCompatActivity {
 
     private TextView nome, ob, porte, localiza, nomeVistoriador, latitudeTextView, longitudeTextView;
-    private Vistorias anuncioSele;
+    private Vistoria anuncioSele;
     private String idVistoria;
     private RecyclerView recyclerView;
     private DetalhesVistoriaAdapter detalhesVistoriaAdapter;
@@ -84,7 +80,7 @@ public class DetalhesAc extends AppCompatActivity {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Vistorias vistoria = snapshot.getValue(Vistorias.class);
+                Vistoria vistoria = snapshot.getValue(Vistoria.class);
 
                 if (vistoria != null) {
                     DetalhesVistoriaAdapter adapter = new DetalhesVistoriaAdapter(vistoria, DetalhesAc.this);
@@ -123,14 +119,14 @@ public class DetalhesAc extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    Vistorias vistoria = dataSnapshot.getValue(Vistorias.class);
+                    Vistoria vistoria = dataSnapshot.getValue(Vistoria.class);
 
                     if (vistoria.getLatitude() != null && vistoria.getLongetude() != null) {
                         double latitude = (vistoria.getLatitude());
                         double longitude = (vistoria.getLongetude());
 
                         // Abrir o aplicativo de mapas na localização da vistoria
-                        Uri gmmIntentUri = Uri.parse("geo:" + latitude + "," + longitude + "?q=" + latitude + "," + longitude + "(" + vistoria.getNomeItem() + ")");
+                        Uri gmmIntentUri = Uri.parse("geo:" + latitude + "," + longitude + "?q=" + latitude + "," + longitude + "(" + vistoria.getLocalizacao() + ")");
                         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                         mapIntent.setPackage("com.google.android.apps.maps");
                         if (mapIntent.resolveActivity(getPackageManager()) != null) {
@@ -168,7 +164,7 @@ public class DetalhesAc extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    Vistorias vistoria = dataSnapshot.getValue(Vistorias.class);
+                    Vistoria vistoria = dataSnapshot.getValue(Vistoria.class);
                     exibirDados(vistoria);
                     carregarLista(vistoria);
                 } else {
@@ -184,23 +180,21 @@ public class DetalhesAc extends AppCompatActivity {
     }
 
     // Nova função para configurar o RecyclerView e o Adapter
-    private void carregarLista(Vistorias vistoria) {
+    private void carregarLista(Vistoria vistoria) {
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        List<Vistorias> vistoriasList = new ArrayList<>();
+        List<Vistoria> vistoriasList = new ArrayList<>();
         vistoriasList.add(vistoria);
         AdapterVistorias adapterVistorias = new AdapterVistorias(vistoriasList, this);
         recyclerView.setAdapter(adapterVistorias);
     }
 
-    private void exibirDados(Vistorias vistoriaSelecionada) {
+    private void exibirDados(Vistoria vistoriaSelecionada) {
         if (vistoriaSelecionada != null) {
             Log.d("DETAILED_ACTIVITY", "vistoria: " + vistoriaSelecionada.toString());
             // Definir o nome, outras informações, placa, nome do perfil do usuário e localização nos TextViews
-            nome.setText(vistoriaSelecionada.getNomeItem());
-            ob.setText(vistoriaSelecionada.getOutrasInformacoes());
-            porte.setText(vistoriaSelecionada.getPlaca());
+
             nomeVistoriador.setText(vistoriaSelecionada.getNomePerfilU());
             localiza.setText(vistoriaSelecionada.getLocalizacao());
             // Definir a latitude e longitude nos TextViews correspondentes

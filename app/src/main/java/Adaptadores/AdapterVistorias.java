@@ -12,17 +12,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyViewHolder> {
-    private final List<Vistorias> vistoriasList;
+    private final List<Vistoria> vistorias;
     private Context context;
 
-    public AdapterVistorias(List<Vistorias> vistoriasList, Context context) {
-        this.vistoriasList = vistoriasList;
+    public AdapterVistorias(List<Vistoria> vistorias, Context context) {
+        this.vistorias = vistorias;
         this.context = context;
-        Log.i("AdapterVistorias", "Tamanho da lista: " + vistoriasList.size());
+        Log.i("AdapterVistorias", "Tamanho da lista: " + vistorias.size());
     }
 
     @NonNull
@@ -36,17 +36,23 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         Log.i("AdapterVistorias", "onBindViewHolder - Position: " + position);
-        Vistorias vistoria = vistoriasList.get(position);
-        Log.i("AdapterVistorias", "Vistoria: " + vistoria.toString());
+        Vistoria vistoria = vistorias.get(position);
+
         // Exibir informações da vistoria
         holder.nomeU.setText(vistoria.getNomePerfilU());
         holder.Data.setText(vistoria.getData());
         holder.locali.setText(vistoria.getLocalizacao());
+        Log.i("AdapterVistorias", "Nome do Usuário: " + vistoria.getNomePerfilU());
+        Log.i("AdapterVistorias", "Data: " + vistoria.getData());
+        Log.i("AdapterVistorias", "Localização: " + vistoria.getLocalizacao());
+
+
     }
 
     @Override
     public int getItemCount() {
-        return vistoriasList.size();
+        Log.i("AdapterVistorias", "getItemCount: " + vistorias.size());
+        return vistorias.size();
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
@@ -59,6 +65,7 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
             locali = itemView.findViewById(R.id.texLocali);
             Data = itemView.findViewById(R.id.textData);
             nomeU = itemView.findViewById(R.id.textNomeUsuario);
+
         }
     }
 }

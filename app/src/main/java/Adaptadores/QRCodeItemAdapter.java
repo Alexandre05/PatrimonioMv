@@ -15,14 +15,14 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QRCodeItemViewHolder> {
-    private List<Vistorias> itemList;
+    private List<Vistoria> itemList;
     private Context context;
 
-    public QRCodeItemAdapter(List<Vistorias> itemList, Context context) {
+    public QRCodeItemAdapter(List<Vistoria> itemList, Context context) {
         this.itemList = itemList;
         this.context = context;
         Log.d("QRCodeItemAdapter", "Item list in adapter constructor: " + itemList);
@@ -36,7 +36,7 @@ public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QR
 
     @Override
     public void onBindViewHolder(@NonNull QRCodeItemViewHolder holder, int position) {
-        Vistorias item = itemList.get(position);
+        Vistoria item = itemList.get(position);
         Log.d("QRCodeItemAdapter", "Binding view holder at position: " + position + " with item: " + item);
         holder.bind(item);
     }
@@ -67,13 +67,13 @@ public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QR
             imageViewFoto = itemView.findViewById(R.id.Imagem);
         }
 
-        public void bind(Vistorias item) {
-            textViewItemName.setText("Nome do item: " + item.getNomeItem());
+        public void bind(Vistoria item) {
+            textViewItemName.setText("Nome do item: " + item.getNomePerfilU());
             textViewItemLocation.setText("Localização: " + item.getLocalizacao());
             textViewItemInspector.setText("ID Inspetor: " + item.getIdInspector());
             textViewItemData.setText("Data: " + item.getData());
-            textViewItemVistor.setText("Nome Perfil U: " + item.getNomePerfilU());
-            textViewItemOb.setText("Outras Informações: " + item.getOutrasInformacoes());
+            //textViewItemVistor.setText("Nome Perfil U: " + item.getNomePerfilU());
+            //textViewItemOb.setText("Outras Informações: " + item.getOutrasInformacoes());
 
             // Carregar a primeira imagem na ImageView
             if (!item.getFotos().isEmpty()) {

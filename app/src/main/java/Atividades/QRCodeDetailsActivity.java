@@ -13,7 +13,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class QRCodeDetailsActivity extends AppCompatActivity {
@@ -27,7 +27,7 @@ public class QRCodeDetailsActivity extends AppCompatActivity {
 
         if (getIntent().hasExtra("qr_code_data")) {
             String qrCodeData = getIntent().getStringExtra("qr_code_data");
-            List<Vistorias> itemList = parseQRCodeData(qrCodeData);
+            List<Vistoria> itemList = parseQRCodeData(qrCodeData);
 
             if (itemList != null && !itemList.isEmpty()) {
                 displayFormattedQRData(itemList);
@@ -37,31 +37,29 @@ public class QRCodeDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private List<Vistorias> parseQRCodeData(String qrCodeData) {
+    private List<Vistoria> parseQRCodeData(String qrCodeData) {
         Log.d("QRCodeDetailsActivity", "QR Code data received in activity: " + qrCodeData);
 
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<Vistorias>>() {
+        Type listType = new TypeToken<List<Vistoria>>() {
         }.getType();
-        List<Vistorias> itemList = gson.fromJson(qrCodeData, listType);
+        List<Vistoria> itemList = gson.fromJson(qrCodeData, listType);
 
         Log.d("QRCodeDetailsActivity", "Item list after parsing: " + itemList);
         return itemList;
     }
 
-    private void displayFormattedQRData(List<Vistorias> itemList) {
+    private void displayFormattedQRData(List<Vistoria> itemList) {
         Log.d("QRCodeDetailsActivity", "Displaying formatted QR data: " + itemList);
 
         StringBuilder sb = new StringBuilder();
 
-        for (Vistorias item : itemList) {
-            sb.append("Nome do item: ").append(item.getNomeItem()).append("\n");
+        for (Vistoria item : itemList) {
             sb.append("Localização: ").append(item.getLocalizacao()).append("\n");
             sb.append("ID Inspetor: ").append(item.getIdInspector()).append("\n");
             sb.append("Data: ").append(item.getData()).append("\n");
             sb.append("Nome Perfil U: ").append(item.getNomePerfilU()).append("\n");
-            sb.append("Outras Informações: ").append(item.getOutrasInformacoes()).append("\n");
-            sb.append("Placa: ").append(item.getPlaca()).append("\n\n");
+
         }
 
         formattedQRData.setText(sb.toString());

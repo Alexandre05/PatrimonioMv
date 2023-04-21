@@ -14,7 +14,7 @@ import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class DisplayInfoActivity extends AppCompatActivity {
@@ -25,20 +25,20 @@ public class DisplayInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_info);
         String itemListJson = getIntent().getStringExtra(EXTRA_ITEM_LIST_JSON);
-        List<Vistorias> itemList = jsonToItemList(itemListJson);
+        List<Vistoria> itemList = jsonToItemList(itemListJson);
 
-        for (Vistorias item : itemList) {
+        for (Vistoria item : itemList) {
             showItemInfo(item);
         }
     }
 
-    private List<Vistorias> jsonToItemList(String jsonString) {
+    private List<Vistoria> jsonToItemList(String jsonString) {
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<Vistorias>>() {}.getType();
+        Type listType = new TypeToken<List<Vistoria>>() {}.getType();
         return gson.fromJson(jsonString, listType);
     }
 
-    private void showItemInfo(Vistorias item) {
+    private void showItemInfo(Vistoria item) {
         TextView textViewItemInfo = findViewById(R.id.textViewItemInfo);
         String formattedInfo = formatItemInfo(item);
         textViewItemInfo.setText(formattedInfo);
@@ -60,14 +60,12 @@ public class DisplayInfoActivity extends AppCompatActivity {
         }
     }
 
-    private String formatItemInfo(Vistorias item) {
+    private String formatItemInfo(Vistoria item) {
         String formattedInfo = "";
 
         formattedInfo += "Data: " + item.getData() + "\n";
         formattedInfo += "Localização: " + item.getLocalizacao() + "\n";
-        formattedInfo += "Placa: " + item.getPlaca() + "\n";
-        formattedInfo += "Nome do Item: " + item.getNomeItem() + "\n";
-        formattedInfo += "Outras Informações: " + item.getOutrasInformacoes() + "\n";
+
 
         return formattedInfo;
     }

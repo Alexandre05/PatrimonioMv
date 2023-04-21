@@ -80,7 +80,7 @@ import java.util.Locale;
 
 import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
-import Modelos.Vistorias;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class Relatorios extends AppCompatActivity {
@@ -88,10 +88,10 @@ public class Relatorios extends AppCompatActivity {
 
     private EditText editTextLocation, editTextEndDate;
     private Button buttonSearch, btn_imprimir;
-    private List<Vistorias> currentSearchResults = new ArrayList<>();
+    private List<Vistoria> currentSearchResults = new ArrayList<>();
 
     private RecyclerView recyclerView;
-    private List<Vistorias> vistoriasList;
+    private List<Vistoria> vistoriasList;
     private AdapterVistorias adapterAnuncios;
     private DatabaseReference anunciosRef;
     private FirebaseUser currentUser;
@@ -99,7 +99,7 @@ public class Relatorios extends AppCompatActivity {
     private RadioGroup radioGroupSearchCriteria;
     private RadioButton radioButtonLocation;
     private RadioButton radioButtonLicensePlate;
-    private Vistorias selectedItem;
+    private Vistoria selectedItem;
     private Button buttonGeneratePdf, buttonGenerateQrCode;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 11;
     private static final int REQUEST_WRITE_STORAGE = 112;
@@ -232,7 +232,7 @@ public class Relatorios extends AppCompatActivity {
 
                 SearchCallback searchCallback = new SearchCallback() {
                     @Override
-                    public void onSearchCompleted(List<Vistorias> searchResults) {
+                    public void onSearchCompleted(List<Vistoria> searchResults) {
                         updateRecyclerView(searchResults);
                         currentSearchResults = searchResults;
                     }
@@ -303,7 +303,7 @@ public class Relatorios extends AppCompatActivity {
             String startDate = "01/01/2023";
             String endDate = "31/12/2023";
 
-            List<Vistorias> filteredVistorias = filterByDate(vistoriasList, startDate, endDate);
+            List<Vistoria> filteredVistorias = filterByDate(vistoriasList, startDate, endDate);
             if (ContextCompat.checkSelfPermission(Relatorios.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 Log.d("PDF_CLICK", "Permissão concedida, chamando createPdf");
                 createPdf(filteredVistorias);
@@ -323,9 +323,9 @@ public class Relatorios extends AppCompatActivity {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Vistorias> vistorias = new ArrayList<>();
+                List<Vistoria> vistorias = new ArrayList<>();
                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                    Vistorias vistoria = childSnapshot.getValue(Vistorias.class);
+                    Vistoria vistoria = childSnapshot.getValue(Vistoria.class);
                     if (vistoria != null) {
                         vistorias.add(vistoria);
                     }
@@ -359,10 +359,10 @@ public class Relatorios extends AppCompatActivity {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Vistorias> vistorias = new ArrayList<>();
+                List<Vistoria> vistorias = new ArrayList<>();
                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                    Vistorias vistoria = childSnapshot.getValue(Vistorias.class);
-                    if (vistoria != null && vistoria.getPlaca().equals(licensePlate)) {
+                    Vistoria vistoria = childSnapshot.getValue(Vistoria.class);
+                    if (vistoria != null && vistoria.getLocalizacao().equals(licensePlate)) {
                         vistorias.add(vistoria);
 
                     }
@@ -377,7 +377,7 @@ public class Relatorios extends AppCompatActivity {
         });
     }
 
-    private void updateRecyclerView(List<Vistorias> searchResults) {
+    private void updateRecyclerView(List<Vistoria> searchResults) {
         vistoriasList.clear();
         vistoriasList.addAll(searchResults);
         Log.d("SearchResults", "updateRecyclerView: searchResults=" + searchResults);
@@ -398,11 +398,11 @@ public class Relatorios extends AppCompatActivity {
             query.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    List<Vistorias> filteredResults = new ArrayList<>();
+                    List<Vistoria> filteredResults = new ArrayList<>();
 
                     for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                         for (DataSnapshot snapshot : userSnapshot.getChildren()) {
-                            Vistorias item = snapshot.getValue(Vistorias.class);
+                            Vistoria item = snapshot.getValue(Vistoria.class);
 
                             if (item != null && item.getData() != null && item.getLocalizacao() != null) {
                                 try {
@@ -445,11 +445,11 @@ public class Relatorios extends AppCompatActivity {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<Vistorias> filteredResults = new ArrayList<>();
+                List<Vistoria> filteredResults = new ArrayList<>();
 
                 for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                     for (DataSnapshot snapshot : userSnapshot.getChildren()) {
-                        Vistorias item = snapshot.getValue(Vistorias.class);
+                        Vistoria item = snapshot.getValue(Vistoria.class);
 
                         if (item != null && item.getLocalizacao() != null) {
                             // Verifique se a localização contém a substring digitada pelo usuário (ignorando a diferença entre maiúsculas e minúsculas)
@@ -475,7 +475,7 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
-    private String itemListToJson(List<Vistorias> itemList) {
+    private String itemListToJson(List<Vistoria> itemList) {
         Gson gson = new Gson();
         String json = gson.toJson(itemList);
         json = json.replace("\\u003d", "=").replace("\\u0026", "&");
@@ -483,7 +483,7 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
-    private Bitmap gerarteQRCode(String data, List<Vistorias> itemList) {
+    private Bitmap gerarteQRCode(String data, List<Vistoria> itemList) {
         Log.d("QRCode", "Generating QR Code with data: " + data + " and item list: " + itemList);
 
         Gson gson = new Gson();
@@ -616,15 +616,15 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
-    private List<Vistorias> filterByDate(List<Vistorias> anuncios, String startDate, String endDate) {
-        List<Vistorias> filteredAnuncios = new ArrayList<>();
+    private List<Vistoria> filterByDate(List<Vistoria> anuncios, String startDate, String endDate) {
+        List<Vistoria> filteredAnuncios = new ArrayList<>();
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         try {
             Date start = sdf.parse(startDate);
             Date end = sdf.parse(endDate);
 
-            for (Vistorias vistoria : anuncios) {
+            for (Vistoria vistoria : anuncios) {
                 Date anuncioDate = sdf.parse(vistoria.getData());
 
                 if ((anuncioDate.equals(start) || anuncioDate.after(start)) && (anuncioDate.equals(end) || anuncioDate.before(end))) {
@@ -697,7 +697,7 @@ public class Relatorios extends AppCompatActivity {
         startActivityForResult(intent, CREATE_FILE_REQUEST);
     }
 
-    private void createPdf(List<Vistorias> vistoriasList) {
+    private void createPdf(List<Vistoria> vistoriasList) {
         Log.d("PDF_CREATE", "createPdf() called");
 
         if (vistoriasList.isEmpty()) {
@@ -736,7 +736,7 @@ public class Relatorios extends AppCompatActivity {
         String startDate = "01/01/2023";
         String endDate = "31/12/2023";
 
-        List<Vistorias> filteredAnuncios = filterByDate(vistoriasList, startDate, endDate);
+        List<Vistoria> filteredAnuncios = filterByDate(vistoriasList, startDate, endDate);
         salvaPdfToFile(uri, filteredAnuncios);
 
         String filePath = uri.getPath();
@@ -754,8 +754,8 @@ public class Relatorios extends AppCompatActivity {
         String jsonPart = qrContent.substring("vistoriaapp://scan?data=".length());
 
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<Vistorias>>() {}.getType();
-        List<Vistorias> itemList = gson.fromJson(jsonPart, listType);
+        Type listType = new TypeToken<List<Vistoria>>() {}.getType();
+        List<Vistoria> itemList = gson.fromJson(jsonPart, listType);
 
         Intent displayInfoIntent = new Intent(this, DisplayInfoActivity.class);
         displayInfoIntent.putExtra(DisplayInfoActivity.EXTRA_ITEM_LIST_JSON, jsonPart);
@@ -788,7 +788,7 @@ public class Relatorios extends AppCompatActivity {
             }
         }
     }
-    private void salvaPdfToFile(Uri uri, List<Vistorias> filteredAnuncios) {
+    private void salvaPdfToFile(Uri uri, List<Vistoria> filteredAnuncios) {
         Log.d("PDF_SAVE", "PdfDocument criado e iniciado");
         try {
             PdfDocument document = new PdfDocument();
@@ -834,10 +834,7 @@ public class Relatorios extends AppCompatActivity {
             canvas.drawText("Localização", startX + 5 * cellWidth + 10, startY + 30, paint);
 
             int rowIndex = 1;
-            for (Vistorias vistoria : filteredAnuncios) {
-                canvas.drawText(vistoria.getNomeItem(), startX + 10, startY + 30 + rowIndex * 50, paint);
-                canvas.drawText(vistoria.getPlaca(), startX + cellWidth + 10, startY + 30 + rowIndex * 50, paint);
-                canvas.drawText(vistoria.getOutrasInformacoes(), startX + 2 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
+            for (Vistoria vistoria : filteredAnuncios) {
                 canvas.drawText(vistoria.getNomePerfilU(), startX + 3 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
                 canvas.drawText(vistoria.getData(), startX + 4 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
                 canvas.drawText(vistoria.getLocalizacao(), startX + 5 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
@@ -913,7 +910,7 @@ public class Relatorios extends AppCompatActivity {
 
 
     public interface SearchCallback {
-        void onSearchCompleted(List<Vistorias> vistorias);
+        void onSearchCompleted(List<Vistoria> vistorias);
         void onSearchFailed(String errorMessage);
     }
 
