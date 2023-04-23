@@ -17,6 +17,7 @@ import com.google.firebase.database.ValueEventListener;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,9 +25,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Toast;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,10 +72,11 @@ public class MostraVistorias extends AppCompatActivity {
         setupSwipeRefresh();
 
         Listadevistorias = new ArrayList<>();
-        //adapterVistorias = new AdapterVistorias(Listadevistorias, this); // Inicialize o adapterAnuncios aqui
+        adapterVistorias = new AdapterVistorias(Listadevistorias, this); // Inicialize o adapterAnuncios aqui
 
-        setupRecyclerView();
+
         recuperarVistoriasTelaMostrar();
+        setupRecyclerView();
         getCurrentUser();
     }
 
@@ -81,17 +85,22 @@ public class MostraVistorias extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
+        recyclerViewPu.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewPu.setAdapter(adapterVistorias);
         recyclerViewPu.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerViewPu, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 Vistoria anuncioSelecionado = Listadevistorias.get(position);
-
                 FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
                 if (currentUser != null) {
                     Intent i = new Intent(MostraVistorias.this, DetalhesAc.class);
-                    i.putExtra("idAnuncio", anuncioSelecionado.getIdVistoria());
+                    i.putExtra("idVistoria", anuncioSelecionado.getIdVistoria());
                     i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
+                    i.putExtra("itens", (Serializable) anuncioSelecionado.getItens());
+                    // Adicione um log para verificar as informações enviadas para a atividade DetalhesAc
+                    Log.d("MostraVistorias", "Enviando dados para DetalhesAc: idVistoria: " + anuncioSelecionado.getIdVistoria() +
+                            ", localizacao: " + anuncioSelecionado.getLocalizacao() +
+                            ", quantidade de itens: " + anuncioSelecionado.getItens().size());
                     startActivity(i);
                 } else {
                     Toast.makeText(MostraVistorias.this, "Por favor, cadastre-se para ver mais detalhes sobre a vistoria.", Toast.LENGTH_SHORT).show();
@@ -142,16 +151,9 @@ public class MostraVistorias extends AppCompatActivity {
                         vistoria.setIdVistoria(snapshot.child("idVistoria").getValue(String.class));
                     }
 
-                    if (snapshot.hasChild("latitude")) {
-                        vistoria.setLatitude(snapshot.child("latitude").getValue(Double.class));
-                    }
 
                     if (snapshot.hasChild("localizacao")) {
                         vistoria.setLocalizacao(snapshot.child("localizacao").getValue(String.class));
-                    }
-
-                    if (snapshot.hasChild("longetude")) {
-                        vistoria.setLongetude(snapshot.child("longetude").getValue(Double.class));
                     }
 
                     if (snapshot.hasChild("nomePerfilU")) {
@@ -169,7 +171,7 @@ public class MostraVistorias extends AppCompatActivity {
                     }
 
                     Listadevistorias.add(vistoria);
-                    Log.d("recuperarVistoriasTelaMostrar", "Adicionando vistoria à lista: " + vistoria.getIdVistoria());
+                    Log.d("MostraVistorias", "Vistorias recuperadas: " + Listadevistorias.size());
                 }
                 adapterVistorias = new AdapterVistorias(Listadevistorias, MostraVistorias.this);
                 recyclerViewPu.setAdapter(adapterVistorias);

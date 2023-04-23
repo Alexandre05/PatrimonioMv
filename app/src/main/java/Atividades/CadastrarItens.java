@@ -23,6 +23,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -76,6 +77,8 @@ public class CadastrarItens extends AppCompatActivity
     private EditText campoNome, campoPlaca, campoObs,campoNomeRes;
     private String ultimoUrlImagem = null;
     private List<Item> listaItens = new ArrayList<>();
+    private static final int REQUEST_LOCATION_PERMISSION_CODE = 1;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
     private boolean itemAdicionado = false;
     private CircleImageView imageCada1;
     private HorizontalScrollView imageContainer;
@@ -117,17 +120,7 @@ public class CadastrarItens extends AppCompatActivity
     private double longitude;
     private DatabaseReference databaseReference;
     private ChildEventListener childEventListener;
-    private double getDistanceInKm(double lat1, double lon1, double lat2, double lon2) {
-        int R = 6371; // Raio da Terra em quilômetros
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = R * c;
-        return distance;
-    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -139,6 +132,8 @@ public class CadastrarItens extends AppCompatActivity
         Permissoes.validarPermissoes(permissoes, this, 1);
         FirebaseUser usuario = ConFirebase.getUsuarioAtaul();
         iniciarCamponentes();
+        setupLocationManager();
+        verificarPermissoesLocalizacao();
         carregarSpi();
         storage = FirebaseStorage.getInstance().getReference();
         vistoriaAtual.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
@@ -160,6 +155,27 @@ public class CadastrarItens extends AppCompatActivity
         imagens.clear();
         uploadedImagesCount = 0;
     }
+    private void verificarPermissoesLocalizacao() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Permissões de Localização");
+                builder.setMessage("Este aplicativo requer permissões de localização para funcionar corretamente. Por favor, permita o acesso à localização.");
+                builder.setPositiveButton("OK", (dialog, which) -> ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION_CODE));
+                builder.setNegativeButton("Cancelar", null);
+                builder.create().show();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION_CODE);
+            }
+        }
+    }
+
+
+    interface OnPlacaCheckCompleteListener {
+        void onComplete(boolean placaExists);
+    }
+
+
 
     private Item criarItem() {
         Item item = new Item();
@@ -167,7 +183,11 @@ public class CadastrarItens extends AppCompatActivity
         item.setObservacao(campoObs.getText().toString());
         item.setPlaca(campoPlaca.getText().toString());
         item.setFotos(listaURLFotos);
-
+        // Definir latitude e longitude do item
+        item.setLatitude(currentLatitude);
+        item.setLongitude(currentLongitude);
+        Log.e("INFO", "Latitude"+currentLatitude);
+        Log.e("INFO", "Longe"+currentLongitude);
         // Gere um ID único para o item usando o Firebase
         DatabaseReference itemsRef = FirebaseDatabase.getInstance().getReference("Itens");
         String itemId = itemsRef.push().getKey();
@@ -180,10 +200,7 @@ public class CadastrarItens extends AppCompatActivity
     private Vistoria configurarVistoria(Item item) {
         String nomeCampo = campoNomeRes.getText().toString();
         usuarioLogado.setNome(nomeCampo);
-
         Vistoria vistoria = new Vistoria();
-        vistoria.setLatitude(latitude);
-        vistoria.setLongetude(longitude);
         vistoria.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
         vistoria.setNomePerfilU(nomeCampo);
         vistoria.setIdInspector(usuarioLogado.getIdU());
@@ -200,7 +217,7 @@ public class CadastrarItens extends AppCompatActivity
         DatabaseReference localizacaoPuRef = anuncioPuRef.child(localizacaoSelecionada);
 
         // Adicionar o nome do perfil do usuário ao objeto Vistorias
-          vistoria.setNomePerfilU(nomePerfilUsuario);
+        vistoria.setNomePerfilU(nomePerfilUsuario);
 
         // Converter a lista de itens em um mapa
         Map<String, Object> itensMap = new HashMap<>();
@@ -218,6 +235,7 @@ public class CadastrarItens extends AppCompatActivity
         localizacaoPuRef.setValue(vistoria.toMap());
     }
 
+
     public void adicionarItemVistoria(View view) {
         listaURLFotos.clear();
 
@@ -231,8 +249,8 @@ public class CadastrarItens extends AppCompatActivity
                 return;
             }
 
-            double distance = getDistanceInKm(latitude, longitude, currentLatitude, currentLongitude);
-            if (distance < 0.001) {
+
+
                 // Adicione o diálogo de progresso aqui
                 ProgressDialog progressDialog = new ProgressDialog(this);
                 progressDialog.setMessage("Adicionando item à lista, aguarde...");
@@ -262,28 +280,19 @@ public class CadastrarItens extends AppCompatActivity
             } else {
                 Toast.makeText(CadastrarItens.this, "Você está muito longe da localização inicial do vistoriado. Por favor, vá até a localização correta para adicionar o item.", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            Toast.makeText(CadastrarItens.this, "Por favor, preencha todos os campos obrigatórios antes de adicionar o item!", Toast.LENGTH_SHORT).show();
         }
-    }
-
-
-
-
-    public void FinalizarVistoria(View view) {
+       public void FinalizarVistoria(View view) {
         Log.d("CadastrarItens", "FinalizarVistoria chamado");
         if (vistoriaAtual.getItens().isEmpty()) {
             Toast.makeText(CadastrarItens.this, "Por favor, adicione pelo menos um item antes de finalizar a vistoria!", Toast.LENGTH_SHORT).show();
             return;
         }
         exibirDialogSalvando();
-        vistoriaAtual.setLatitude(latitude);
-        vistoriaAtual.setLongetude(longitude);
-        vistoriaAtual.setItens(listaItens);
+        //vistoriaAtual.setItens(listaItens);
         // Salvar a vistoria na localização selecionada
         String localizacaoSelecionada = campoLocalizacao.getSelectedItem().toString();
         vistoriaAtual.setLocalizacao(localizacaoSelecionada);
-        String nomePerfilUsuario = Usuario.getUsuarioAtual().getDisplayName();
+        String nomePerfilUsuario = usuarioLogado.getNome();
         salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario); // Salva a vistoria no Firebase, incluindo os itens
         listaItens.clear(); // Limpe a lista de itens para a próxima vistoria
         dialog.dismiss();
@@ -321,8 +330,6 @@ public class CadastrarItens extends AppCompatActivity
                 .child(idVistoria)
                 .child(nomeImagem);
     }
-
-
 
     private void uploadImageToStorage(byte[] dadosImagem, StorageReference imagemRef, Runnable onSuccess) {
         UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
@@ -638,21 +645,27 @@ public class CadastrarItens extends AppCompatActivity
     }
 
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        for (int permissaoResultado : grantResults) {
-            if (permissaoResultado == PackageManager.PERMISSION_DENIED) {
-
-                alertaPermissao();
-
+        if (requestCode == REQUEST_LOCATION_PERMISSION_CODE) {
+            boolean locationPermissionDenied = false;
+            for (int permissaoResultado : grantResults) {
+                if (permissaoResultado == PackageManager.PERMISSION_DENIED) {
+                    locationPermissionDenied = true;
+                    break;
+                }
             }
 
-
+            if (locationPermissionDenied) {
+                alertaPermissao();
+            } else {
+                // Permissão concedida, você pode prosseguir com a obtenção da localização
+            }
         }
     }
+
 
     private void alertaPermissao() {
         AlertDialog.Builder bul = new AlertDialog.Builder(this);
@@ -671,11 +684,23 @@ public class CadastrarItens extends AppCompatActivity
         AlertDialog dial = bul.create();
         dial.show();
     }
+    private void setupLocationManager() {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+    }
     @Override
     public void onLocationChanged(Location location) {
         currentLatitude = location.getLatitude();
         currentLongitude = location.getLongitude();
+        Log.e("INFO", "onLocationChanged - Latitude: " + currentLatitude);
+        Log.e("INFO", "onLocationChanged - Longitude: " + currentLongitude);
         // Aqui você pode atualizar a localização do item no objeto Anuncios
     }
     private void iniciarCamponentes() {

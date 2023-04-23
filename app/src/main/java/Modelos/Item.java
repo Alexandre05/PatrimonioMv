@@ -24,6 +24,24 @@ public class Item  implements Serializable {
     private List<String> fotos;
     private String observacao;
     private String fotoURL;
+    private double latitude; // Adicione esta linha
+    private double longitude; // Adicione esta linha
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
 
     public Item() {
     }
@@ -80,6 +98,7 @@ public class Item  implements Serializable {
     public List<String> getFotos() {
         return fotos;
     }
+
     public static Task<Boolean> verificarPlacaExistente(String placa) {
         TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
 
@@ -115,6 +134,8 @@ public class Item  implements Serializable {
         result.put("placa", placa);
         result.put("observacao", observacao);
         result.put("fotos", fotos);
+        result.put("latitude", latitude);
+        result.put("longitude", longitude);
         return result;
     }
 

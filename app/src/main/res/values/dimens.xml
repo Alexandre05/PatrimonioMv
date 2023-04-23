@@ -1,5 +1,7 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="image_size">100dp</dimen>
+    <dimen name="circle_indicator_radius">5dp</dimen>
+
 
 </resources>

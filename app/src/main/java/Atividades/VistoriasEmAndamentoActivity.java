@@ -314,8 +314,6 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
             vistoriaConcluida.setLocalizacao(firstVistoria.getLocalizacao());
 
             vistoriaConcluida.setData(firstVistoria.getData());
-            vistoriaConcluida.setLatitude(firstVistoria.getLatitude());
-            vistoriaConcluida.setLongetude(firstVistoria.getLongetude());;
 
 
 

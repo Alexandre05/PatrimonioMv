@@ -12,20 +12,21 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import Modelos.Item;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class MapasActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private Vistoria anuncio;
+    private Item itens;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapas);
 
-        anuncio = (Vistoria) getIntent().getSerializableExtra("anuncio");
+        itens = (Item) getIntent().getSerializableExtra("anuncio");
 
         // Obtenha o SupportMapFragment e seja notificado quando o mapa estiver pronto para ser usado.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -47,17 +48,17 @@ public class MapasActivity extends FragmentActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         // Adicione um marcador para a localização do item e mova a câmera.
-        LatLng itemLocation = new LatLng(anuncio.getLatitude(), anuncio.getLongetude());
+        LatLng itemLocation = new LatLng(itens.getLatitude(), itens.getLongitude());
 
 
-        Marker marker = mMap.addMarker(new MarkerOptions().position(itemLocation).title(anuncio.getLocalizacao()));
+       // Marker marker = mMap.addMarker(new MarkerOptions().position(itemLocation).title(itens.getLongitude()));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(itemLocation, 15));
 
         // Configure o adaptador personalizado da janela de informações.
-        GoogleMap.InfoWindowAdapter adapter = new CustomInfo(this, anuncio);
-        mMap.setInfoWindowAdapter(adapter);
+       // GoogleMap.InfoWindowAdapter adapter = new CustomInfo(this, itens);
+       // mMap.setInfoWindowAdapter(adapter);
 
         // Abra a janela de informações do marcador.
-        marker.showInfoWindow();
+       // marker.showInfoWindow();
     }
 }

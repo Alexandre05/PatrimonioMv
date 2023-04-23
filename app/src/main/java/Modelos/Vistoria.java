@@ -104,27 +104,9 @@ public class Vistoria implements Serializable {
     @PropertyName("data")
     private String data;
 
-    @PropertyName("latitude")
-    private Double latitude;
 
-    public Double getLatitude() {
-        return latitude;
-    }
 
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
 
-    public Double getLongetude() {
-        return longetude;
-    }
-
-    public void setLongetude(Double longetude) {
-        this.longetude = longetude;
-    }
-
-    @PropertyName("longetude")
-    private Double longetude;
 
 
     @PropertyName("nomePerfilU")
@@ -262,25 +244,28 @@ public class Vistoria implements Serializable {
     public void salvarAnuncioPublico() {
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
         anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).child(getNomePerfilU()).setValue(this);
+        anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).child("itens").setValue(getItens()); // Adicione esta linha
     }
+    public Map<String, Object> getItensAsMap() {
+        Map<String, Object> itensMap = new HashMap<>();
+        for (Item item : getItens()) {
+            itensMap.put(item.getId(), item.toMap());
+        }
+        return itensMap;
+    }
+
 
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("idVistoria", idVistoria);
         result.put("localizacao_data", localizacao_data);
         result.put("qrCodeURL", qrCodeURL);
-
         result.put("localizacao", localizacao);
-
         result.put("data", data);
-        result.put("latitude", latitude);
-        result.put("longetude", longetude);
-        ;
         result.put("nomePerfilU", nomePerfilU);
         result.put("concluida", concluida);
         result.put("idInspector", idInspector);
         result.put("excluidaVistoria", excluidaVistoria);
-
         result.put("itens", itens);
         return result;
     }
