@@ -23,9 +23,12 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -39,6 +42,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -54,7 +58,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -76,6 +84,7 @@ public class CadastrarItens extends AppCompatActivity
         implements android.view.View.OnClickListener, LocationListener {
     private EditText campoNome, campoPlaca, campoObs,campoNomeRes;
     private String ultimoUrlImagem = null;
+    private Uri imageUri;
     private List<Item> listaItens = new ArrayList<>();
     private static final int REQUEST_LOCATION_PERMISSION_CODE = 1;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
@@ -98,6 +107,7 @@ public class CadastrarItens extends AppCompatActivity
     private TextView campoData;
     private int uploadedImagesCount = 0;
     private List<Bitmap> imagens = new ArrayList<>();
+    private String ultimaDataVistoriaCadastrada;
 
     private static final int seleCame = 100;
     private static final int seleGale = 200;
@@ -120,6 +130,14 @@ public class CadastrarItens extends AppCompatActivity
     private double longitude;
     private DatabaseReference databaseReference;
     private ChildEventListener childEventListener;
+    private File createTempImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+
+        return image;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -169,14 +187,58 @@ public class CadastrarItens extends AppCompatActivity
             }
         }
     }
+    private void isVistoriaAlreadyInDatabase(String localizacao, String data, OnVistoriaCheckCompleteListener listener) {
+        DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias");
+        Query query = vistoriasRef.orderByChild("localizacao_data").equalTo(localizacao + "_" + data);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        Vistoria vistoria = snapshot.getValue(Vistoria.class);
+                        ultimaDataVistoriaCadastrada = vistoria.getData();
+                    }
+                    listener.onComplete(true);
+                } else {
+                    listener.onComplete(false);
+                }
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                listener.onComplete(false);
+            }
+        });
+    }
+
+
+    interface OnVistoriaCheckCompleteListener {
+        void onComplete(boolean vistoriaExists);
+    }
+
+    private void isPlacaAlreadyInDatabase(String placa, OnPlacaCheckCompleteListener listener) {
+        DatabaseReference itemsRef = FirebaseDatabase.getInstance().getReference("Itens");
+        Query query = itemsRef.orderByChild("placa").equalTo(placa);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    listener.onComplete(true);
+                } else {
+                    listener.onComplete(false);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                listener.onComplete(false);
+            }
+        });
+    }
 
     interface OnPlacaCheckCompleteListener {
         void onComplete(boolean placaExists);
     }
-
-
-
     private Item criarItem() {
         Item item = new Item();
         item.setNomeItem(campoNome.getText().toString());
@@ -196,7 +258,6 @@ public class CadastrarItens extends AppCompatActivity
         return item;
     }
 
-
     private Vistoria configurarVistoria(Item item) {
         String nomeCampo = campoNomeRes.getText().toString();
         usuarioLogado.setNome(nomeCampo);
@@ -204,12 +265,14 @@ public class CadastrarItens extends AppCompatActivity
         vistoria.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
         vistoria.setNomePerfilU(nomeCampo);
         vistoria.setIdInspector(usuarioLogado.getIdU());
+        vistoria.setIdUsuario(usuarioLogado.getIdU()); // Adicione esta linha
         vistoria.setData(DataCuston.dataAtual());
         vistoria.setLocalizacao_data(vistoria.getLocalizacao() + "_" + vistoria.getData());
         vistoria.getItens().add(item);
-        //vistoria.setFotos(item.getFotos());
         return vistoria;
     }
+
+
     private void salvarVistoriaNoFirebase(Vistoria vistoria, String localizacaoSelecionada, String nomePerfilUsuario) {
         DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias");
         DatabaseReference anuncioPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
@@ -228,12 +291,19 @@ public class CadastrarItens extends AppCompatActivity
         // Adicionar o mapa de itens ao objeto Vistorias
         vistoria.setItensMap(itensMap);
 
+        // Adicionar idUsuario ao objeto Vistorias
+        vistoria.setIdUsuario(usuarioLogado.getIdU());
+
         // Salvar Vistorias em "vistorias"
         localizacaoRef.setValue(vistoria.toMap());
-
+        localizacaoRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
         // Salvar Vistorias em "anuncioPu"
         localizacaoPuRef.setValue(vistoria.toMap());
+        localizacaoPuRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
     }
+
+
+
 
 
     public void adicionarItemVistoria(View view) {
@@ -244,62 +314,112 @@ public class CadastrarItens extends AppCompatActivity
                 imagens.size() > 0) {
 
             String placa = campoPlaca.getText().toString();
-            if (isPlacaDuplicada(placa)) {
-                Toast.makeText(CadastrarItens.this, "Placa já adicionada! Por favor, insira uma placa diferente.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-
-
-                // Adicione o diálogo de progresso aqui
-                ProgressDialog progressDialog = new ProgressDialog(this);
-                progressDialog.setMessage("Adicionando item à lista, aguarde...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
-                uploadedImagesCount = 0;
-                for (int i = 0; i < imagens.size(); i++) {
-                    Bitmap imagem = imagens.get(i);
-                    int tamanhoLista = imagens.size();
-                    salvarFotoStorage(imagem, tamanhoLista, i, vistoriaAtual, () -> {
-                        uploadedImagesCount++;
-                        if (uploadedImagesCount == imagens.size()) {
-                            Item item = criarItem();
-                            item.setFotos(new ArrayList<>(listaURLFotos));
-                            listaItens.add(item);
-                            vistoriaAtual.setItens(listaItens);
-                            Toast.makeText(CadastrarItens.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
-                            incrementItemCount();
-                            limparCampos();
-                            recriarLayoutImagens();
-                            itemAdicionado = true;
-                            campoLocalizacao.setEnabled(false);
-                            progressDialog.dismiss(); // Feche o diálogo de progresso quando o item for adicionado
-                        }
-                    });
+            isPlacaAlreadyInDatabase(placa, placaExists -> {
+                if (placaExists || isPlacaInItemList(placa)) {
+                    Toast.makeText(CadastrarItens.this, "Placa já adicionada! Por favor, insira uma placa diferente.", Toast.LENGTH_SHORT).show();
+                } else {
+                    ProgressDialog progressDialog = new ProgressDialog(this);
+                    progressDialog.setMessage("Adicionando item à lista, aguarde...");
+                    progressDialog.setCancelable(false);
+                    progressDialog.show();
+                    uploadedImagesCount = 0;
+                    for (int i = 0; i < imagens.size(); i++) {
+                        Bitmap imagem = imagens.get(i);
+                        int tamanhoLista = imagens.size();
+                        salvarFotoStorage(imagem, tamanhoLista, i, vistoriaAtual, () -> {
+                            uploadedImagesCount++;
+                            if (uploadedImagesCount == imagens.size()) {
+                                Item item = criarItem();
+                                item.setFotos(new ArrayList<>(listaURLFotos));
+                                listaItens.add(item);
+                                vistoriaAtual.setItens(listaItens);
+                                Toast.makeText(CadastrarItens.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
+                                incrementItemCount();
+                                limparCampos();
+                                recriarLayoutImagens();
+                                itemAdicionado = true;
+                                campoLocalizacao.setEnabled(false);
+                                progressDialog.dismiss(); // Feche o diálogo de progresso quando o item for adicionado
+                            }
+                        });
+                    }
                 }
-            } else {
-                Toast.makeText(CadastrarItens.this, "Você está muito longe da localização inicial do vistoriado. Por favor, vá até a localização correta para adicionar o item.", Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            Toast.makeText(CadastrarItens.this, "Preencha todos os campos e adicione pelo menos uma imagem.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isPlacaInItemList(String placa) {
+        for (Item item : listaItens) {
+            if (item.getPlaca().equalsIgnoreCase(placa)) {
+                return true;
             }
         }
-       public void FinalizarVistoria(View view) {
+        return false;
+    }
+
+
+
+
+    public void FinalizarVistoria(View view) {
         Log.d("CadastrarItens", "FinalizarVistoria chamado");
         if (vistoriaAtual.getItens().isEmpty()) {
             Toast.makeText(CadastrarItens.this, "Por favor, adicione pelo menos um item antes de finalizar a vistoria!", Toast.LENGTH_SHORT).show();
             return;
         }
-        exibirDialogSalvando();
-        //vistoriaAtual.setItens(listaItens);
-        // Salvar a vistoria na localização selecionada
+
         String localizacaoSelecionada = campoLocalizacao.getSelectedItem().toString();
-        vistoriaAtual.setLocalizacao(localizacaoSelecionada);
-        String nomePerfilUsuario = usuarioLogado.getNome();
-        salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario); // Salva a vistoria no Firebase, incluindo os itens
-        listaItens.clear(); // Limpe a lista de itens para a próxima vistoria
-        dialog.dismiss();
-        finish();
-        itemAdicionado = false;
-        campoLocalizacao.setEnabled(true);
+        String dataVistoria = DataCuston.dataAtual();
+
+        isVistoriaAlreadyInDatabase(localizacaoSelecionada, dataVistoria, vistoriaExists -> {
+            if (vistoriaExists) {
+                // Atualize a vistoria existente
+                DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias").child(localizacaoSelecionada);
+                DatabaseReference anuncioPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu").child(localizacaoSelecionada);
+
+                vistoriasRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Vistoria existingVistoria = dataSnapshot.getValue(Vistoria.class);
+
+                        if (existingVistoria != null) {
+                            // Adicione os itens da vistoria atual à vistoria existente
+                            existingVistoria.getItens().addAll(vistoriaAtual.getItens());
+
+                            // Atualize a vistoria no banco de dados
+                            vistoriasRef.setValue(existingVistoria.toMap());
+                            anuncioPuRef.setValue(existingVistoria.toMap());
+
+                            // Limpe a lista de itens e finalize a atividade
+                            listaItens.clear();
+                            finish();
+                            itemAdicionado = false;
+                            campoLocalizacao.setEnabled(true);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        // Trate o erro do banco de dados
+                    }
+                });
+
+            } else {
+                exibirDialogSalvando();
+                vistoriaAtual.setLocalizacao(localizacaoSelecionada);
+                String nomePerfilUsuario = usuarioLogado.getNome();
+                salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario);
+                listaItens.clear();
+                dialog.dismiss();
+                finish();
+                itemAdicionado = false;
+                campoLocalizacao.setEnabled(true);
+            }
+        });
     }
+
+
 
     private void salvarFotoStorage(Bitmap imagem, int totalFotos, int contador, Vistoria vistoria, Runnable onSuccess) {
         if (vistoria.getIdVistoria() == null) {
@@ -536,7 +656,6 @@ public class CadastrarItens extends AppCompatActivity
             }
         });
     }
-
 
     private void adicionarImagem() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

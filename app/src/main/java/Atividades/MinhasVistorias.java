@@ -112,22 +112,22 @@ public class MinhasVistorias extends AppCompatActivity {
                 )
         );
     }
-
     private void recuperarAnuncios() {
         alertDialog = new AlertDialog.Builder(this)
                 .setMessage("Recuperando Minhas Vistorias...")
                 .setCancelable(false)
                 .show();
 
-        anunciosUsuarioRef = ConFirebase.getFirebaseDatabase()
-                .child("vistorias")
-                .child(ConFirebase.getIdUsuario());
+        DatabaseReference vistoriasRef = ConFirebase.getFirebaseDatabase()
+                .child("vistorias");
 
-        anunciosUsuarioRef.addValueEventListener(new ValueEventListener() {
+        vistoriasRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 vistoriasList.clear();
                 if (dataSnapshot.exists()) {
+                    String currentUserId = ConFirebase.getIdUsuario();
+
                     for (DataSnapshot ds : dataSnapshot.getChildren()) {
                         Vistoria vistoria;
 
@@ -138,7 +138,7 @@ public class MinhasVistorias extends AppCompatActivity {
                             continue;
                         }
 
-                        if (vistoria != null) {
+                        if (vistoria != null && vistoria.getIdUsuario().equals(currentUserId)) {
                             vistoriasList.add(vistoria);
                         }
                     }
@@ -154,6 +154,8 @@ public class MinhasVistorias extends AppCompatActivity {
             }
         });
     }
+
+
 
 
     private void initializeComponents() {

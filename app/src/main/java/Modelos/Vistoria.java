@@ -1,5 +1,7 @@
 package Modelos;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 
@@ -22,6 +24,32 @@ import java.util.Map;
 import Ajuda.ConFirebase;
 
 public class Vistoria implements Serializable {
+    private String idUsuario;
+
+    public String getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
+    public Boolean getConcluida() {
+        return concluida;
+    }
+
+    public void setConcluida(Boolean concluida) {
+        this.concluida = concluida;
+    }
+
+    public Boolean getExcluidaVistoria() {
+        return excluidaVistoria;
+    }
+
+    public void setExcluidaVistoria(Boolean excluidaVistoria) {
+        this.excluidaVistoria = excluidaVistoria;
+    }
+
     private List<Item> itens;
     private Map<String, Object> itensMap;
 
@@ -103,12 +131,6 @@ public class Vistoria implements Serializable {
 
     @PropertyName("data")
     private String data;
-
-
-
-
-
-
     @PropertyName("nomePerfilU")
     private String nomePerfilU;
 
@@ -203,13 +225,17 @@ public class Vistoria implements Serializable {
     // metodos
     public void salvar() {
         String idUsuario = ConFirebase.getIdUsuario();
+        Log.d("id usuario","Teste"+idUsuario);
         setIdInspector(idUsuario);
+        setIdUsuario(idUsuario); // Adicione esta linha
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
         DatabaseReference vistoriaRef = anuncioRefe.child(idUsuario).child(getLocalizacao()).child(getNomePerfilU()).child(getIdVistoria());
         vistoriaRef.setValue(this);
         vistoriaRef.child("itens").setValue(getItens());
+          vistoriaRef.child("idUsuario").setValue(getIdUsuario());
         salvarAnuncioPublico();
     }
+
 
     public void remover() {
         String idiUsuario = ConFirebase.getIdUsuario();
@@ -243,9 +269,10 @@ public class Vistoria implements Serializable {
     // SALVA ANUNCIOS PARA TODOS
     public void salvarAnuncioPublico() {
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
-        anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).child(getNomePerfilU()).setValue(this);
-        anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).child("itens").setValue(getItens()); // Adicione esta linha
+        anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).setValue(toMap());
     }
+
+
     public Map<String, Object> getItensAsMap() {
         Map<String, Object> itensMap = new HashMap<>();
         for (Item item : getItens()) {
@@ -265,6 +292,7 @@ public class Vistoria implements Serializable {
         result.put("nomePerfilU", nomePerfilU);
         result.put("concluida", concluida);
         result.put("idInspector", idInspector);
+        result.put("idUsuario", idUsuario);
         result.put("excluidaVistoria", excluidaVistoria);
         result.put("itens", itens);
         return result;

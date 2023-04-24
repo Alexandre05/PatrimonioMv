@@ -78,6 +78,7 @@ public class MostraVistorias extends AppCompatActivity {
         recuperarVistoriasTelaMostrar();
         setupRecyclerView();
         getCurrentUser();
+        autenticacao = FirebaseAuth.getInstance();
     }
 
     private void setupFirebase() {
@@ -293,7 +294,7 @@ public class MostraVistorias extends AppCompatActivity {
                 break;
             case R.id.menu_sair:
                 autenticacao.signOut();
-                invalidateOptionsMenu();
+
                 break;
         }
         return super.onOptionsItemSelected(item);
