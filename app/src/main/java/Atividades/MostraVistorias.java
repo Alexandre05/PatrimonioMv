@@ -3,6 +3,19 @@ package Atividades;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
@@ -14,31 +27,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.os.Parcelable;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Toast;
-
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
 import Modelos.Item;
 import Modelos.RecyclerItemClickListener;
-
 import Modelos.Usuario;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
@@ -47,6 +45,7 @@ import dmax.dialog.SpotsDialog;
 public class MostraVistorias extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private TextView nomeItem,placa,informacoes,latitude,longetude;
     private RecyclerView recyclerViewPu;
     private DatabaseReference anunciosRef;
     private AlertDialog alertDialog;
@@ -70,9 +69,8 @@ public class MostraVistorias extends AppCompatActivity {
 
         setupFirebase();
         setupSwipeRefresh();
-
         Listadevistorias = new ArrayList<>();
-        adapterVistorias = new AdapterVistorias(Listadevistorias, this); // Inicialize o adapterAnuncios aqui
+        adapterVistorias = new AdapterVistorias(Listadevistorias, this);
 
 
         recuperarVistoriasTelaMostrar();
@@ -97,11 +95,12 @@ public class MostraVistorias extends AppCompatActivity {
                     Intent i = new Intent(MostraVistorias.this, DetalhesAc.class);
                     i.putExtra("idVistoria", anuncioSelecionado.getIdVistoria());
                     i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
-                    i.putExtra("itens", (Serializable) anuncioSelecionado.getItens());
+
+                    i.putExtra("itensMap", (Serializable) anuncioSelecionado.getItensMap());
                     // Adicione um log para verificar as informações enviadas para a atividade DetalhesAc
                     Log.d("MostraVistorias", "Enviando dados para DetalhesAc: idVistoria: " + anuncioSelecionado.getIdVistoria() +
                             ", localizacao: " + anuncioSelecionado.getLocalizacao() +
-                            ", quantidade de itens: " + anuncioSelecionado.getItens().size());
+                            ", quantidade de itens: " + anuncioSelecionado.getItensMap().size());
                     startActivity(i);
                 } else {
                     Toast.makeText(MostraVistorias.this, "Por favor, cadastre-se para ver mais detalhes sobre a vistoria.", Toast.LENGTH_SHORT).show();
@@ -117,6 +116,7 @@ public class MostraVistorias extends AppCompatActivity {
             }
         }));
     }
+
 
     private void setupSwipeRefresh() {
         swipeRefreshLayout.setOnRefreshListener(this::recuperarVistoriasTelaMostrar);
@@ -152,7 +152,6 @@ public class MostraVistorias extends AppCompatActivity {
                         vistoria.setIdVistoria(snapshot.child("idVistoria").getValue(String.class));
                     }
 
-
                     if (snapshot.hasChild("localizacao")) {
                         vistoria.setLocalizacao(snapshot.child("localizacao").getValue(String.class));
                     }
@@ -163,12 +162,12 @@ public class MostraVistorias extends AppCompatActivity {
 
                     DataSnapshot itensSnapshot = snapshot.child("itens");
                     if (itensSnapshot.exists()) {
-                        List<Item> itemList = new ArrayList<>();
+                        Map<String, Item> itemMap = new HashMap<>();
                         for (DataSnapshot itemSnapshot : itensSnapshot.getChildren()) {
                             Item itemObj = itemSnapshot.getValue(Item.class);
-                            itemList.add(itemObj);
+                            itemMap.put(itemSnapshot.getKey(), itemObj);
                         }
-                        vistoria.setItens(itemList);
+                        vistoria.setItensMap(itemMap);
                     }
 
                     Listadevistorias.add(vistoria);
@@ -245,8 +244,8 @@ public class MostraVistorias extends AppCompatActivity {
 
     private void inicializarCompo() {
         recyclerViewPu = findViewById(R.id.ryclePublico);
-
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        nomeItem=findViewById(R.id.nomeItemA);
 
     }
 

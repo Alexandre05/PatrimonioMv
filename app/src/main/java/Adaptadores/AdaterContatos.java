@@ -21,9 +21,10 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class AdaterContatos extends RecyclerView.Adapter<AdaterContatos.MyVilHolder> {
     private List<Usuario> contatos;
     private Context context;
+
     public AdaterContatos(List<Usuario> listaContatos, Context c) {
-        this.contatos=listaContatos;
-        this.context=c;
+        this.contatos = listaContatos;
+        this.context = c;
 
     }
 
@@ -40,12 +41,11 @@ public class AdaterContatos extends RecyclerView.Adapter<AdaterContatos.MyVilHol
         holder.nome.setText(usuario.getNome());
         holder.ultima.setText(usuario.getEmail());
 
-        if(usuario.getFoto()!=null){
+        if (usuario.getFoto() != null) {
             Uri uri = Uri.parse(usuario.getFoto());
             Glide.with(context).load(uri).into(holder.foto);
 
-        }else {
-
+        } else {
 
 
         }
@@ -58,15 +58,15 @@ public class AdaterContatos extends RecyclerView.Adapter<AdaterContatos.MyVilHol
         return contatos.size();
     }
 
-    public  class MyVilHolder extends RecyclerView.ViewHolder{
+    public class MyVilHolder extends RecyclerView.ViewHolder {
         CircleImageView foto;
-        TextView nome,ultima;
+        TextView nome, ultima;
 
         public MyVilHolder(@NonNull View itemView) {
             super(itemView);
-            foto=itemView.findViewById(R.id.imageContato);
-            nome= itemView.findViewById(R.id.nomeContato);
-            ultima=itemView.findViewById(R.id.ultimaContato);
+            foto = itemView.findViewById(R.id.imageContato);
+            nome = itemView.findViewById(R.id.nomeContato);
+            ultima = itemView.findViewById(R.id.ultimaContato);
         }
     }
 }

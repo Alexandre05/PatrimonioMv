@@ -1,16 +1,7 @@
 package Modelos;
 
 public class NotificacaoDados {
-    //Estrutura de dados para enviar ao firebase
-    /*
-    {
-        "to": "topicos ou token",
-        "notification" : {
-            "title": "Título da notificação",
-            "body" : "corpo da notificação"
-        }
-    }
-    */
+
 
     private String to;
     private Notificacao notification;

@@ -13,9 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +59,7 @@ public class AdapterItensVistoria extends RecyclerView.Adapter<AdapterItensVisto
 
         holder.recyclerViewFotos.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
         holder.recyclerViewFotos.setAdapter(fotosAdapter);
-        holder.nomeItem.setText(item.getNomeItem());
+        holder.nomeItem.setText(item.getNome());
         holder.placa.setText(item.getPlaca());
         holder.informacoesGerais.setText(item.getObservacao());
         holder.latitude.setText("Latitude: " + item.getLatitude());

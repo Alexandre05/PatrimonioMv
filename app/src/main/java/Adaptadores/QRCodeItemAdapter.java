@@ -27,6 +27,7 @@ public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QR
         this.context = context;
         Log.d("QRCodeItemAdapter", "Item list in adapter constructor: " + itemList);
     }
+
     @NonNull
     @Override
     public QRCodeItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

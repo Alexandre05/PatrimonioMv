@@ -1,0 +1,80 @@
+<html>
+<head>
+<title>RecyclerItemClickListener.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+RecyclerItemClickListener.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">Modelos</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">android.content.Context</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">android.view.GestureDetector</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">android.view.MotionEvent</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">android.view.View</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">android.widget.AdapterView</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">androidx.recyclerview.widget.RecyclerView</span><span class="s0">;</span>
+
+<span class="s0">public class </span><span class="s1">RecyclerItemClickListener </span><span class="s0">implements </span><span class="s1">RecyclerView.OnItemTouchListener {</span>
+
+    <span class="s0">private </span><span class="s1">OnItemClickListener mListener</span><span class="s0">;</span>
+    <span class="s1">GestureDetector mGestureDetector</span><span class="s0">;</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public boolean </span><span class="s1">onInterceptTouchEvent(RecyclerView rv</span><span class="s0">, </span><span class="s1">MotionEvent e) {</span>
+        <span class="s1">View childView = rv.findChildViewUnder(e.getX()</span><span class="s0">, </span><span class="s1">e.getY())</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(childView != </span><span class="s0">null </span><span class="s1">&amp;&amp; mListener != </span><span class="s0">null </span><span class="s1">&amp;&amp; mGestureDetector.onTouchEvent(e)) {</span>
+            <span class="s1">mListener.onItemClick(childView</span><span class="s0">, </span><span class="s1">rv.getChildAdapterPosition(childView))</span><span class="s0">;</span>
+            <span class="s0">return true;</span>
+        <span class="s1">}</span>
+        <span class="s0">return false;</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">onTouchEvent(RecyclerView rv</span><span class="s0">, </span><span class="s1">MotionEvent e) {</span>
+
+    <span class="s1">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">onRequestDisallowInterceptTouchEvent(</span><span class="s0">boolean </span><span class="s1">disallowIntercept) {</span>
+
+    <span class="s1">}</span>
+
+    <span class="s0">public interface </span><span class="s1">OnItemClickListener </span><span class="s0">extends </span><span class="s1">AdapterView.OnItemClickListener {</span>
+        <span class="s0">public void </span><span class="s1">onItemClick(View view</span><span class="s0">, int </span><span class="s1">position)</span><span class="s0">;</span>
+
+        <span class="s0">public void </span><span class="s1">onLongItemClick(View view</span><span class="s0">, int </span><span class="s1">position)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">RecyclerItemClickListener(Context context</span><span class="s0">, final </span><span class="s1">RecyclerView recyclerView</span><span class="s0">, </span><span class="s1">OnItemClickListener listener) {</span>
+        <span class="s1">mListener = listener</span><span class="s0">;</span>
+        <span class="s1">mGestureDetector = </span><span class="s0">new </span><span class="s1">GestureDetector(context</span><span class="s0">, new </span><span class="s1">GestureDetector.SimpleOnGestureListener() {</span>
+            <span class="s1">@Override</span>
+            <span class="s0">public boolean </span><span class="s1">onSingleTapUp(MotionEvent e) {</span>
+                <span class="s0">return true;</span>
+            <span class="s1">}</span>
+
+            <span class="s1">@Override</span>
+            <span class="s0">public void </span><span class="s1">onLongPress(MotionEvent e) {</span>
+                <span class="s1">View child = recyclerView.findChildViewUnder(e.getX()</span><span class="s0">, </span><span class="s1">e.getY())</span><span class="s0">;</span>
+                <span class="s0">if </span><span class="s1">(child != </span><span class="s0">null </span><span class="s1">&amp;&amp; mListener != </span><span class="s0">null</span><span class="s1">) {</span>
+                    <span class="s1">mListener.onLongItemClick(child</span><span class="s0">, </span><span class="s1">recyclerView.getChildAdapterPosition(child))</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">})</span><span class="s0">;</span>
+
+    <span class="s1">}</span>
+
+<span class="s1">}</span>
+
+</pre>
+</body>
+</html>

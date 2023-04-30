@@ -1,7 +1,5 @@
 package Atividades;
 
-import static android.graphics.ImageDecoder.decodeBitmap;
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -16,6 +14,25 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -37,26 +54,6 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -69,13 +66,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 import Ajuda.ConFirebase;
 import Ajuda.DataCuston;
-import Modelos.Item;
-import Modelos.Vistoria;
 import Ajuda.Permissoes;
+import Modelos.Item;
 import Modelos.Usuario;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 import de.hdodenhof.circleimageview.CircleImageView;
 import dmax.dialog.SpotsDialog;
@@ -145,7 +141,7 @@ public class CadastrarItens extends AppCompatActivity
         imageSize = getResources().getDimensionPixelSize(R.dimen.image_size);
         vistoriaAtual = new Vistoria();
         vistoriaAtual.setData(DataCuston.dataAtual());
-        vistoriaAtual.setItens(new ArrayList<Item>());
+        vistoriaAtual.setItensMap(new HashMap<>());
         setContentView(R.layout.activity_cadastrar_itens);
         Permissoes.validarPermissoes(permissoes, this, 1);
         FirebaseUser usuario = ConFirebase.getUsuarioAtaul();
@@ -241,9 +237,10 @@ public class CadastrarItens extends AppCompatActivity
     }
     private Item criarItem() {
         Item item = new Item();
-        item.setNomeItem(campoNome.getText().toString());
+        item.setNome(campoNome.getText().toString());
         item.setObservacao(campoObs.getText().toString());
         item.setPlaca(campoPlaca.getText().toString());
+        item.setLocalizacao(vistoriaAtual.getLocalizacao());
         item.setFotos(listaURLFotos);
         // Definir latitude e longitude do item
         item.setLatitude(currentLatitude);
@@ -259,18 +256,19 @@ public class CadastrarItens extends AppCompatActivity
     }
 
     private Vistoria configurarVistoria(Item item) {
-        String nomeCampo = campoNomeRes.getText().toString();
-        usuarioLogado.setNome(nomeCampo);
+        usuarioLogado.setNome(campoNomeRes.getText().toString());
         Vistoria vistoria = new Vistoria();
         vistoria.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
-        vistoria.setNomePerfilU(nomeCampo);
+        vistoria.setNomePerfilU(usuarioLogado.getNome());
         vistoria.setIdInspector(usuarioLogado.getIdU());
-        vistoria.setIdUsuario(usuarioLogado.getIdU()); // Adicione esta linha
+        vistoria.setIdUsuario(usuarioLogado.getIdU());
         vistoria.setData(DataCuston.dataAtual());
         vistoria.setLocalizacao_data(vistoria.getLocalizacao() + "_" + vistoria.getData());
-        vistoria.getItens().add(item);
+        vistoria.getItensMap().put(item.getId(), item);
         return vistoria;
     }
+
+
 
 
     private void salvarVistoriaNoFirebase(Vistoria vistoria, String localizacaoSelecionada, String nomePerfilUsuario) {
@@ -279,31 +277,13 @@ public class CadastrarItens extends AppCompatActivity
         DatabaseReference localizacaoRef = vistoriasRef.child(localizacaoSelecionada);
         DatabaseReference localizacaoPuRef = anuncioPuRef.child(localizacaoSelecionada);
 
-        // Adicionar o nome do perfil do usuário ao objeto Vistorias
         vistoria.setNomePerfilU(nomePerfilUsuario);
 
-        // Converter a lista de itens em um mapa
-        Map<String, Object> itensMap = new HashMap<>();
-        for (Item item : vistoria.getItens()) {
-            itensMap.put(item.getId(), item.toMap());
-        }
-
-        // Adicionar o mapa de itens ao objeto Vistorias
-        vistoria.setItensMap(itensMap);
-
-        // Adicionar idUsuario ao objeto Vistorias
-        vistoria.setIdUsuario(usuarioLogado.getIdU());
-
-        // Salvar Vistorias em "vistorias"
         localizacaoRef.setValue(vistoria.toMap());
         localizacaoRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
-        // Salvar Vistorias em "anuncioPu"
         localizacaoPuRef.setValue(vistoria.toMap());
         localizacaoPuRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
     }
-
-
-
 
 
     public void adicionarItemVistoria(View view) {
@@ -331,15 +311,17 @@ public class CadastrarItens extends AppCompatActivity
                             if (uploadedImagesCount == imagens.size()) {
                                 Item item = criarItem();
                                 item.setFotos(new ArrayList<>(listaURLFotos));
-                                listaItens.add(item);
-                                vistoriaAtual.setItens(listaItens);
+
+                                vistoriaAtual.getItensMap().put(item.getId(), item);
+
+
                                 Toast.makeText(CadastrarItens.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
                                 incrementItemCount();
                                 limparCampos();
                                 recriarLayoutImagens();
                                 itemAdicionado = true;
                                 campoLocalizacao.setEnabled(false);
-                                progressDialog.dismiss(); // Feche o diálogo de progresso quando o item for adicionado
+                                progressDialog.dismiss();
                             }
                         });
                     }
@@ -350,6 +332,9 @@ public class CadastrarItens extends AppCompatActivity
         }
     }
 
+
+
+
     private boolean isPlacaInItemList(String placa) {
         for (Item item : listaItens) {
             if (item.getPlaca().equalsIgnoreCase(placa)) {
@@ -359,12 +344,9 @@ public class CadastrarItens extends AppCompatActivity
         return false;
     }
 
-
-
-
     public void FinalizarVistoria(View view) {
         Log.d("CadastrarItens", "FinalizarVistoria chamado");
-        if (vistoriaAtual.getItens().isEmpty()) {
+        if (vistoriaAtual.getItensMap().isEmpty()) {
             Toast.makeText(CadastrarItens.this, "Por favor, adicione pelo menos um item antes de finalizar a vistoria!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -385,14 +367,14 @@ public class CadastrarItens extends AppCompatActivity
 
                         if (existingVistoria != null) {
                             // Adicione os itens da vistoria atual à vistoria existente
-                            existingVistoria.getItens().addAll(vistoriaAtual.getItens());
+                            existingVistoria.getItensMap().putAll(vistoriaAtual.getItensMap());
 
                             // Atualize a vistoria no banco de dados
                             vistoriasRef.setValue(existingVistoria.toMap());
                             anuncioPuRef.setValue(existingVistoria.toMap());
 
                             // Limpe a lista de itens e finalize a atividade
-                            listaItens.clear();
+                            vistoriaAtual.getItensMap().clear();
                             finish();
                             itemAdicionado = false;
                             campoLocalizacao.setEnabled(true);
@@ -410,7 +392,7 @@ public class CadastrarItens extends AppCompatActivity
                 vistoriaAtual.setLocalizacao(localizacaoSelecionada);
                 String nomePerfilUsuario = usuarioLogado.getNome();
                 salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario);
-                listaItens.clear();
+                vistoriaAtual.getItensMap().clear();
                 dialog.dismiss();
                 finish();
                 itemAdicionado = false;
@@ -509,7 +491,7 @@ public class CadastrarItens extends AppCompatActivity
 
     private void validarCamposEObrigatorios() {
         if (!vistorias.getLocalizacao().isEmpty()) {
-            if (!item.getNomeItem().isEmpty()) {
+            if (!item.getNome().isEmpty()) {
                 verificarPlacaExistente();
             } else {
                 exibirMensagemErro("Preencha o campo Nome");
@@ -552,11 +534,11 @@ public class CadastrarItens extends AppCompatActivity
         qrCodeDataBuilder.append("Localização: ").append(vistorias.getLocalizacao()).append('\n');
         qrCodeDataBuilder.append("Data: ").append(vistorias.getData()).append('\n');
 
-
-        if (vistorias.getItens() != null && !vistorias.getItens().isEmpty()) {
+        if (vistorias.getItensMap() != null && !vistorias.getItensMap().isEmpty()) {
             qrCodeDataBuilder.append("\nItens\n");
-            for (Item item : vistorias.getItens()) {
-                qrCodeDataBuilder.append("Nome do item: ").append(item.getNomeItem()).append('\n');
+            for (Map.Entry<String, Item> entry : vistorias.getItensMap().entrySet()) {
+                Item item = entry.getValue();
+                qrCodeDataBuilder.append("Nome do item: ").append(item.getNome()).append('\n');
                 // Adicione mais informações do item, se necessário.
             }
         }
@@ -572,6 +554,8 @@ public class CadastrarItens extends AppCompatActivity
 
         recreate();
     }
+
+
 
 
     private void exibirMensagemErro(String mensagem) {
@@ -617,13 +601,15 @@ public class CadastrarItens extends AppCompatActivity
     }
     // verifica se a placa é duplicada
     private boolean isPlacaDuplicada(String placa) {
-        for (Item i : vistoriaAtual.getItens()) {
-            if (i.getPlaca().equalsIgnoreCase(placa)) {
+        for (Map.Entry<String, Item> entry : vistoriaAtual.getItensMap().entrySet()) {
+            Item item = entry.getValue();
+            if (item.getPlaca().equalsIgnoreCase(placa)) {
                 return true;
             }
         }
         return false;
     }
+
     private void salvarQRCodeStorage(Bitmap qrCodeBitmap) {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         qrCodeBitmap.compress(Bitmap.CompressFormat.PNG, 100, bao);
@@ -644,7 +630,9 @@ public class CadastrarItens extends AppCompatActivity
                     public void onSuccess(Uri uri) {
                         String qrCodeURL = uri.toString();
                         vistorias.setQrCodeURL(qrCodeURL);
-                        vistorias.salvar();
+
+                        String idUsuario = ConFirebase.getIdUsuario();
+
                     }
                 });
             }
@@ -656,6 +644,7 @@ public class CadastrarItens extends AppCompatActivity
             }
         });
     }
+
 
     private void adicionarImagem() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

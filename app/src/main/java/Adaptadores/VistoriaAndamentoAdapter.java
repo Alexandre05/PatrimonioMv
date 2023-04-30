@@ -51,7 +51,7 @@ public class VistoriaAndamentoAdapter extends ArrayAdapter<Vistoria> {
         viewHolder.dataTextView.setText(vistoriaAtual.getData());
         viewHolder.localizacaoTextView.setText(vistoriaAtual.getLocalizacao());
 
-        if (vistoriaAtual.isConcluida() && !isDuplicateVistoria(vistoriaAtual)) {
+        if (vistoriaAtual.getConcluida() && !isDuplicateVistoria(vistoriaAtual)) {
             viewHolder.concluirVistoriaButton.setBackgroundColor(ContextCompat.getColor(activity, R.color.green));
             viewHolder.concluirVistoriaButton.setEnabled(false);
         } else {

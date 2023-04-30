@@ -1,8 +1,5 @@
 package Atividades;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,13 +8,20 @@ import android.util.Pair;
 import android.widget.Button;
 import android.widget.ListView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,8 +33,6 @@ import Ajuda.ConFirebase;
 import Modelos.Item;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
@@ -123,7 +125,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
             Vistoria vistoria = vistoriaSnapshot.getValue(Vistoria.class);
 
-            if (!vistoria.isConcluida() && !vistoria.isExcluidaVistoria()) {
+            if (!vistoria.getConcluida() && !vistoria.getExcluidaVistoria()) {
                 String date = vistoria.getData();
                 String time = String.valueOf(vistoria.getHour());
                 Pair<String, String> dateTimePair = new Pair<>(date, time);
@@ -139,17 +141,17 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
     }
 
     private void addVistoriaIfNotInList(Vistoria existingVistoria, Vistoria vistoria) {
-        for (Item itemVistoria : vistoria.getItens()) {
+        for (Map.Entry<String, Item> itemVistoriaEntry : vistoria.getItensMap().entrySet()) {
             boolean isInList = false;
-            for (Item existingItem : existingVistoria.getItens()) {
-                if (existingItem.getId().equals(itemVistoria.getId())) {
+            for (Map.Entry<String, Item> existingItemEntry : existingVistoria.getItensMap().entrySet()) {
+                if (existingItemEntry.getKey().equals(itemVistoriaEntry.getKey())) {
                     isInList = true;
                     break;
                 }
             }
 
             if (!isInList) {
-                existingVistoria.getItens().add(itemVistoria);
+                existingVistoria.getItensMap().put(itemVistoriaEntry.getKey(), itemVistoriaEntry.getValue());
             }
         }
     }
@@ -160,11 +162,12 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         newVistoria.setData(date);
         newVistoria.setNomePerfilU(vistoria.getNomePerfilU());
         newVistoria.setLocalizacao(vistoria.getLocalizacao());
-        newVistoria.setItens(new ArrayList<>());
-        newVistoria.getItens().addAll(vistoria.getItens());
+        newVistoria.setItensMap(new HashMap<>());
+        newVistoria.getItensMap().putAll(vistoria.getItensMap());
         newVistoria.setHour(Integer.parseInt(time));
         groupedVistorias.put(dateTimePair, newVistoria);
     }
+
     private void updateVistoriasList(Map<Pair<String, String>, Vistoria> groupedVistorias) {
         // Atualize a lista de vistorias em andamento e notifique o adaptador
         vistoriasEmAndamento.clear();
@@ -208,7 +211,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                                 if (dataSnapshot.exists()) {
                                     for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
                                         Vistoria vistoria = vistoriaSnapshot.getValue(Vistoria.class);
-                                        if (vistoria != null && !vistoria.isConcluida()) {
+                                        if (vistoria != null && !vistoria.getConcluida()) {
                                             vistoriasList.add(vistoria);
                                             Log.d("DEBUG", "Vistoria item: " + vistoria);
                                         }

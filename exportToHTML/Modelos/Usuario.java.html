@@ -1,0 +1,329 @@
+<html>
+<head>
+<title>Usuario.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Usuario.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">Modelos</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">android.util.Log</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">androidx.annotation.NonNull</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">com.google.android.gms.tasks.OnCompleteListener</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.tasks.Task</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.auth.FirebaseAuth</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.auth.FirebaseUser</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.auth.UserProfileChangeRequest</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.DatabaseReference</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.Exclude</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">java.io.Serializable</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.ArrayList</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.HashMap</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.Map</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">Ajuda.ConFirebase</span><span class="s0">;</span>
+
+<span class="s0">public class </span><span class="s1">Usuario </span><span class="s0">implements </span><span class="s1">Serializable {</span>
+
+    <span class="s0">private </span><span class="s1">String idU</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String nome</span><span class="s0">, </span><span class="s1">idade</span><span class="s0">, </span><span class="s1">cpf</span><span class="s0">, </span><span class="s1">sexo</span><span class="s0">,  </span><span class="s1">sobrenome</span><span class="s0">;;</span>
+    <span class="s0">private </span><span class="s1">String foto</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String endereco</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String email</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String senha</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String numeroPortaria</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String tipo</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String status</span><span class="s0">;</span>
+    <span class="s0">private boolean </span><span class="s1">membroComissao</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String matricula</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String comissaoId</span><span class="s0">;</span>
+
+    <span class="s0">public </span><span class="s1">String getIdade() {</span>
+        <span class="s0">return </span><span class="s1">idade</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setIdade(String idade) {</span>
+        <span class="s0">this</span><span class="s1">.idade = idade</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getCpf() {</span>
+        <span class="s0">return </span><span class="s1">cpf</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setCpf(String cpf) {</span>
+        <span class="s0">this</span><span class="s1">.cpf = cpf</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getSexo() {</span>
+        <span class="s0">return </span><span class="s1">sexo</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setSexo(String sexo) {</span>
+        <span class="s0">this</span><span class="s1">.sexo = sexo</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getSobrenome() {</span>
+        <span class="s0">return </span><span class="s1">sobrenome</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setSobrenome(String sobrenome) {</span>
+        <span class="s0">this</span><span class="s1">.sobrenome = sobrenome</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+
+    <span class="s0">public </span><span class="s1">String getStatus() {</span>
+        <span class="s0">return </span><span class="s1">status</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setStatus(String status) {</span>
+        <span class="s0">this</span><span class="s1">.status = status</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getComissaoId() {</span>
+        <span class="s0">return </span><span class="s1">comissaoId</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setComissaoId(String comissaoId) {</span>
+        <span class="s0">this</span><span class="s1">.comissaoId = comissaoId</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getTipo() {</span>
+        <span class="s0">return </span><span class="s1">tipo</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setTipo(String tipo) {</span>
+        <span class="s0">this</span><span class="s1">.tipo = tipo</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public boolean </span><span class="s1">isMembroComissao() {</span>
+        <span class="s0">return </span><span class="s1">membroComissao</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setMembroComissao(</span><span class="s0">boolean </span><span class="s1">membroComissao) {</span>
+        <span class="s0">this</span><span class="s1">.membroComissao = membroComissao</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getMatricula() {</span>
+        <span class="s0">return </span><span class="s1">matricula</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setMatricula(String matricula) {</span>
+        <span class="s0">this</span><span class="s1">.matricula = matricula</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getNumeroPortaria() {</span>
+        <span class="s0">return </span><span class="s1">numeroPortaria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setNumeroPortaria(String numeroPortaria) {</span>
+        <span class="s0">this</span><span class="s1">.numeroPortaria = numeroPortaria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private </span><span class="s1">String token</span><span class="s0">;</span>
+
+    <span class="s0">public </span><span class="s1">String getToken() {</span>
+        <span class="s0">return </span><span class="s1">token</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setToken(String token) {</span>
+        <span class="s0">this</span><span class="s1">.token = token</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getFoto() {</span>
+        <span class="s0">return </span><span class="s1">foto</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setFoto(String foto) {</span>
+        <span class="s0">this</span><span class="s1">.foto = foto</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@Exclude</span>
+    <span class="s0">public </span><span class="s1">String getIdU() {</span>
+        <span class="s0">return </span><span class="s1">idU</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setIdU(String idU) {</span>
+        <span class="s0">this</span><span class="s1">.idU = idU</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">Usuario() {</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public boolean </span><span class="s1">isUserAdmin() {</span>
+        <span class="s0">return </span><span class="s2">&quot;AD&quot;</span><span class="s1">.equals(tipo)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">salvarUsuario(String codigoEspecial) {</span>
+        <span class="s1">String idU = ConFirebase.getIdUsuario()</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(idU != </span><span class="s0">null</span><span class="s1">) {</span>
+            <span class="s1">DatabaseReference refe = ConFirebase.getFirebaseDatabase()</span><span class="s0">;</span>
+
+            <span class="s3">// Verifique se o código especial corresponde ao valor predefinido</span>
+            <span class="s0">if </span><span class="s1">(ConFirebase.CODIGO_ESPECIAL.equals(codigoEspecial)) {</span>
+                <span class="s1">Log.d(</span><span class="s2">&quot;SalvarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Código especial válido. Definindo tipo como AD.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                <span class="s1">setTipo(</span><span class="s2">&quot;AD&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">Log.d(</span><span class="s2">&quot;SalvarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Código especial inválido. Definindo tipo como user.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                <span class="s1">setTipo(</span><span class="s2">&quot;user&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+
+            <span class="s1">refe.child(</span><span class="s2">&quot;usuarios&quot;</span><span class="s1">)</span>
+                    <span class="s1">.child(idU)</span>
+                    <span class="s1">.setValue(</span><span class="s0">this</span><span class="s1">)</span><span class="s0">;</span>
+
+            <span class="s1">Log.d(</span><span class="s2">&quot;SalvarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Salvando usuário com ID: &quot; </span><span class="s1">+ idU + </span><span class="s2">&quot; e tipo: &quot; </span><span class="s1">+ getTipo())</span><span class="s0">;</span>
+
+            <span class="s3">// Chame o novo método para inicializar o nó &quot;vistoriasConcluidas&quot; para este usuário</span>
+            <span class="s1">inicializarVistoriasConcluidas(idU)</span><span class="s0">;</span>
+
+        <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+            <span class="s3">// Trate o caso em que o usuário não está autenticado</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private void </span><span class="s1">inicializarVistoriasConcluidas(String userId) {</span>
+        <span class="s1">DatabaseReference refe = ConFirebase.getFirebaseDatabase()</span><span class="s0">;</span>
+        <span class="s1">refe.child(</span><span class="s2">&quot;vistoriasConcluidas&quot;</span><span class="s1">)</span>
+                <span class="s1">.child(userId)</span>
+                <span class="s1">.setValue(</span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;())</span><span class="s0">; </span><span class="s3">// Inicialize o nó com uma lista vazia</span>
+        <span class="s1">Log.d(</span><span class="s2">&quot;SalvarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Inicializando o nó vistoriasConcluidas para o usuário: &quot; </span><span class="s1">+ userId)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+
+
+
+    <span class="s0">public void </span><span class="s1">atualizar() {</span>
+        <span class="s1">String indeUsu = ConFirebase.getIdentificarUsaurio()</span><span class="s0">;</span>
+        <span class="s1">Log.d(</span><span class="s2">&quot;AtualizarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;UID do usuário: &quot; </span><span class="s1">+ indeUsu)</span><span class="s0">;</span>
+        <span class="s1">DatabaseReference database = ConFirebase.getFirebaseDatabase()</span><span class="s0">;</span>
+
+        <span class="s0">if </span><span class="s1">(indeUsu != </span><span class="s0">null</span><span class="s1">) {</span>
+            <span class="s1">DatabaseReference usuarioRef = database.child(</span><span class="s2">&quot;usuarios&quot;</span><span class="s1">)</span>
+                    <span class="s1">.child(indeUsu)</span><span class="s0">;</span>
+            <span class="s1">Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; valoeresUsuario = converterParaMap()</span><span class="s0">;</span>
+
+            <span class="s1">Log.d(</span><span class="s2">&quot;AtualizarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Chamando updateChildren com os seguintes valores: &quot; </span><span class="s1">+ valoeresUsuario.toString())</span><span class="s0">;</span>
+            <span class="s1">Log.d(</span><span class="s2">&quot;AtualizarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Usuário autenticado UID: &quot; </span><span class="s1">+ indeUsu)</span><span class="s0">;</span>
+
+            <span class="s1">usuarioRef.updateChildren(valoeresUsuario).addOnCompleteListener(</span><span class="s0">new </span><span class="s1">OnCompleteListener&lt;Void&gt;() {</span>
+                <span class="s1">@Override</span>
+                <span class="s0">public void </span><span class="s1">onComplete(@NonNull Task&lt;Void&gt; task) {</span>
+                    <span class="s0">if </span><span class="s1">(task.isSuccessful()) {</span>
+                        <span class="s1">Log.d(</span><span class="s2">&quot;AtualizarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Dados atualizados com sucesso no Firebase.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                    <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+                        <span class="s1">Log.e(</span><span class="s2">&quot;AtualizarUsuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Erro ao atualizar dados no Firebase.&quot;</span><span class="s0">, </span><span class="s1">task.getException())</span><span class="s0">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+            <span class="s1">})</span><span class="s0">;</span>
+        <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+            <span class="s1">Log.e(</span><span class="s2">&quot;Usuario&quot;</span><span class="s0">, </span><span class="s2">&quot;Erro: usuário não autenticado.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+
+
+
+    <span class="s1">@Exclude</span>
+    <span class="s0">public </span><span class="s1">Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; converterParaMap() {</span>
+        <span class="s1">HashMap&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; usuaruiMap = </span><span class="s0">new </span><span class="s1">HashMap&lt;&gt;()</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;email&quot;</span><span class="s0">, </span><span class="s1">getEmail())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;nome&quot;</span><span class="s0">, </span><span class="s1">getNome())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;foto&quot;</span><span class="s0">, </span><span class="s1">getFoto())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;tipo&quot;</span><span class="s0">, </span><span class="s1">getTipo())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;endereco&quot;</span><span class="s0">, </span><span class="s1">getEndereco())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;numeroPortaria&quot;</span><span class="s0">, </span><span class="s1">getNumeroPortaria())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;membroComissao&quot;</span><span class="s0">, </span><span class="s1">isMembroComissao())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;matricula&quot;</span><span class="s0">, </span><span class="s1">getMatricula())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;comissaoId&quot;</span><span class="s0">,</span><span class="s1">getComissaoId())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;token&quot;</span><span class="s0">, </span><span class="s1">getToken())</span><span class="s0">;</span>
+        <span class="s3">// Adicione os novos campos ao HashMap</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;sobrenome&quot;</span><span class="s0">, </span><span class="s1">getSobrenome())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;idade&quot;</span><span class="s0">, </span><span class="s1">getIdade())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;cpf&quot;</span><span class="s0">, </span><span class="s1">getCpf())</span><span class="s0">;</span>
+        <span class="s1">usuaruiMap.put(</span><span class="s2">&quot;sexo&quot;</span><span class="s0">, </span><span class="s1">getSexo())</span><span class="s0">;</span>
+
+
+        <span class="s0">return </span><span class="s1">usuaruiMap</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public static </span><span class="s1">FirebaseUser getUsuarioAtual() {</span>
+        <span class="s1">FirebaseAuth usuario = ConFirebase.getReferenciaAutencicacao()</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">usuario.getCurrentUser()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public static boolean </span><span class="s1">AtualizarUsuario(String nome) {</span>
+
+        <span class="s0">try </span><span class="s1">{</span>
+            <span class="s1">FirebaseUser user = getUsuarioAtual()</span><span class="s0">;</span>
+            <span class="s1">UserProfileChangeRequest profile = </span><span class="s0">new </span><span class="s1">UserProfileChangeRequest.Builder()</span>
+                    <span class="s1">.setDisplayName(nome)</span>
+                    <span class="s1">.build()</span><span class="s0">;</span>
+
+            <span class="s1">user.updateProfile(profile).addOnCompleteListener(</span><span class="s0">new </span><span class="s1">OnCompleteListener&lt;Void&gt;() {</span>
+                <span class="s1">@Override</span>
+                <span class="s0">public void </span><span class="s1">onComplete(@NonNull Task&lt;Void&gt; task) {</span>
+                    <span class="s0">if </span><span class="s1">(!task.isSuccessful()) {</span>
+                        <span class="s1">Log.d(</span><span class="s2">&quot;Perfil&quot;</span><span class="s0">, </span><span class="s2">&quot;Erro ao atualizar nome de perfil.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+            <span class="s1">})</span><span class="s0">;</span>
+            <span class="s0">return true;</span>
+        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(Exception e) {</span>
+            <span class="s1">e.printStackTrace()</span><span class="s0">;</span>
+            <span class="s0">return false;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getNome() {</span>
+        <span class="s0">return </span><span class="s1">nome</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setNome(String nome) {</span>
+        <span class="s0">this</span><span class="s1">.nome = nome</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getEndereco() {</span>
+        <span class="s0">return </span><span class="s1">endereco</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setEndereco(String endereco) {</span>
+        <span class="s0">this</span><span class="s1">.endereco = endereco</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getEmail() {</span>
+        <span class="s0">return </span><span class="s1">email</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setEmail(String email) {</span>
+        <span class="s0">this</span><span class="s1">.email = email</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@Exclude</span>
+    <span class="s0">public </span><span class="s1">String getSenha() {</span>
+        <span class="s0">return </span><span class="s1">senha</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setSenha(String senha) {</span>
+        <span class="s0">this</span><span class="s1">.senha = senha</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

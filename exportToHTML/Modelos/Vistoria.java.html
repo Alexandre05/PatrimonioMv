@@ -1,0 +1,319 @@
+<html>
+<head>
+<title>Vistoria.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Vistoria.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">Modelos</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">android.util.Log</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">androidx.annotation.NonNull</span><span class="s0">;</span>
+
+
+<span class="s0">import </span><span class="s1">com.google.android.gms.tasks.Task</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.tasks.TaskCompletionSource</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.DataSnapshot</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.DatabaseError</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.DatabaseReference</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.FirebaseDatabase</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.PropertyName</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.Query</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">com.google.firebase.database.ValueEventListener</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">java.io.Serializable</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.ArrayList</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.HashMap</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.List</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.Map</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">Ajuda.ConFirebase</span><span class="s0">;</span>
+
+<span class="s0">public class </span><span class="s1">Vistoria </span><span class="s0">implements </span><span class="s1">Serializable {</span>
+    <span class="s0">private </span><span class="s1">String idUsuario</span><span class="s0">;</span>
+
+    <span class="s0">public </span><span class="s1">String getIdUsuario() {</span>
+        <span class="s0">return </span><span class="s1">idUsuario</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setIdUsuario(String idUsuario) {</span>
+        <span class="s0">this</span><span class="s1">.idUsuario = idUsuario</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">Boolean getConcluida() {</span>
+        <span class="s0">return </span><span class="s1">concluida</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setConcluida(Boolean concluida) {</span>
+        <span class="s0">this</span><span class="s1">.concluida = concluida</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">Boolean getExcluidaVistoria() {</span>
+        <span class="s0">return </span><span class="s1">excluidaVistoria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setExcluidaVistoria(Boolean excluidaVistoria) {</span>
+        <span class="s0">this</span><span class="s1">.excluidaVistoria = excluidaVistoria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private </span><span class="s1">List&lt;Item&gt; itens</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; itensMap</span><span class="s0">;</span>
+
+    <span class="s0">public </span><span class="s1">Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; getItensMap() {</span>
+        <span class="s0">return </span><span class="s1">itensMap</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setItensMap(Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; itensMap) {</span>
+        <span class="s0">this</span><span class="s1">.itensMap = itensMap</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">List&lt;Item&gt; getItens() {</span>
+        <span class="s0">return </span><span class="s1">itens</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setItens(List&lt;Item&gt; itens) {</span>
+        <span class="s0">this</span><span class="s1">.itens = itens</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private int </span><span class="s1">hour</span><span class="s0">, </span><span class="s1">minute</span><span class="s0">, </span><span class="s1">second</span><span class="s0">;</span>
+
+    <span class="s0">public int </span><span class="s1">getHour() {</span>
+        <span class="s0">return </span><span class="s1">hour</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setHour(</span><span class="s0">int </span><span class="s1">hour) {</span>
+        <span class="s0">this</span><span class="s1">.hour = hour</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public int </span><span class="s1">getMinute() {</span>
+        <span class="s0">return </span><span class="s1">minute</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setMinute(</span><span class="s0">int </span><span class="s1">minute) {</span>
+        <span class="s0">this</span><span class="s1">.minute = minute</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public int </span><span class="s1">getSecond() {</span>
+        <span class="s0">return </span><span class="s1">second</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setSecond(</span><span class="s0">int </span><span class="s1">second) {</span>
+        <span class="s0">this</span><span class="s1">.second = second</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">private </span><span class="s1">String idVistoria</span><span class="s0">;</span>
+
+
+    <span class="s0">private </span><span class="s1">String localizacao_data</span><span class="s0">;</span>
+
+    <span class="s0">public </span><span class="s1">String getLocalizacao_data() {</span>
+        <span class="s0">return </span><span class="s1">localizacao_data</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setLocalizacao_data(String localizacao_data) {</span>
+        <span class="s0">this</span><span class="s1">.localizacao_data = localizacao_data</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setExcluidaVistoria(</span><span class="s0">boolean </span><span class="s1">excluidaVistoria) {</span>
+        <span class="s0">this</span><span class="s1">.excluidaVistoria = excluidaVistoria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getIdVistoria() {</span>
+        <span class="s0">return </span><span class="s1">idVistoria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setIdVistoria(String idVistoria) {</span>
+        <span class="s0">this</span><span class="s1">.idVistoria = idVistoria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;qrCodeURL&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">String qrCodeURL</span><span class="s0">;</span>
+
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;localizacao&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">String localizacao</span><span class="s0">;</span>
+
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;data&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">String data</span><span class="s0">;</span>
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;nomePerfilU&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">String nomePerfilU</span><span class="s0">;</span>
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;concluida&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">Boolean concluida</span><span class="s0">;</span>
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;idInspector&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">String idInspector</span><span class="s0">;</span>
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;excluidaVistoria&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">Boolean excluidaVistoria</span><span class="s0">;</span>
+
+
+    <span class="s0">public </span><span class="s1">String getQrCodeURL() {</span>
+        <span class="s0">return </span><span class="s1">qrCodeURL</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;qrCodeURL&quot;</span><span class="s1">)</span>
+    <span class="s0">public void </span><span class="s1">setQrCodeURL(String qrCodeURL) {</span>
+        <span class="s0">this</span><span class="s1">.qrCodeURL = qrCodeURL</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public </span><span class="s1">String getIdInspector() {</span>
+        <span class="s0">return </span><span class="s1">idInspector</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setIdInspector(String idInspector) {</span>
+        <span class="s0">this</span><span class="s1">.idInspector = idInspector</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public boolean </span><span class="s1">isExcluidaVistoria() {</span>
+        <span class="s0">return </span><span class="s1">excluidaVistoria</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public boolean </span><span class="s1">isConcluida() {</span>
+        <span class="s0">return </span><span class="s1">concluida</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setConcluida(</span><span class="s0">boolean </span><span class="s1">concluida) {</span>
+        <span class="s0">this</span><span class="s1">.concluida = concluida</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getData() {</span>
+        <span class="s0">return </span><span class="s1">data</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setData(String data) {</span>
+        <span class="s0">this</span><span class="s1">.data = data</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getNomePerfilU() {</span>
+        <span class="s0">return </span><span class="s1">nomePerfilU</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setNomePerfilU(String nomePerfilU) {</span>
+        <span class="s0">this</span><span class="s1">.nomePerfilU = nomePerfilU</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;fotos&quot;</span><span class="s1">)</span>
+    <span class="s0">private </span><span class="s1">List&lt;String&gt; fotos</span><span class="s0">;</span>
+
+    <span class="s0">public </span><span class="s1">Vistoria() {</span>
+        <span class="s1">DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child(</span><span class="s2">&quot;vistorias&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+        <span class="s1">setIdVistoria(anuncioRefe.push().getKey())</span><span class="s0">;</span>
+        <span class="s1">itens = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public </span><span class="s1">String getLocalizacao() {</span>
+        <span class="s0">return </span><span class="s1">localizacao</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setLocalizacao(String localizacao) {</span>
+        <span class="s0">this</span><span class="s1">.localizacao = localizacao</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;fotos&quot;</span><span class="s1">)</span>
+    <span class="s0">public </span><span class="s1">List&lt;String&gt; getFotos() {</span>
+        <span class="s0">return </span><span class="s1">fotos</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@PropertyName(</span><span class="s2">&quot;fotos&quot;</span><span class="s1">)</span>
+    <span class="s0">public void </span><span class="s1">setFotos(List&lt;String&gt; fotos) {</span>
+        <span class="s0">this</span><span class="s1">.fotos = fotos</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s3">// metodos</span>
+    <span class="s0">public void </span><span class="s1">salvar() {</span>
+        <span class="s1">String idUsuario = ConFirebase.getIdUsuario()</span><span class="s0">;</span>
+        <span class="s1">Log.d(</span><span class="s2">&quot;id usuario&quot;</span><span class="s0">,</span><span class="s2">&quot;Teste&quot;</span><span class="s1">+idUsuario)</span><span class="s0">;</span>
+        <span class="s1">setIdInspector(idUsuario)</span><span class="s0">;</span>
+        <span class="s1">setIdUsuario(idUsuario)</span><span class="s0">; </span><span class="s3">// Adicione esta linha</span>
+        <span class="s1">DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child(</span><span class="s2">&quot;vistorias&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">DatabaseReference vistoriaRef = anuncioRefe.child(idUsuario).child(getLocalizacao()).child(getNomePerfilU()).child(getIdVistoria())</span><span class="s0">;</span>
+        <span class="s1">vistoriaRef.setValue(</span><span class="s0">this</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">vistoriaRef.child(</span><span class="s2">&quot;itens&quot;</span><span class="s1">).setValue(getItens())</span><span class="s0">;</span>
+          <span class="s1">vistoriaRef.child(</span><span class="s2">&quot;idUsuario&quot;</span><span class="s1">).setValue(getIdUsuario())</span><span class="s0">;</span>
+        <span class="s1">salvarAnuncioPublico()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public void </span><span class="s1">remover() {</span>
+        <span class="s1">String idiUsuario = ConFirebase.getIdUsuario()</span><span class="s0">;</span>
+
+        <span class="s1">DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child(</span><span class="s2">&quot;vistorias&quot;</span><span class="s1">).child(</span><span class="s2">&quot;vistoriaPu&quot;</span><span class="s1">).child(idiUsuario).child(getIdVistoria())</span><span class="s0">;</span>
+        <span class="s1">anuncioRefe.removeValue()</span><span class="s0">;</span>
+        <span class="s1">removerAPu()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public static </span><span class="s1">Task&lt;Void&gt; atualizarAnuncio(Vistoria anuncio</span><span class="s0">, </span><span class="s1">String idUsuario) {</span>
+        <span class="s3">// Recupera a referência do nó do anúncio</span>
+        <span class="s1">DatabaseReference anunciosRef = ConFirebase.getFirebaseDatabase().child(</span><span class="s2">&quot;vistorias&quot;</span><span class="s1">).child(idUsuario).child(anuncio.getIdVistoria())</span><span class="s0">;</span>
+
+        <span class="s3">// Atualiza os dados do anúncio no Firebase</span>
+        <span class="s0">return </span><span class="s1">anunciosRef.setValue(anuncio)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public static </span><span class="s1">Task&lt;Void&gt; atualizarAnuncioPu(Vistoria anuncio</span><span class="s0">, </span><span class="s1">String idUsuario) {</span>
+        <span class="s1">DatabaseReference anuncioPuRef = ConFirebase.getFirebaseDatabase().child(</span><span class="s2">&quot;vistoriaPu&quot;</span><span class="s1">).child(idUsuario).child(anuncio.getIdVistoria())</span><span class="s0">;</span>
+
+        <span class="s0">return </span><span class="s1">anuncioPuRef.setValue(anuncio)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s3">// DETERA OS ANUNCIOS PARA TODOS</span>
+    <span class="s0">public void </span><span class="s1">removerAPu() {</span>
+        <span class="s1">DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child(</span><span class="s2">&quot;vistoriaPu&quot;</span><span class="s1">).child(getLocalizacao()).child(getIdVistoria())</span><span class="s0">;</span>
+        <span class="s1">anuncioRefe.removeValue()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s3">// SALVA ANUNCIOS PARA TODOS</span>
+    <span class="s0">public void </span><span class="s1">salvarAnuncioPublico() {</span>
+        <span class="s1">DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child(</span><span class="s2">&quot;vistoriaPu&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).setValue(toMap())</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public </span><span class="s1">Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; getItensAsMap() {</span>
+        <span class="s1">Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; itensMap = </span><span class="s0">new </span><span class="s1">HashMap&lt;&gt;()</span><span class="s0">;</span>
+        <span class="s0">for </span><span class="s1">(Item item : getItens()) {</span>
+            <span class="s1">itensMap.put(item.getId()</span><span class="s0">, </span><span class="s1">item.toMap())</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">return </span><span class="s1">itensMap</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public </span><span class="s1">Map&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; toMap() {</span>
+        <span class="s1">HashMap&lt;String</span><span class="s0">, </span><span class="s1">Object&gt; result = </span><span class="s0">new </span><span class="s1">HashMap&lt;&gt;()</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;idVistoria&quot;</span><span class="s0">, </span><span class="s1">idVistoria)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;localizacao_data&quot;</span><span class="s0">, </span><span class="s1">localizacao_data)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;qrCodeURL&quot;</span><span class="s0">, </span><span class="s1">qrCodeURL)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;localizacao&quot;</span><span class="s0">, </span><span class="s1">localizacao)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;data&quot;</span><span class="s0">, </span><span class="s1">data)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;nomePerfilU&quot;</span><span class="s0">, </span><span class="s1">nomePerfilU)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;concluida&quot;</span><span class="s0">, </span><span class="s1">concluida)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;idInspector&quot;</span><span class="s0">, </span><span class="s1">idInspector)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;idUsuario&quot;</span><span class="s0">, </span><span class="s1">idUsuario)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;excluidaVistoria&quot;</span><span class="s0">, </span><span class="s1">excluidaVistoria)</span><span class="s0">;</span>
+        <span class="s1">result.put(</span><span class="s2">&quot;itens&quot;</span><span class="s0">, </span><span class="s1">itens)</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">result</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span></pre>
+</body>
+</html>

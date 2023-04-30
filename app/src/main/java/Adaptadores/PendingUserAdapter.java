@@ -67,6 +67,7 @@ public class PendingUserAdapter extends RecyclerView.Adapter<PendingUserAdapter.
 
     public interface OnUserActionListener {
         void onApprove(Usuario user);
+
         void onReject(Usuario user);
     }
 }

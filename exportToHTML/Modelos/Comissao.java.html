@@ -1,0 +1,63 @@
+<html>
+<head>
+<title>Comissao.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Comissao.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">Modelos</span><span class="s0">;</span>
+
+
+<span class="s0">import </span><span class="s1">java.io.Serializable</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.ArrayList</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.List</span><span class="s0">;</span>
+
+<span class="s0">public class </span><span class="s1">Comissao </span><span class="s0">implements </span><span class="s1">Serializable {</span>
+
+    <span class="s0">private </span><span class="s1">String id</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">List&lt;String&gt; membros</span><span class="s0">;</span>
+    <span class="s0">private boolean </span><span class="s1">encerrada</span><span class="s0">;</span>
+
+    <span class="s0">public </span><span class="s1">Comissao() {</span>
+        <span class="s0">this</span><span class="s1">.membros = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getId() {</span>
+        <span class="s0">return </span><span class="s1">id</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setId(String id) {</span>
+        <span class="s0">this</span><span class="s1">.id = id</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">List&lt;String&gt; getMembros() {</span>
+        <span class="s0">return </span><span class="s1">membros</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setMembros(List&lt;String&gt; membros) {</span>
+        <span class="s0">this</span><span class="s1">.membros = membros</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public boolean </span><span class="s1">isEncerrada() {</span>
+        <span class="s0">return </span><span class="s1">encerrada</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setEncerrada(</span><span class="s0">boolean </span><span class="s1">encerrada) {</span>
+        <span class="s0">this</span><span class="s1">.encerrada = encerrada</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s2">// Adicione métodos para criar, atualizar e encerrar comissões, bem como adicionar e remover membros.</span>
+<span class="s1">}</span>
+
+</pre>
+</body>
+</html>

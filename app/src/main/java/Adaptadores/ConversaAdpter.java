@@ -23,9 +23,10 @@ public class ConversaAdpter extends RecyclerView.Adapter<ConversaAdpter.MyVilHol
 
     private List<ConversaAssunto> conversas;
     private Context context;
+
     public ConversaAdpter(List<ConversaAssunto> lista, Context c) {
-        this.conversas=lista;
-        this.context=c;
+        this.conversas = lista;
+        this.context = c;
     }
 
 
@@ -36,7 +37,7 @@ public class ConversaAdpter extends RecyclerView.Adapter<ConversaAdpter.MyVilHol
     }
 
     @Override
-    public void onBindViewHolder( MyVilHolder holder, int position) {
+    public void onBindViewHolder(MyVilHolder holder, int position) {
         ConversaAssunto conversaAssunto = conversas.get(position);
         holder.ult.setText(conversaAssunto.getUltimaMensagem());
 
@@ -45,18 +46,17 @@ public class ConversaAdpter extends RecyclerView.Adapter<ConversaAdpter.MyVilHol
         //holder.status.setText(u.getStatus());
 
 
-        if(u.getFoto()!=null){
+        if (u.getFoto() != null) {
 
             Uri uri = Uri.parse(u.getFoto());
             Glide.with(context).load(uri).into(holder.foto);
 
 
-        }else {
+        } else {
 
 
             holder.foto.setImageResource(R.drawable.c_pessoa);
         }
-
 
 
     }
@@ -66,17 +66,17 @@ public class ConversaAdpter extends RecyclerView.Adapter<ConversaAdpter.MyVilHol
         return conversas.size();
     }
 
-    public  class  MyVilHolder extends  RecyclerView.ViewHolder{
+    public class MyVilHolder extends RecyclerView.ViewHolder {
 
         CircleImageView foto;
-        TextView nome,ult,status;
+        TextView nome, ult, status;
 
         public MyVilHolder(@NonNull View itemView) {
             super(itemView);
 
             foto = itemView.findViewById(R.id.imageContato);
-            nome=itemView.findViewById(R.id.nomeContato);
-            ult=itemView.findViewById(R.id.ultimaContato);
+            nome = itemView.findViewById(R.id.nomeContato);
+            ult = itemView.findViewById(R.id.ultimaContato);
             //status=itemView.findViewById(R.id.status);
         }
     }

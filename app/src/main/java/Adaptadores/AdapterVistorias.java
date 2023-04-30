@@ -45,8 +45,6 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
         Log.i("AdapterVistorias", "Nome do Usuário: " + vistoria.getNomePerfilU());
         Log.i("AdapterVistorias", "Data: " + vistoria.getData());
         Log.i("AdapterVistorias", "Localização: " + vistoria.getLocalizacao());
-
-
     }
 
     @Override
@@ -65,7 +63,6 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
             locali = itemView.findViewById(R.id.texLocali);
             Data = itemView.findViewById(R.id.textData);
             nomeU = itemView.findViewById(R.id.textNomeUsuario);
-
         }
     }
 }

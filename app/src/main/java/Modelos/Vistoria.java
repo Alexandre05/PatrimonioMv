@@ -2,18 +2,9 @@ package Modelos;
 
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
-
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.TaskCompletionSource;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.PropertyName;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -50,23 +41,16 @@ public class Vistoria implements Serializable {
         this.excluidaVistoria = excluidaVistoria;
     }
 
-    private List<Item> itens;
-    private Map<String, Object> itensMap;
 
-    public Map<String, Object> getItensMap() {
+    private Map<String, Item> itensMap;
+
+
+    public Map<String, Item> getItensMap() {
         return itensMap;
     }
 
-    public void setItensMap(Map<String, Object> itensMap) {
+    public void setItensMap(Map<String, Item> itensMap) {
         this.itensMap = itensMap;
-    }
-
-    public List<Item> getItens() {
-        return itens;
-    }
-
-    public void setItens(List<Item> itens) {
-        this.itens = itens;
     }
 
     private int hour, minute, second;
@@ -109,11 +93,7 @@ public class Vistoria implements Serializable {
         this.localizacao_data = localizacao_data;
     }
 
-    public void setExcluidaVistoria(boolean excluidaVistoria) {
-        this.excluidaVistoria = excluidaVistoria;
-    }
-
-    public String getIdVistoria() {
+        public String getIdVistoria() {
         return idVistoria;
     }
 
@@ -163,18 +143,6 @@ public class Vistoria implements Serializable {
     }
 
 
-    public boolean isExcluidaVistoria() {
-        return excluidaVistoria;
-    }
-
-
-    public boolean isConcluida() {
-        return concluida;
-    }
-
-    public void setConcluida(boolean concluida) {
-        this.concluida = concluida;
-    }
 
     public String getData() {
         return data;
@@ -198,8 +166,8 @@ public class Vistoria implements Serializable {
     public Vistoria() {
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
 
-        setIdVistoria(anuncioRefe.push().getKey());
-        itens = new ArrayList<>();
+        setIdVistoria(anuncioRefe.push().getKey()); // Gere um novo ID no construtor
+        itensMap = new HashMap<>();
     }
 
 
@@ -223,19 +191,26 @@ public class Vistoria implements Serializable {
     }
 
     // metodos
-    public void salvar() {
+    public void salvar(boolean isNew) {
         String idUsuario = ConFirebase.getIdUsuario();
-        Log.d("id usuario","Teste"+idUsuario);
+        Log.d("id usuario", "Teste" + idUsuario);
         setIdInspector(idUsuario);
-        setIdUsuario(idUsuario); // Adicione esta linha
+        setIdUsuario(idUsuario);
+
+
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
         DatabaseReference vistoriaRef = anuncioRefe.child(idUsuario).child(getLocalizacao()).child(getNomePerfilU()).child(getIdVistoria());
-        vistoriaRef.setValue(this);
-        vistoriaRef.child("itens").setValue(getItens());
-          vistoriaRef.child("idUsuario").setValue(getIdUsuario());
+
+        if (isNew) {
+            vistoriaRef.setValue(this);
+            vistoriaRef.child("itens").setValue(itensMap);
+        } else {
+            vistoriaRef.child("itens").setValue(itensMap);
+        }
+
+        vistoriaRef.child("idUsuario").setValue(getIdUsuario());
         salvarAnuncioPublico();
     }
-
 
     public void remover() {
         String idiUsuario = ConFirebase.getIdUsuario();
@@ -272,16 +247,6 @@ public class Vistoria implements Serializable {
         anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).setValue(toMap());
     }
 
-
-    public Map<String, Object> getItensAsMap() {
-        Map<String, Object> itensMap = new HashMap<>();
-        for (Item item : getItens()) {
-            itensMap.put(item.getId(), item.toMap());
-        }
-        return itensMap;
-    }
-
-
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("idVistoria", idVistoria);
@@ -294,7 +259,15 @@ public class Vistoria implements Serializable {
         result.put("idInspector", idInspector);
         result.put("idUsuario", idUsuario);
         result.put("excluidaVistoria", excluidaVistoria);
-        result.put("itens", itens);
+
+        // Converta os itens para objetos antes de adicioná-los ao resultado
+        HashMap<String, Object> itemObjectsMap = new HashMap<>();
+        for (Map.Entry<String, Item> entry : itensMap.entrySet()) {
+            itemObjectsMap.put(entry.getKey(), entry.getValue().toMap());
+        }
+        result.put("itens", itemObjectsMap);
+
         return result;
     }
+
 }

@@ -1,21 +1,17 @@
 package Atividades;
 
 import android.os.Bundle;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
 
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.widget.TextView;
-
-import androidx.viewpager.widget.ViewPager;
-
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 import Fragment.ContatosT1;
 import Fragment.Conversas;

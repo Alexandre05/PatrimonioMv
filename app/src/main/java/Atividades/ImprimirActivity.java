@@ -2,21 +2,22 @@ package Atividades;
 
 import static com.google.firebase.crashlytics.internal.Logger.TAG;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -45,7 +46,6 @@ import java.util.Locale;
 
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
-import android.util.Log;
 
 public class ImprimirActivity extends AppCompatActivity {
     private FloatingActionButton floatingActionButtonImprimir;

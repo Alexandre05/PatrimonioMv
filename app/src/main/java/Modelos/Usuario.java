@@ -104,6 +104,7 @@ public class Usuario implements Serializable {
         return matricula;
     }
 
+
     public void setMatricula(String matricula) {
         this.matricula = matricula;
     }
@@ -187,9 +188,6 @@ public class Usuario implements Serializable {
     }
 
 
-
-
-
     public void atualizar() {
         String indeUsu = ConFirebase.getIdentificarUsaurio();
         Log.d("AtualizarUsuario", "UID do usuário: " + indeUsu);
@@ -217,9 +215,6 @@ public class Usuario implements Serializable {
             Log.e("Usuario", "Erro: usuário não autenticado.");
         }
     }
-
-
-
 
     @Exclude
     public Map<String, Object> converterParaMap() {

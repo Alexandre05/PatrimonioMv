@@ -18,9 +18,28 @@ import java.util.List;
 import java.util.Map;
 
 public class Item  implements Serializable {
+    private String localizacao;
     private String id;
-    private String NomeItem;
+    private String nome;
+
+    public String getLocalizacao() {
+        return localizacao;
+    }
+
+    public void setLocalizacao(String localizacao) {
+        this.localizacao = localizacao;
+    }
+
     private String placa;
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
     private List<String> fotos;
     private String observacao;
     private String fotoURL;
@@ -56,13 +75,7 @@ public class Item  implements Serializable {
         this.id = id;
     }
 
-    public String getNomeItem() {
-        return NomeItem;
-    }
 
-    public void setNomeItem(String nomeItem) {
-        NomeItem = nomeItem;
-    }
 
     @PropertyName("placa")
     public String getPlaca() {
@@ -130,10 +143,11 @@ public class Item  implements Serializable {
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("id", id);
-        result.put("nome", NomeItem);
+        result.put("nome", nome);
         result.put("placa", placa);
         result.put("observacao", observacao);
         result.put("fotos", fotos);
+        result.put("localizacao",localizacao);
         result.put("latitude", latitude);
         result.put("longitude", longitude);
         return result;

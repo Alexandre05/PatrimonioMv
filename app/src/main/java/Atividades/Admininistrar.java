@@ -1,9 +1,5 @@
 package Atividades;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -12,6 +8,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,8 +27,8 @@ import Adaptadores.PendingUserAdapter;
 import Adaptadores.VistoriaAdapter;
 import Ajuda.ConFirebase;
 import Ajuda.QRCodeGenerator;
-import Modelos.Vistoria;
 import Modelos.Usuario;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class Admininistrar extends AppCompatActivity {
@@ -118,7 +118,7 @@ public class Admininistrar extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Vistoria vistoria = dataSnapshot.getValue(Vistoria.class);
-                if (vistoria != null && vistoria.isConcluida()) {
+                if (vistoria != null && vistoria.getConcluida()) {
                     String textoQRCode = "Localização: " + vistoria.getLocalizacao() + ", Vistoriador: " + vistoria.getNomePerfilU() + ", Data: " + vistoria.getData();
                     Bitmap bitmap = null;
                     try {

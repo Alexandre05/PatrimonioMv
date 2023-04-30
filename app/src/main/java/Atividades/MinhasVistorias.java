@@ -1,16 +1,14 @@
 package Atividades;
 
-
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.navigation.ui.AppBarConfiguration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,6 +16,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -26,39 +25,33 @@ import java.util.List;
 
 import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
-import Modelos.Vistoria;
 import Modelos.RecyclerItemClickListener;
-import Modelos.Usuario;
+import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 import br.com.patrimoniomv.databinding.ActivityMeusAnimaisBinding;
-
 
 public class MinhasVistorias extends AppCompatActivity {
     private static final int SELECAO_CAMERA = 100;
     private static final int SELECAO_GALERIA = 200;
-    private AppBarConfiguration appBarConfiguration;
     private ActivityMeusAnimaisBinding binding;
-    private ActivityMeusAnimaisBinding binding2;
-    private DatabaseReference anunciosUsuarioRef;
-    private Vistoria anuncioSele;
-    private RecyclerView recyclerViewAnuncios;
+    private RecyclerView recyclerViewVistorias;
     private AlertDialog alertDialog;
-    private Button btnOutraSala;
 
-    private Usuario usuario;
-    private List<Vistoria> vistoriasList = new ArrayList<>();
-    private AdapterVistorias adapterAnuncios;
+    private List<Vistoria> Listadevistorias = new ArrayList<>();
+    private AdapterVistorias adapterVistorias;
+    private ValueEventListener valueEventListenerVistorias;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_meus_animais);
+        setTitle("Minhas Vistorias");
 
         binding = ActivityMeusAnimaisBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         initializeComponents();
-        setTitle("Minhas Vistorias");
-
+        recuperarAnuncios();
         binding.fab.setOnClickListener(view -> {
             startActivity(new Intent(getApplicationContext(), CadastrarItens.class));
         });
@@ -68,21 +61,15 @@ public class MinhasVistorias extends AppCompatActivity {
             startActivity(intent);
         });
 
-        recyclerViewAnuncios.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewAnuncios.setHasFixedSize(true);
-        adapterAnuncios = new AdapterVistorias(vistoriasList, this);
-        recyclerViewAnuncios.setAdapter(adapterAnuncios);
-
-        recuperarAnuncios();
-        recyclerViewAnuncios.addOnItemTouchListener(
+        recyclerViewVistorias.addOnItemTouchListener(
                 new RecyclerItemClickListener(
                         this,
-                        recyclerViewAnuncios,
+                        recyclerViewVistorias,
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
                             public void onItemClick(View view, int position) {
-                                Vistoria vistoriaSelecionada = vistoriasList.get(position);
-                                Intent intent = new Intent(getApplicationContext(), Atualizar.class);
+                                Vistoria vistoriaSelecionada = Listadevistorias.get(position);
+                                Intent intent = new Intent(getApplicationContext(), DetalhesMinhasVistoriasAc.class);
                                 intent.putExtra("vistorias", vistoriaSelecionada);
                                 startActivity(intent);
                             }
@@ -93,12 +80,15 @@ public class MinhasVistorias extends AppCompatActivity {
                                         .setMessage("Tem certeza que deseja excluir o item?")
                                         .setCancelable(false)
                                         .setPositiveButton("Sim", (dialog, id) -> {
-                                            Vistoria vistoriaSelecionada = vistoriasList.get(position);
+                                            Vistoria vistoriaSelecionada = Listadevistorias.get(position);
                                             String vistoriaId = vistoriaSelecionada.getIdVistoria();
+                                            DatabaseReference anunciosUsuarioRef = ConFirebase.getFirebaseDatabase().child("vistorias");
                                             anunciosUsuarioRef.child(vistoriaId).removeValue();
                                             vistoriaSelecionada.remover();
-                                            adapterAnuncios.notifyDataSetChanged();
-                                            recuperarAnuncios();
+                                            Listadevistorias.remove(position);
+                                            adapterVistorias.notifyItemRemoved(position);
+                                           recuperarAnuncios();
+
                                         })
                                         .setNegativeButton("Não", (dialog, id) -> dialog.cancel())
                                         .create()
@@ -112,53 +102,83 @@ public class MinhasVistorias extends AppCompatActivity {
                 )
         );
     }
+
+    private void atualizarAdapter() {
+        if (adapterVistorias != null) {
+            adapterVistorias.notifyDataSetChanged();
+        }
+    }
+
+
+    private void showProgressDialog() {
+        if (alertDialog == null) {
+            alertDialog = new AlertDialog.Builder(this)
+                    .setMessage("Recuperando Minhas Vistorias...")
+                    .setCancelable(false)
+                    .create();
+        }
+        alertDialog.show();
+    }
+
     private void recuperarAnuncios() {
-        alertDialog = new AlertDialog.Builder(this)
-                .setMessage("Recuperando Minhas Vistorias...")
-                .setCancelable(false)
-                .show();
+        showProgressDialog();
 
         DatabaseReference vistoriasRef = ConFirebase.getFirebaseDatabase()
                 .child("vistorias");
 
-        vistoriasRef.addValueEventListener(new ValueEventListener() {
+        String currentUserId = ConFirebase.getIdUsuario();
+        Log.d("MinhasVistorias", "ID do usuário logado: " + currentUserId);
+
+        Query vistoriasQuery = vistoriasRef.orderByChild("idUsuario").equalTo(currentUserId);
+
+        valueEventListenerVistorias = vistoriasQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                vistoriasList.clear();
+                Listadevistorias.clear();
                 if (dataSnapshot.exists()) {
-                    String currentUserId = ConFirebase.getIdUsuario();
+                    Log.d("MinhasVistorias", "DataSnapshot: " + dataSnapshot.toString());
 
-                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
                         Vistoria vistoria;
 
                         try {
-                            vistoria = ds.getValue(Vistoria.class);
+                            vistoria = vistoriaSnapshot.getValue(Vistoria.class);
                         } catch (DatabaseException e) {
                             // Se ocorrer uma exceção ao converter os campos, pule esta vistoria
+                            Log.d("MinhasVistorias", "Erro ao converter a vistoria: " + e.getMessage());
                             continue;
                         }
 
-                        if (vistoria != null && vistoria.getIdUsuario().equals(currentUserId)) {
-                            vistoriasList.add(vistoria);
+                        if (vistoria != null) {
+                            Log.d("MinhasVistorias", "Vistoria encontrada: " + vistoria.getIdVistoria() + ", ID do usuário: " + vistoria.getIdUsuario());
+                            Listadevistorias.add(vistoria);
+                            Log.d("MinhasVistorias", "Vistoria adicionada: " + vistoria.getIdVistoria());
                         }
                     }
-                    Collections.reverse(vistoriasList);
+                    Collections.reverse(Listadevistorias);
+
+                    // Atualize o adaptador aqui
+                    atualizarAdapter();
+                } else {
+                    Log.d("MinhasVistorias", "Nenhuma vistoria encontrada");
                 }
-                adapterAnuncios.notifyDataSetChanged();
                 alertDialog.dismiss();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                Log.d("MinhasVistorias", "Erro: " + error.getMessage());
                 alertDialog.dismiss();
             }
         });
     }
+        private void initializeComponents() {
+        recyclerViewVistorias = findViewById(R.id.recyclerViewVistorias);
+        Listadevistorias = new ArrayList<>();
+        adapterVistorias = new AdapterVistorias(Listadevistorias, this);
+        recyclerViewVistorias.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewVistorias.setHasFixedSize(true);
+        recyclerViewVistorias.setAdapter(adapterVistorias);
 
-
-
-
-    private void initializeComponents() {
-        recyclerViewAnuncios = findViewById(R.id.reclyAnim);
     }
 }

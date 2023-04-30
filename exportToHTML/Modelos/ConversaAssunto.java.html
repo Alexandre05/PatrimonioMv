@@ -1,0 +1,120 @@
+<html>
+<head>
+<title>ConversaAssunto.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ConversaAssunto.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">Modelos</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">com.google.firebase.database.DatabaseReference</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">Ajuda.ConFirebase</span><span class="s0">;</span>
+
+<span class="s0">public class </span><span class="s1">ConversaAssunto {</span>
+
+    <span class="s0">private  </span><span class="s1">String idRemetente</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String idDestinatario</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String Token</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">String ultimaMensagem</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">Usuario uruarioExibicao</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">Usuario user</span><span class="s0">;</span>
+
+
+    <span class="s0">public </span><span class="s1">String getToken() {</span>
+        <span class="s0">return </span><span class="s1">Token</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setToken(String token) {</span>
+        <span class="s0">this</span><span class="s1">.Token = token</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">Usuario getUser() {</span>
+        <span class="s0">return </span><span class="s1">user</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setUser(Usuario user) {</span>
+        <span class="s0">this</span><span class="s1">.user = user</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">Usuario getUruarioExibicao() {</span>
+        <span class="s0">return </span><span class="s1">uruarioExibicao</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setUruarioExibicao(Usuario uruarioExibicao) {</span>
+        <span class="s0">this</span><span class="s1">.uruarioExibicao = uruarioExibicao</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public  void </span><span class="s1">salvar() {</span>
+        <span class="s1">DatabaseReference databaseReference = ConFirebase.getFirebaseDatabase()</span><span class="s0">;</span>
+        <span class="s1">DatabaseReference conversaRef = databaseReference.child(</span><span class="s2">&quot;conversas&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+        <span class="s1">conversaRef</span>
+                <span class="s1">.child(</span><span class="s0">this</span><span class="s1">.getIdRemetente())</span>
+                <span class="s1">.child(</span><span class="s0">this</span><span class="s1">.getIdDestinatario())</span>
+
+                <span class="s1">.setValue(</span><span class="s0">this</span><span class="s1">)</span><span class="s0">;</span>
+
+
+
+
+    <span class="s1">}</span>
+    <span class="s0">public void </span><span class="s1">salvarConversaPrivadarUsuarioExibicaoOutro(){</span>
+        <span class="s1">DatabaseReference ref = ConFirebase.getFirebaseDatabase()</span><span class="s0">;</span>
+        <span class="s1">DatabaseReference conversaParearOutro = ref.child(</span><span class="s2">&quot;conversas&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">user = ConFirebase.getDadosUsarioLogado()</span><span class="s0">;</span>
+        <span class="s1">setUruarioExibicao(user)</span><span class="s0">;</span>
+        <span class="s1">conversaParearOutro.child(getIdDestinatario())</span>
+                <span class="s1">.child(getIdRemetente())</span>
+
+
+
+                <span class="s1">.setValue(</span><span class="s0">this</span><span class="s1">)</span><span class="s0">;</span>
+
+    <span class="s1">}</span>
+
+
+
+
+    <span class="s0">public </span><span class="s1">String getIdRemetente() {</span>
+        <span class="s0">return </span><span class="s1">idRemetente</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setIdRemetente(String idRemetente) {</span>
+        <span class="s0">this</span><span class="s1">.idRemetente = idRemetente</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getIdDestinatario() {</span>
+        <span class="s0">return </span><span class="s1">idDestinatario</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setIdDestinatario(String idDestinatario) {</span>
+        <span class="s0">this</span><span class="s1">.idDestinatario = idDestinatario</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public </span><span class="s1">String getUltimaMensagem() {</span>
+        <span class="s0">return </span><span class="s1">ultimaMensagem</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public void </span><span class="s1">setUltimaMensagem(String ultimaMensagem) {</span>
+        <span class="s0">this</span><span class="s1">.ultimaMensagem = ultimaMensagem</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+
+    <span class="s0">public </span><span class="s1">ConversaAssunto() {</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+</pre>
+</body>
+</html>
