@@ -73,11 +73,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import Adaptadores.AdapterVistorias;
-import Ajuda.ConFirebase;
+import Adaptadores.VistoriaAdapter;
+import Adaptadores.VistoriaAndamentoAdapter;
+import Modelos.Item;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
@@ -90,8 +94,8 @@ public class Relatorios extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private List<Vistoria> vistoriasList;
-    private AdapterVistorias adapterAnuncios;
-    private DatabaseReference anunciosRef;
+    private VistoriaAndamentoAdapter vistoriaAndamentoAdapter;
+
     private FirebaseUser currentUser;
     private EditText editTextLicensePlate, editTextStartDate;
     private RadioGroup radioGroupSearchCriteria;
@@ -115,6 +119,7 @@ public class Relatorios extends AppCompatActivity {
         //showNotification("Teste de notificação", "Esta é uma notificação de teste", null);
 
         setContentView(R.layout.activity_relatorios);
+
         buttonGeneratePdf = findViewById(R.id.button_generate_pdf);
         editTextLicensePlate = findViewById(R.id.editText_licensePlate);
         radioGroupSearchCriteria = findViewById(R.id.radioGroup_searchCriteria);
@@ -126,14 +131,16 @@ public class Relatorios extends AppCompatActivity {
         editTextStartDate = findViewById(R.id.editText_startDate);
         editTextEndDate = findViewById(R.id.editText_endDate);
         buttonGenerateQrCode = findViewById(R.id.buttonGenerateQrCode);
-        anunciosRef = ConFirebase.getFirebaseDatabase().child("vistoriasConcluidas");
-        Log.d("FIREBASE_STRUCTURE", "anunciosRef: " + anunciosRef);
+        DatabaseReference vistoriasConcluidasRef = FirebaseDatabase.getInstance().getReference("vistoriasConcluidas");
+        Log.d("FIREBASE_STRUCTURE", "anunciosRef: " + vistoriasConcluidasRef);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
-        adapterAnuncios = new AdapterVistorias(vistoriasList, this);
-        recyclerView.setAdapter(adapterAnuncios);
+        vistoriaAndamentoAdapter = new VistoriaAndamentoAdapter(this, vistoriasList);
+
+        recyclerView.setAdapter(vistoriaAndamentoAdapter);
         editTextLocation.setVisibility(View.GONE);
         createNotificationChannel();
+        vistoriasList= new ArrayList<>();
         radioButtonLicensePlate.setChecked(true);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         final DatePickerDialog.OnDateSetListener startDateListener = new DatePickerDialog.OnDateSetListener() {
@@ -182,9 +189,13 @@ public class Relatorios extends AppCompatActivity {
                 if (i == R.id.radioButton_location) {
                     editTextLocation.setVisibility(View.VISIBLE);
                     editTextLicensePlate.setVisibility(View.GONE);
+                    editTextStartDate.setVisibility(View.VISIBLE);
+                    editTextEndDate.setVisibility(View.VISIBLE);
                 } else if (i == R.id.radioButton_licensePlate) {
                     editTextLocation.setVisibility(View.GONE);
                     editTextLicensePlate.setVisibility(View.VISIBLE);
+                    editTextStartDate.setVisibility(View.GONE);
+                    editTextEndDate.setVisibility(View.GONE);
                 }
             }
         });
@@ -194,34 +205,118 @@ public class Relatorios extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 RadioGroup radioGroup = findViewById(R.id.radioGroup_searchCriteria);
-                int selectedId = radioGroup.getCheckedRadioButtonId();
 
+                int selectedId = radioGroup.getCheckedRadioButtonId();
+                Log.d("ButtonSearch", "onClick: selectedId=" + selectedId);
                 if (selectedId == R.id.radioButton_location) {
+                    Log.d("ButtonSearch", "onClick: radioButton_location selected");
                     handleLocationSearch();
                 } else if (selectedId == R.id.radioButton_licensePlate) {
+                    Log.d("ButtonSearch", "onClick: radioButton_licensePlate selected");
                     handleLicensePlateSearch();
                 }
             }
 
             private void handleLocationSearch() {
+                Log.d("handleLocationSearch", "handleLocationSearch() called");
                 String location = editTextLocation.getText().toString().trim().toUpperCase();
                 String startDate = editTextStartDate.getText().toString();
                 String endDate = editTextEndDate.getText().toString();
                 Log.d("SearchResults", "onClick: location=" + location + ", startDate=" + startDate + ", endDate=" + endDate);
 
                 if (!location.isEmpty()) {
-                    if (!startDate.isEmpty() && !endDate.isEmpty()) {
-                        fetchDataAndFilterByLocationAndDate(location, startDate, endDate);
-                    } else {
-                        fetchDataAndFilterByLocation(location);
-                    }
+                    fetchDataAndFilterByLocation(location, startDate.isEmpty() ? null : startDate, endDate.isEmpty() ? null : endDate);
                 } else {
                     Toast.makeText(Relatorios.this, "Digite a localização", Toast.LENGTH_SHORT).show();
                 }
             }
 
 
+            private void fetchDataByLicensePlate(String inspectorId, String licensePlate, String startDate, String endDate, SearchCallback callback) {
+                if (startDate.isEmpty() || endDate.isEmpty()) {
+                    searchByLicensePlate(inspectorId, licensePlate, callback);
+                } else {
+                    searchByLicensePlateAndDate(inspectorId, licensePlate, startDate, endDate, callback);
+                }
+            }
+            private void fetchDataAndFilterByLocation(String location, @Nullable String startDate, @Nullable String endDate) {
+                DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+                Query query = rootRef.child("vistoriasConcluidas");
+
+                query.addValueEventListener(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        List<Vistoria> filteredResults = new ArrayList<>();
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Vistoria vistoria = snapshot.getValue(Vistoria.class);
+
+                            if (vistoria != null && vistoria.getLocalizacao() != null) {
+                                boolean locationMatches = vistoria.getLocalizacao().toUpperCase().contains(location.toUpperCase());
+                                boolean dateMatches = true;
+
+                                if (startDate != null && endDate != null) {
+                                    try {
+                                        Date vistoriaDate = sdf.parse(vistoria.getData());
+                                        Date start = sdf.parse(startDate);
+                                        Date end = sdf.parse(endDate);
+
+                                        // Verificar se a data da vistoria está dentro do intervalo especificado
+                                        dateMatches = vistoriaDate.compareTo(start) >= 0 && vistoriaDate.compareTo(end) <= 0;
+
+                                        // Se a data estiver fora do intervalo, ignore a vistoria
+                                        if (!dateMatches) {
+                                            continue;
+                                        }
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                        Log.e("fetchDataAndFilterByLocation", "Erro ao analisar datas: " + e.getMessage());
+                                    }
+                                }
+
+                                if (locationMatches) {
+                                    Log.d("fetchDataAndFilterByLocation", "Vistoria filtrada: " + vistoria.getLocalizacao());
+
+                                    // Extrair todos os itens para esta vistoria
+                                    Map<String, Item> itensMap = new HashMap<>();
+                                    DataSnapshot itensSnapshot = snapshot.child("itensMap");
+                                    for (DataSnapshot itemSnapshot : itensSnapshot.getChildren()) {
+                                        Item item = itemSnapshot.getValue(Item.class);
+                                        itensMap.put(itemSnapshot.getKey(), item);
+                                    }
+
+                                    // Adicionar os itens extraídos à instância de Vistoria
+                                    vistoria.setItensMap(itensMap);
+
+                                    filteredResults.add(vistoria);
+                                }
+                            }
+                        }
+
+                        // Verificar se não há resultados para o filtro aplicado
+                        if (filteredResults.isEmpty()) {
+                            Toast.makeText(Relatorios.this, "Nenhum resultado encontrado", Toast.LENGTH_SHORT).show();
+                        }
+
+                        // Atualize a lista de vistorias e notifique o adaptador
+                        updateRecyclerView(filteredResults);
+
+                        // Atualize a variável currentSearchResults
+                        currentSearchResults = filteredResults;
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Log.e("FirebaseError", "Erro ao buscar dados: " + databaseError.getMessage());
+                    }
+                });
+            }
+
+
             private void handleLicensePlateSearch() {
+                Log.d("lidarComBuscaDePlaca", "handleLicensePlateSearch() called");
                 String inspectorId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 String licensePlate = editTextLicensePlate.getText().toString().trim().toUpperCase();
                 String vistoriaStartDate = editTextStartDate.getText().toString();
@@ -242,14 +337,10 @@ public class Relatorios extends AppCompatActivity {
                 };
 
                 if (!licensePlate.isEmpty()) {
-                    if (vistoriaStartDate.isEmpty() || vistoriaEndDate.isEmpty()) {
-                        searchByLicensePlate(inspectorId, licensePlate, searchCallback);
-                    } else {
-                        searchByLicensePlateAndDate(inspectorId, licensePlate, vistoriaStartDate, vistoriaEndDate, searchCallback);
-                    }
+                    fetchDataByLicensePlate(inspectorId, licensePlate, vistoriaStartDate, vistoriaEndDate, searchCallback);
                 } else {
                     if (!vistoriaStartDate.isEmpty() && !vistoriaEndDate.isEmpty()) {
-                        fetchAllData(inspectorId, vistoriaStartDate, vistoriaEndDate, searchCallback);
+
                     } else {
                         Toast.makeText(Relatorios.this, "Por favor, preencha as datas para buscar todos os dados", Toast.LENGTH_SHORT).show();
                     }
@@ -310,33 +401,9 @@ public class Relatorios extends AppCompatActivity {
                 ActivityCompat.requestPermissions(Relatorios.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
             }
         });
-
     }
 
-    private void fetchAllData(String inspectorId, String startDate, String endDate, SearchCallback callback) {
-        DatabaseReference vistoriasConcluidasRef = FirebaseDatabase.getInstance().getReference("vistoriasConcluidas").child(inspectorId);
 
-        Query query = vistoriasConcluidasRef.orderByChild("data").startAt(startDate).endAt(endDate);
-
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Vistoria> vistorias = new ArrayList<>();
-                for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                    Vistoria vistoria = childSnapshot.getValue(Vistoria.class);
-                    if (vistoria != null) {
-                        vistorias.add(vistoria);
-                    }
-                }
-                callback.onSearchCompleted(vistorias);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                callback.onSearchFailed(databaseError.getMessage());
-            }
-        });
-    }
 
 
     private void searchByLicensePlate(String inspectorId, String licensePlate, SearchCallback callback) {
@@ -345,11 +412,11 @@ public class Relatorios extends AppCompatActivity {
 
 
     private void searchByLicensePlateAndDate(String inspectorId, String licensePlate, String vistoriaStartDate, String vistoriaEndDate, SearchCallback callback) {
-        DatabaseReference vistoriasConcluidasRef = FirebaseDatabase.getInstance().getReference("vistoriasConcluidas").child(inspectorId);
+        DatabaseReference vistoriasConcluidasRef = FirebaseDatabase.getInstance().getReference("vistoriasConcluidas");
 
         Query query;
         if (vistoriaStartDate.isEmpty() || vistoriaEndDate.isEmpty()) {
-            query = vistoriasConcluidasRef.orderByChild("placa").equalTo(licensePlate);
+            query = vistoriasConcluidasRef; // Buscará todos os dados
         } else {
             query = vistoriasConcluidasRef.orderByChild("data").startAt(vistoriaStartDate).endAt(vistoriaEndDate);
         }
@@ -360,9 +427,14 @@ public class Relatorios extends AppCompatActivity {
                 List<Vistoria> vistorias = new ArrayList<>();
                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
                     Vistoria vistoria = childSnapshot.getValue(Vistoria.class);
-                    if (vistoria != null && vistoria.getLocalizacao().equals(licensePlate)) {
-                        vistorias.add(vistoria);
-
+                    if (vistoria != null && vistoria.getItensMap() != null) {
+                        for (String itemId : vistoria.getItensMap().keySet()) {
+                            Item item = vistoria.getItensMap().get(itemId);
+                            if (item != null && item.getPlaca().equals(licensePlate)) {
+                                vistorias.add(vistoria);
+                                break;
+                            }
+                        }
                     }
                 }
                 callback.onSearchCompleted(vistorias);
@@ -375,13 +447,41 @@ public class Relatorios extends AppCompatActivity {
         });
     }
 
+
     private void updateRecyclerView(List<Vistoria> searchResults) {
         vistoriasList.clear();
+        vistoriaAndamentoAdapter.clear();
+
         vistoriasList.addAll(searchResults);
+        vistoriaAndamentoAdapter.addAll(vistoriasList);
+
         Log.d("SearchResults", "updateRecyclerView: searchResults=" + searchResults);
-        adapterAnuncios.notifyDataSetChanged();
+        Log.d("SearchResults", "updateRecyclerView: vistoriasList=" + vistoriasList);
+        vistoriaAndamentoAdapter.notifyDataSetChanged();
     }
 
+
+    private List<Vistoria> filterByDate(List<Vistoria> anuncios, String startDate, String endDate) {
+        List<Vistoria> filteredAnuncios = new ArrayList<>();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        try {
+            Date start = sdf.parse(startDate);
+            Date end = sdf.parse(endDate);
+
+            for (Vistoria vistoria : anuncios) {
+                Date anuncioDate = sdf.parse(vistoria.getData());
+
+                if ((anuncioDate.equals(start) || anuncioDate.after(start)) && (anuncioDate.equals(end) || anuncioDate.before(end))) {
+                    filteredAnuncios.add(vistoria);
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return filteredAnuncios;
+    }
 
     private void fetchDataAndFilterByLocationAndDate(String location, String startDate, String endDate) {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
@@ -614,27 +714,7 @@ public class Relatorios extends AppCompatActivity {
     }
 
 
-    private List<Vistoria> filterByDate(List<Vistoria> anuncios, String startDate, String endDate) {
-        List<Vistoria> filteredAnuncios = new ArrayList<>();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        try {
-            Date start = sdf.parse(startDate);
-            Date end = sdf.parse(endDate);
-
-            for (Vistoria vistoria : anuncios) {
-                Date anuncioDate = sdf.parse(vistoria.getData());
-
-                if ((anuncioDate.equals(start) || anuncioDate.after(start)) && (anuncioDate.equals(end) || anuncioDate.before(end))) {
-                    filteredAnuncios.add(vistoria);
-                }
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return filteredAnuncios;
-    }
 
 
 

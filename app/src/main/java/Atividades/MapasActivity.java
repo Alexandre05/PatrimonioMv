@@ -24,7 +24,7 @@ public class MapasActivity extends FragmentActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapas);
 
-        itens = (Item) getIntent().getSerializableExtra("anuncio");
+        itens = (Item) getIntent().getSerializableExtra("vistorias");
 
         // Obtenha o SupportMapFragment e seja notificado quando o mapa estiver pronto para ser usado.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()

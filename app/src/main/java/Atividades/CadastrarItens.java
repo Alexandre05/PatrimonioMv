@@ -333,8 +333,6 @@ public class CadastrarItens extends AppCompatActivity
     }
 
 
-
-
     private boolean isPlacaInItemList(String placa) {
         for (Item item : listaItens) {
             if (item.getPlaca().equalsIgnoreCase(placa)) {

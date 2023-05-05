@@ -1,71 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp"
-    android:background="@android:color/white">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/cardview_light_background">
 
-    <TextView
-        android:id="@+id/nomePerfilUTextView"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nome do Vistoriador"
-        android:textStyle="bold"
-        android:textSize="18sp" />
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/dataTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/nomePerfilUTextView"
-        android:text="Data da Vistoria"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp" />
+        <TextView
+            android:id="@+id/nomePerfilUTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nome do Vistoriador"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/localizacaoTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dataTextView"
-        android:text="Localização da Vistoria"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp" />
+        <TextView
+            android:id="@+id/dataTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/nomePerfilUTextView"
+            android:text="Data da Vistoria"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
 
-    <TextView
-        android:id="@+id/nomeItemTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/localizacaoTextView"
-        android:text="Nome do Item"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp" />
+        <TextView
+            android:id="@+id/localizacaoTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/dataTextView"
+            android:text="Localização da Vistoria"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
 
-    <TextView
-        android:id="@+id/numeroPlacaTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/nomeItemTextView"
-        android:text="Número da Placa"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:id="@+id/item_list_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/localizacaoTextView"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp" />
 
-    <TextView
-        android:id="@+id/outrasInformacoesTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/numeroPlacaTextView"
-        android:text="Outras Informações"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp" />
+        <Button
+            android:id="@+id/concluirVistoriaButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/item_list_container"
+            android:backgroundTint="@color/accentColor"
+            android:text="Concluir Vistoria"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:layout_marginTop="12dp" />
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>
 
-    <Button
-        android:id="@+id/concluirVistoriaButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:backgroundTint="@color/accentColor"
-        android:layout_below="@+id/outrasInformacoesTextView"
-        android:text="Concluir Vistoria"
-        android:layout_marginTop="12dp" />
-
-</RelativeLayout>

@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,25 +61,28 @@ public class DetalhesAc extends AppCompatActivity {
 
         String idVistoria = getIntent().getStringExtra("idVistoria");
         String localizacao = getIntent().getStringExtra("localizacao");
-
         Log.d("DETAILED_ACTIVITY", "idVistoria: " + idVistoria);
-        Log.d("DETAILED_ACTIVITY", "localizacao: " + localizacao);
+        Log.d("DETAILED_ACTIVITY", "localizacao 1: " + localizacao);
 
 
-        List<Item> itensRecebidos = (List<Item>) getIntent().getSerializableExtra("itens");
-        if (itensRecebidos != null) {
-            itens.addAll(itensRecebidos);
-            detalhesVistoriaAdapter.notifyDataSetChanged();
-        } else {
-            // Você pode optar por manter a consulta ao Firebase aqui como um fallback,
-            // caso a lista de itens não seja recebida corretamente.
-            carregarDados(idVistoria, localizacao);
+        Serializable serializable = getIntent().getSerializableExtra("itensList");
+        if (serializable instanceof List) {
+            List<Item> itensRecebidos = (List<Item>) serializable;
+            Log.d("DETAILED_ACTIVITY", "localizacao 2: " + itensRecebidos);
+            if (itensRecebidos != null) {
+                itens.addAll(itensRecebidos);
+                detalhesVistoriaAdapter.notifyDataSetChanged();
+            } else {
+                // Você pode optar por manter a consulta ao Firebase aqui como um fallback,
+                // caso a lista de itens não seja recebida corretamente.
+                carregarDados(idVistoria, localizacao);
+            }
         }
     }
 
     private void carregarDados(String idVistoria, String localizacao) {
         Log.d("DETAILED_ACTIVITY", "idVistoria: " + idVistoria);
-        Log.d("DETAILED_ACTIVITY", "localizacao: " + localizacao);
+        Log.d("DETAILED_ACTIVITY", "localizacao 3: " + localizacao);
 
         if (idVistoria == null || localizacao == null) {
             Log.e("DETAILED_ACTIVITY", "idVistoria ou localizacao é nulo");
@@ -87,6 +91,7 @@ public class DetalhesAc extends AppCompatActivity {
 
         DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias")
                 .child(localizacao)
+
                 .child(idVistoria);
         Log.d("DETAILED_ACTIVITY", "Iniciando consulta ao Firebase...");
         vistoriasRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -108,6 +113,7 @@ public class DetalhesAc extends AppCompatActivity {
                                 String itemId = itemSnapshot.getKey(); // Adicionando busca do ID do Item
                                 Item item = itemSnapshot.getValue(Item.class);
                                 item.setId(itemId);
+
                                 Log.d("DETAILED_ACTIVITY", "Item encontrado: " + item.toString());
                                 itens.add(item);
                             }

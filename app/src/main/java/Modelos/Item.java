@@ -135,6 +135,18 @@ public class Item  implements Serializable {
 
         return taskCompletionSource.getTask();
     }
+    public static Item fromMap(Map<String, Object> map) {
+        Item item = new Item();
+        return item;
+    }
+    @Override
+    public String toString() {
+        return "Item{" +
+                "nome='" + nome + '\'' +
+                ", placa='" + placa + '\'' +
+                ", observacao='" + observacao + '\'' +
+                '}';
+    }
 
     @PropertyName("fotos")
     public void setFotos(List<String> fotos) {

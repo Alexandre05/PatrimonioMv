@@ -22,7 +22,11 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
     public AdapterVistorias(List<Vistoria> vistorias, Context context) {
         this.vistorias = vistorias;
         this.context = context;
-        Log.i("AdapterVistorias", "Tamanho da lista: " + vistorias.size());
+        if (vistorias != null) {
+            Log.i("AdapterVistorias", "Tamanho da lista: " + vistorias.size());
+        } else {
+            Log.i("AdapterVistorias", "A lista de vistorias está nula.");
+        }
     }
 
     @NonNull
@@ -35,22 +39,31 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        Log.i("AdapterVistorias", "onBindViewHolder - Position: " + position);
-        Vistoria vistoria = vistorias.get(position);
+        if (vistorias != null) {
+            Log.i("AdapterVistorias", "onBindViewHolder - Position: " + position);
+            Vistoria vistoria = vistorias.get(position);
 
-        // Exibir informações da vistoria
-        holder.nomeU.setText(vistoria.getNomePerfilU());
-        holder.Data.setText(vistoria.getData());
-        holder.locali.setText(vistoria.getLocalizacao());
-        Log.i("AdapterVistorias", "Nome do Usuário: " + vistoria.getNomePerfilU());
-        Log.i("AdapterVistorias", "Data: " + vistoria.getData());
-        Log.i("AdapterVistorias", "Localização: " + vistoria.getLocalizacao());
+            // Exibir informações da vistoria
+            holder.nomeU.setText(vistoria.getNomePerfilU());
+            holder.Data.setText(vistoria.getData());
+            holder.locali.setText(vistoria.getLocalizacao());
+            Log.i("AdapterVistorias", "Nome do Usuário: " + vistoria.getNomePerfilU());
+            Log.i("AdapterVistorias", "Data: " + vistoria.getData());
+            Log.i("AdapterVistorias", "Localização: " + vistoria.getLocalizacao());
+        } else {
+            Log.i("AdapterVistorias", "A lista de vistorias está nula.");
+        }
     }
 
     @Override
     public int getItemCount() {
-        Log.i("AdapterVistorias", "getItemCount: " + vistorias.size());
-        return vistorias.size();
+        if (vistorias != null) {
+            Log.i("AdapterVistorias", "getItemCount: " + vistorias.size());
+            return vistorias.size();
+        } else {
+            Log.i("AdapterVistorias", "A lista de vistorias está nula.");
+            return 0;
+        }
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {

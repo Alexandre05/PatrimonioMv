@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ import dmax.dialog.SpotsDialog;
 
 public class MostraVistorias extends AppCompatActivity {
     private FirebaseAuth autenticacao;
+    private ProgressBar progressBar;
     private SwipeRefreshLayout swipeRefreshLayout;
     private TextView nomeItem,placa,informacoes,latitude,longetude;
     private RecyclerView recyclerViewPu;
@@ -77,6 +79,7 @@ public class MostraVistorias extends AppCompatActivity {
         setupRecyclerView();
         getCurrentUser();
         autenticacao = FirebaseAuth.getInstance();
+
     }
 
     private void setupFirebase() {
@@ -90,16 +93,18 @@ public class MostraVistorias extends AppCompatActivity {
             @Override
             public void onItemClick(View view, int position) {
                 Vistoria anuncioSelecionado = Listadevistorias.get(position);
+                Log.d("MostraVistorias", "Item clicado: " + position + ", ID da vistoria: " + anuncioSelecionado.getIdVistoria());
                 FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
                 if (currentUser != null) {
                     Intent i = new Intent(MostraVistorias.this, DetalhesAc.class);
                     i.putExtra("idVistoria", anuncioSelecionado.getIdVistoria());
                     i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
 
-                    i.putExtra("itensMap", (Serializable) anuncioSelecionado.getItensMap());
+                    i.putExtra("itensList", new ArrayList<>(anuncioSelecionado.getItensMap().values()));
+
                     // Adicione um log para verificar as informações enviadas para a atividade DetalhesAc
                     Log.d("MostraVistorias", "Enviando dados para DetalhesAc: idVistoria: " + anuncioSelecionado.getIdVistoria() +
-                            ", localizacao: " + anuncioSelecionado.getLocalizacao() +
+                            ", localizacao 2: " + anuncioSelecionado.getLocalizacao() +
                             ", quantidade de itens: " + anuncioSelecionado.getItensMap().size());
                     startActivity(i);
                 } else {
@@ -133,6 +138,7 @@ public class MostraVistorias extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Listadevistorias.clear();
+                Log.d("MostraVistorias", "Quantidade de vistorias recuperadas: " + dataSnapshot.getChildrenCount());
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Vistoria vistoria = new Vistoria();
 
@@ -154,7 +160,9 @@ public class MostraVistorias extends AppCompatActivity {
 
                     if (snapshot.hasChild("localizacao")) {
                         vistoria.setLocalizacao(snapshot.child("localizacao").getValue(String.class));
+
                     }
+
 
                     if (snapshot.hasChild("nomePerfilU")) {
                         vistoria.setNomePerfilU(snapshot.child("nomePerfilU").getValue(String.class));

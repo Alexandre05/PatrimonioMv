@@ -10,6 +10,8 @@
     <color name="teal_500">#00796B</color>
     <color name="teal_800">#00796B</color>
     <color name="accentColor">#FF183B</color>
+    <color name="cor_concluida">#4CAF50</color>
+    <color name="cor_em_andamento">#E70505</color>
     <color name="green">#4CAF50</color>
     <color name="red">#E70505</color>
     <color name="green_500">#26A65B</color>

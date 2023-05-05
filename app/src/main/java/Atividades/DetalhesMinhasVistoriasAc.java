@@ -25,7 +25,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -213,6 +218,35 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
     }
 
     public void adicionarItem(View view) {
+        String dataVistoriaStr = vistoria.getData();
+        String dataAtualStr = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+        try {
+            Date dataVistoria = sdf.parse(dataVistoriaStr);
+            Date dataAtual = sdf.parse(dataAtualStr);
+
+            Calendar calVistoria = Calendar.getInstance();
+            Calendar calAtual = Calendar.getInstance();
+
+            calVistoria.setTime(dataVistoria);
+            calAtual.setTime(dataAtual);
+
+            // Verifique se a data da vistoria é igual à data atual
+            if (calVistoria.get(Calendar.YEAR) != calAtual.get(Calendar.YEAR) ||
+                    calVistoria.get(Calendar.MONTH) != calAtual.get(Calendar.MONTH) ||
+                    calVistoria.get(Calendar.DAY_OF_MONTH) != calAtual.get(Calendar.DAY_OF_MONTH)) {
+                Toast.makeText(this, "Não é possível adicionar itens a vistorias de dias anteriores.", Toast.LENGTH_LONG).show();
+                return;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao comparar as datas. Tente novamente.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_edit_item, null);
@@ -250,6 +284,5 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
                 });
         builder.create().show();
     }
-
 }
 

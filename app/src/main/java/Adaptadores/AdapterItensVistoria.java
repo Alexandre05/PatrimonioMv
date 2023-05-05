@@ -61,6 +61,7 @@ public class AdapterItensVistoria extends RecyclerView.Adapter<AdapterItensVisto
         holder.recyclerViewFotos.setAdapter(fotosAdapter);
         holder.nomeItem.setText(item.getNome());
         holder.placa.setText(item.getPlaca());
+        holder.localizacao.setText(item.getLocalizacao());
         holder.informacoesGerais.setText(item.getObservacao());
         holder.latitude.setText("Latitude: " + item.getLatitude());
         holder.longitude.setText("Longitude: " + item.getLongitude());

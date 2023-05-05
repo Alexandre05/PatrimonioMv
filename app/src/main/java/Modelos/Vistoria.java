@@ -26,8 +26,9 @@ public class Vistoria implements Serializable {
     }
 
     public Boolean getConcluida() {
-        return concluida;
+        return concluida == null ? false : concluida;
     }
+
 
     public void setConcluida(Boolean concluida) {
         this.concluida = concluida;
@@ -162,6 +163,16 @@ public class Vistoria implements Serializable {
 
     @PropertyName("fotos")
     private List<String> fotos;
+    @Override
+    public String toString() {
+        return "Vistoria{" +
+                "nomePerfilU='" + nomePerfilU + '\'' +
+                ", data='" + data + '\'' +
+                ", localizacao='" + localizacao + '\'' +
+                ", itensMap=" + itensMap +
+                '}';
+    }
+
 
     public Vistoria() {
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
@@ -245,6 +256,32 @@ public class Vistoria implements Serializable {
     public void salvarAnuncioPublico() {
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistoriaPu");
         anuncioRefe.child(getLocalizacao()).child(getIdVistoria()).setValue(toMap());
+    }
+    public static Vistoria fromMap(Map<String, Object> map) {
+        Vistoria vistoria = new Vistoria();
+
+        vistoria.setIdVistoria((String) map.get("idVistoria"));
+        vistoria.setLocalizacao_data((String) map.get("localizacao_data"));
+        vistoria.setQrCodeURL((String) map.get("qrCodeURL"));
+        vistoria.setLocalizacao((String) map.get("localizacao"));
+        vistoria.setData((String) map.get("data"));
+        vistoria.setNomePerfilU((String) map.get("nomePerfilU"));
+        vistoria.setConcluida((Boolean) map.get("concluida"));
+        vistoria.setIdInspector((String) map.get("idInspector"));
+        vistoria.setIdUsuario((String) map.get("idUsuario"));
+        vistoria.setExcluidaVistoria((Boolean) map.get("excluidaVistoria"));
+
+        Map<String, Map<String, Object>> itensMap = (Map<String, Map<String, Object>>) map.get("itens");
+        if (itensMap != null) {
+            Map<String, Item> convertedItensMap = new HashMap<>();
+            for (Map.Entry<String, Map<String, Object>> entry : itensMap.entrySet()) {
+                Item item = Item.fromMap(entry.getValue());
+                convertedItensMap.put(entry.getKey(), item);
+            }
+            vistoria.setItensMap(convertedItensMap);
+        }
+
+        return vistoria;
     }
 
     public Map<String, Object> toMap() {

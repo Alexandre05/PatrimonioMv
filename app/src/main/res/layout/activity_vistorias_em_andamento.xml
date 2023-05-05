@@ -8,13 +8,10 @@
     android:padding="16dp"
     android:background="@android:color/background_light">
 
-    <ListView
-        android:id="@+id/vistorias_andamentoU"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/vistorias_andamento_recyclerview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="10dp"
-        android:listSelector="@android:color/transparent"
-        android:padding="10dp" />
+        android:layout_height="match_parent" />
+
 
 </LinearLayout>
