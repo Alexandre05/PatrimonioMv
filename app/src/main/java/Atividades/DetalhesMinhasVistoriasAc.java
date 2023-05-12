@@ -45,6 +45,7 @@ import Modelos.RecyclerItemClickListener;
 public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
 
     private Vistoria vistoria;
+
     private RecyclerView recyclerViewItens;
     private AdapterItensVistoria adapterItensVistoria;
     private List<Item> listaItens;
@@ -54,10 +55,20 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalhes_minhas_vistorias);
+
         vistoria = (Vistoria) getIntent().getSerializableExtra("vistorias");
+        if (vistoria != null) {
+            Log.d("DetalhesAc", "Vistoria recebida: " + vistoria.getIdVistoria());
+            // use os campos de vistoria aqui
+            vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias").child(vistoria.getIdVistoria());
+            // etc.
+        } else {
+            Log.d("DetalhesAc", "Nenhuma vistoria recebida na intenção.");
+            // trate o caso em que vistoria é null
+        }
 
         // Configurar Firebase
-        vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias").child(vistoria.getLocalizacao());
+        //vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias").child(vistoria.getLocalizacao());
 
         // Configurar RecyclerView
         recyclerViewItens = findViewById(R.id.recyclerViewItens);
@@ -79,10 +90,12 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
         vistoriasRef.child("itens").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("FirebaseData", "Número de itens: " + dataSnapshot.getChildrenCount());
                 listaItens.clear();
                 for (DataSnapshot itemSnapshot : dataSnapshot.getChildren()) {
                     Item item = itemSnapshot.getValue(Item.class);
                     listaItens.add(item);
+                    Log.d("FirebaseData", "Item adicionado: " + item.getNome());
                 }
                 adapterItensVistoria.notifyDataSetChanged();
             }
@@ -90,6 +103,7 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 // Tratar erros aqui
+                Log.d("FirebaseData", "Erro ao ler os dados: " + databaseError.getMessage());
             }
         });
 
@@ -156,27 +170,28 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
 
     private void atualizarItemNoBanco(int position, Item newItem) {
         Item oldItem = listaItens.get(position);
+        String itemId = oldItem.getId(); // ID do item antigo
 
         DatabaseReference itemRefVistorias = ConFirebase.getFirebaseDatabase()
                 .child("vistorias")
-                .child(oldItem.getLocalizacao())
+                .child(itemId)
                 .child("itens")
-                .child(oldItem.getId());
+                .child(itemId);
 
         DatabaseReference itemRefVistoriaPu = ConFirebase.getFirebaseDatabase()
                 .child("vistoriaPu")
-                .child(oldItem.getLocalizacao())
+                .child(itemId)
                 .child("itens")
-                .child(oldItem.getId());
+                .child(itemId);
 
         Map<String, Object> itemUpdates = new HashMap<>();
-        itemUpdates.put("nome", newItem.getNome());
-        itemUpdates.put("observacao", newItem.getObservacao());
-        itemUpdates.put("fotos", newItem.getFotos());
-        itemUpdates.put("placa", newItem.getPlaca());
-        itemUpdates.put("localizacao", newItem.getLocalizacao());
-        itemUpdates.put("latitude", newItem.getLatitude());
-        itemUpdates.put("longitude", newItem.getLongitude());
+        itemUpdates.put("/" + itemId + "/nome", newItem.getNome());
+        itemUpdates.put("/" + itemId + "/observacao", newItem.getObservacao());
+        itemUpdates.put("/" + itemId + "/fotos", newItem.getFotos());
+        itemUpdates.put("/" + itemId + "/placa", newItem.getPlaca());
+        itemUpdates.put("/" + itemId + "/localizacao", newItem.getLocalizacao());
+        itemUpdates.put("/" + itemId + "/latitude", newItem.getLatitude());
+        itemUpdates.put("/" + itemId + "/longitude", newItem.getLongitude());
 
         Task<Void> taskVistorias = itemRefVistorias.updateChildren(itemUpdates);
         Task<Void> taskVistoriaPu = itemRefVistoriaPu.updateChildren(itemUpdates);
@@ -185,13 +200,14 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
 
         combinedTask.addOnSuccessListener(aVoid -> {
             Toast.makeText(getApplicationContext(), "Item atualizado com sucesso!", Toast.LENGTH_SHORT).show();
-            listaItens.remove(position);
-            listaItens.add(position, newItem);
+            listaItens.set(position, newItem); // Atualiza o item na lista
             adapterItensVistoria.notifyDataSetChanged();
         }).addOnFailureListener(e -> {
             Toast.makeText(getApplicationContext(), "Erro ao atualizar o item: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
+
+
 
     private void excluirItem(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

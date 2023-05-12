@@ -137,8 +137,23 @@ public class Item  implements Serializable {
     }
     public static Item fromMap(Map<String, Object> map) {
         Item item = new Item();
+        item.setId((String) map.get("id"));
+        item.setNome((String) map.get("nome"));
+        item.setPlaca((String) map.get("placa"));
+        item.setObservacao((String) map.get("observacao"));
+        item.setFotos((List<String>) map.get("fotos"));
+        item.setLocalizacao((String) map.get("localizacao"));
+        item.setLatitude((double) map.get("latitude"));
+        item.setLongitude((double) map.get("longitude"));
+
+        // Adicione esta linha para preencher a propriedade "fotoURL"
+        if (item.getFotos() != null && !item.getFotos().isEmpty()) {
+            item.setFotoURL(item.getFotos().get(0));
+        }
+
         return item;
     }
+
     @Override
     public String toString() {
         return "Item{" +

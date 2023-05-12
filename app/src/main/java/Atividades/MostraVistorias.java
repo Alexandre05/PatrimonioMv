@@ -76,6 +76,7 @@ public class MostraVistorias extends AppCompatActivity {
 
 
         recuperarVistoriasTelaMostrar();
+
         setupRecyclerView();
         getCurrentUser();
         autenticacao = FirebaseAuth.getInstance();
@@ -90,27 +91,35 @@ public class MostraVistorias extends AppCompatActivity {
         recyclerViewPu.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewPu.setAdapter(adapterVistorias);
         recyclerViewPu.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerViewPu, new RecyclerItemClickListener.OnItemClickListener() {
+
             @Override
             public void onItemClick(View view, int position) {
                 Vistoria anuncioSelecionado = Listadevistorias.get(position);
                 Log.d("MostraVistorias", "Item clicado: " + position + ", ID da vistoria: " + anuncioSelecionado.getIdVistoria());
                 FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
                 if (currentUser != null) {
+                    ArrayList<Item> listaItens = new ArrayList<>(anuncioSelecionado.getItensMap().values());
+                    Log.d("MostraVistorias", "Quantidade de itens na lista: " + listaItens.size());  // Adicionar este log
+                    for (Item item : listaItens) {
+                        Log.d("MostraVistorias", "Item: " + item.toString());  // Adicionar este log
+                    }
+
                     Intent i = new Intent(MostraVistorias.this, DetalhesAc.class);
+                    i.putExtra("vistorias", anuncioSelecionado);
                     i.putExtra("idVistoria", anuncioSelecionado.getIdVistoria());
                     i.putExtra("localizacao", anuncioSelecionado.getLocalizacao());
+                    i.putExtra("itensList", listaItens);
 
-                    i.putExtra("itensList", new ArrayList<>(anuncioSelecionado.getItensMap().values()));
-
-                    // Adicione um log para verificar as informações enviadas para a atividade DetalhesAc
                     Log.d("MostraVistorias", "Enviando dados para DetalhesAc: idVistoria: " + anuncioSelecionado.getIdVistoria() +
-                            ", localizacao 2: " + anuncioSelecionado.getLocalizacao() +
-                            ", quantidade de itens: " + anuncioSelecionado.getItensMap().size());
+                            ", localizacao: " + anuncioSelecionado.getLocalizacao() +
+                            ", quantidade de itens: " + listaItens.size());
                     startActivity(i);
                 } else {
                     Toast.makeText(MostraVistorias.this, "Por favor, cadastre-se para ver mais detalhes sobre a vistoria.", Toast.LENGTH_SHORT).show();
                 }
             }
+
+
 
             @Override
             public void onLongItemClick(View view, int position) {
@@ -168,15 +177,21 @@ public class MostraVistorias extends AppCompatActivity {
                         vistoria.setNomePerfilU(snapshot.child("nomePerfilU").getValue(String.class));
                     }
 
-                    DataSnapshot itensSnapshot = snapshot.child("itens");
+                    DataSnapshot itensSnapshot = snapshot.child("itensMap");
                     if (itensSnapshot.exists()) {
                         Map<String, Item> itemMap = new HashMap<>();
                         for (DataSnapshot itemSnapshot : itensSnapshot.getChildren()) {
                             Item itemObj = itemSnapshot.getValue(Item.class);
-                            itemMap.put(itemSnapshot.getKey(), itemObj);
+                            if (itemObj != null) {
+                                Log.d("MostraVistorias", "Item recuperado: " + itemObj.toString());
+                                itemMap.put(itemSnapshot.getKey(), itemObj);
+                            } else {
+                                Log.d("MostraVistorias", "Item não foi recuperado corretamente.");
+                            }
                         }
                         vistoria.setItensMap(itemMap);
                     }
+
 
                     Listadevistorias.add(vistoria);
                     Log.d("MostraVistorias", "Vistorias recuperadas: " + Listadevistorias.size());

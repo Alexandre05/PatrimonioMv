@@ -34,6 +34,7 @@ public class DetalhesAc extends AppCompatActivity {
     private Item item;
     private ImageView fotoA;
     private String idVistoria;
+
     private RecyclerView recyclerView;
     private AdapterItensVistoria detalhesVistoriaAdapter;
     private Button btnChat;
@@ -57,7 +58,8 @@ public class DetalhesAc extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         itens = new ArrayList<>();
         detalhesVistoriaAdapter = new AdapterItensVistoria(itens, this);
-        recyclerView.setAdapter(detalhesVistoriaAdapter);;
+        recyclerView.setAdapter(detalhesVistoriaAdapter);
+        ;
 
         String idVistoria = getIntent().getStringExtra("idVistoria");
         String localizacao = getIntent().getStringExtra("localizacao");
@@ -65,10 +67,11 @@ public class DetalhesAc extends AppCompatActivity {
         Log.d("DETAILED_ACTIVITY", "localizacao 1: " + localizacao);
 
 
+
         Serializable serializable = getIntent().getSerializableExtra("itensList");
-        if (serializable instanceof List) {
-            List<Item> itensRecebidos = (List<Item>) serializable;
-            Log.d("DETAILED_ACTIVITY", "localizacao 2: " + itensRecebidos);
+        if (serializable instanceof ArrayList) {
+            ArrayList<Item> itensRecebidos = (ArrayList<Item>) serializable;
+            Log.d("DETAILED_ACTIVITY", "itensRecebidos: " + itensRecebidos);
             if (itensRecebidos != null) {
                 itens.addAll(itensRecebidos);
                 detalhesVistoriaAdapter.notifyDataSetChanged();
@@ -77,23 +80,32 @@ public class DetalhesAc extends AppCompatActivity {
                 // caso a lista de itens não seja recebida corretamente.
                 carregarDados(idVistoria, localizacao);
             }
+        } else {
+            Log.e("DETAILED_ACTIVITY", "Objeto serializável não é uma instância de List");
         }
     }
 
-    private void carregarDados(String idVistoria, String localizacao) {
+
+        private void carregarDados(String idVistoria, String localizacao) {
         Log.d("DETAILED_ACTIVITY", "idVistoria: " + idVistoria);
         Log.d("DETAILED_ACTIVITY", "localizacao 3: " + localizacao);
 
-        if (idVistoria == null || localizacao == null) {
-            Log.e("DETAILED_ACTIVITY", "idVistoria ou localizacao é nulo");
+        if (idVistoria == null) {
+            Log.e("DETAILED_ACTIVITY", "idVistoria é nulo");
             return;
         }
 
         DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias")
-                .child(localizacao)
-
                 .child(idVistoria);
+        DatabaseReference vistoriasConcluidasRef = FirebaseDatabase.getInstance().getReference("vistoriasConcluidas")
+                .child(idVistoria);
+
         Log.d("DETAILED_ACTIVITY", "Iniciando consulta ao Firebase...");
+        attachEventListener(vistoriasRef);
+        attachEventListener(vistoriasConcluidasRef);
+    }
+
+    private void attachEventListener(DatabaseReference vistoriasRef) {
         vistoriasRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -103,7 +115,12 @@ public class DetalhesAc extends AppCompatActivity {
                     exibirDados(vistoria);
 
                     // Buscar os itens
-                    DatabaseReference itensRef = dataSnapshot.child("itens").getRef();
+                    DatabaseReference itensRef;
+                    if (dataSnapshot.hasChild("itensMap")) {
+                        itensRef = dataSnapshot.child("itensMap").getRef();
+                    } else {
+                        itensRef = dataSnapshot.child("itens").getRef();
+                    }
                     itensRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -126,9 +143,9 @@ public class DetalhesAc extends AppCompatActivity {
                         }
                     });
 
-                } else {
-                    Log.e("DETAILED_ACTIVITY", "Nenhuma vistoria encontrada no Firebase.");
+                    detalhesVistoriaAdapter.notifyDataSetChanged();
                 }
+
             }
 
             @Override
@@ -138,7 +155,7 @@ public class DetalhesAc extends AppCompatActivity {
         });
     }
 
-        private void exibirDados(Vistoria vistoriaSelecionada) {
+    private void exibirDados(Vistoria vistoriaSelecionada) {
         if (vistoriaSelecionada != null) {
             Log.d("DETAILED_ACTIVITY", "vistoria: " + vistoriaSelecionada.toString());
 

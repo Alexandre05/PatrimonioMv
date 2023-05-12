@@ -8,6 +8,7 @@ import android.widget.ListView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseUser;
@@ -32,9 +33,9 @@ import Modelos.Item;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
-public class VistoriasEmAndamentoActivity extends AppCompatActivity {
+public class VistoriasEmAndamentoActivity extends AppCompatActivity implements OnVistoriaCreatedListener  {
 
-    private ListView vistoriasAndamentoListView;
+
     private boolean isProcessing = false;
     private RecyclerView vistoriasAndamentoRecyclerView;
     private Set<String> uniqueLicensePlates;
@@ -43,7 +44,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
     private VistoriaAndamentoAdapter adapter;
     private List<Vistoria> vistoriasEmAndamento;
     private ChildEventListener vistoriasEventListener;
-
+    private ChildEventListener vistoriasPuEventListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,15 +56,26 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
 
         checkUserAuthentication();
         vistoriasEmAndamento = new ArrayList<>();
-        adapter = new VistoriaAndamentoAdapter(this, vistoriasEmAndamento);
+        adapter = new VistoriaAndamentoAdapter(this, vistoriasEmAndamento,true);
 
         vistoriasAndamentoRecyclerView.setAdapter(adapter);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        vistoriasAndamentoRecyclerView.setLayoutManager(layoutManager);
+        vistoriasAndamentoRecyclerView.setHasFixedSize(true);
+        vistoriasAndamentoRecyclerView.setAdapter(adapter);
+
 
 
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         fetchVistorias();
+
+    }
+    @Override
+    public void onVistoriaCreated(Vistoria vistoria) {
+        vistoriasEmAndamento.add(vistoria);
+        adapter.notifyDataSetChanged();
     }
 
     private void checkUserAuthentication() {
@@ -78,12 +90,23 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         }
     }
 
+
     private void fetchVistorias() {
         FirebaseUser currentUser = ConFirebase.getUsuarioAtaul();
         DatabaseReference vistoriasRef = mDatabase.child("vistorias");
-        Query query = vistoriasRef.orderByChild("idUsuario").equalTo(currentUser.getUid());
+        //DatabaseReference vistoriaPuRef = mDatabase.child("vistoriaPu");
 
-        vistoriasEventListener = new ChildEventListener() {
+        vistoriasEventListener = createVistoriasEventListener();
+        vistoriasPuEventListener = createVistoriasEventListener();
+
+        vistoriasRef.orderByChild("idUsuario").equalTo(currentUser.getUid()).addChildEventListener(vistoriasEventListener);
+        //vistoriaPuRef.orderByChild("idUsuario").equalTo(currentUser.getUid()).addChildEventListener(vistoriasPuEventListener);
+    }
+
+
+
+    private ChildEventListener createVistoriasEventListener() {
+        return new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 Vistoria vistoria = dataSnapshot.getValue(Vistoria.class);
@@ -101,31 +124,36 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
             }
 
             @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
             }
 
             @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
         };
-        query.addChildEventListener(vistoriasEventListener);
     }
-
-
     public void concluirVistoria(int position) {
         Vistoria vistoria = vistoriasEmAndamento.get(position);
         vistoria.setConcluida(true);
 
-        DatabaseReference vistoriaEmAndamentoRef = mDatabase.child("vistorias").child(vistoria.getLocalizacao());
+        DatabaseReference vistoriaEmAndamentoRef = mDatabase.child("vistorias").child(vistoria.getIdVistoria());
         DatabaseReference vistoriasConcluidasRef = mDatabase.child("vistoriasConcluidas").child(vistoria.getIdVistoria());
+        DatabaseReference vistoriaPuRef = mDatabase.child("vistoriaPu").child(vistoria.getIdVistoria());
+
+        // Aqui mantemos "itensMap" mesmo ao concluir a vistoria
+        vistoria.setItensMap(vistoria.getItensMap());
 
         // Remover a vistoria em andamento
         vistoriaEmAndamentoRef.removeValue().addOnCompleteListener(task -> {
@@ -133,8 +161,15 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
                 // Adicionar a vistoria ao nó "vistoriasConcluidas"
                 vistoriasConcluidasRef.setValue(vistoria).addOnCompleteListener(task2 -> {
                     if (task2.isSuccessful()) {
-                        vistoriasEmAndamento.remove(position);
-                        adapter.notifyDataSetChanged();
+                        // Adicionar a vistoria ao nó "vistoriaPu"
+                        vistoriaPuRef.setValue(vistoria).addOnCompleteListener(task3 -> {
+                            if (task3.isSuccessful()) {
+                                vistoriasEmAndamento.remove(position);
+                                adapter.notifyDataSetChanged();
+                            } else {
+                                Log.e("VistoriaUpdateError", "Não foi possível adicionar a vistoria concluída ao nó 'vistoriaPu'", task3.getException());
+                            }
+                        });
                     } else {
                         Log.e("VistoriaUpdateError", "Não foi possível adicionar a vistoria concluída", task2.getException());
                     }
@@ -145,12 +180,19 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity {
         });
     }
 
-        @Override
+
+
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (vistoriasEventListener != null) {
             mDatabase.removeEventListener(vistoriasEventListener);
         }
+        if (vistoriasPuEventListener != null) { // Adicione estas duas linhas
+            mDatabase.removeEventListener(vistoriasPuEventListener);
+        }
     }
+
 }
 

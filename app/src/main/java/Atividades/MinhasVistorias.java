@@ -49,7 +49,7 @@ public class MinhasVistorias extends AppCompatActivity {
 
         binding = ActivityMeusAnimaisBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        Log.d("MinhasVistorias", "Componentes inicializados com sucesso");
         initializeComponents();
         recuperarAnuncios();
         binding.fab.setOnClickListener(view -> {
@@ -68,27 +68,32 @@ public class MinhasVistorias extends AppCompatActivity {
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
                             public void onItemClick(View view, int position) {
+                                Log.d("MinhasVistorias", "Item clicado na posição: " + position);
                                 Vistoria vistoriaSelecionada = Listadevistorias.get(position);
+                                Log.d("MinhasVistorias", "Vistoria selecionada: " + vistoriaSelecionada.getIdVistoria());
                                 Intent intent = new Intent(getApplicationContext(), DetalhesMinhasVistoriasAc.class);
                                 intent.putExtra("vistorias", vistoriaSelecionada);
                                 startActivity(intent);
+                                Log.d("MinhasVistorias", "Iniciando atividade: DetalhesMinhasVistoriasAc");
                             }
 
                             @Override
                             public void onLongItemClick(View view, int position) {
+                                Log.d("MinhasVistorias", "Item de longo clique na posição: " + position);
                                 new AlertDialog.Builder(MinhasVistorias.this)
                                         .setMessage("Tem certeza que deseja excluir o item?")
                                         .setCancelable(false)
                                         .setPositiveButton("Sim", (dialog, id) -> {
                                             Vistoria vistoriaSelecionada = Listadevistorias.get(position);
                                             String vistoriaId = vistoriaSelecionada.getIdVistoria();
+                                            Log.d("MinhasVistorias", "Excluindo vistoria: " + vistoriaId);
                                             DatabaseReference anunciosUsuarioRef = ConFirebase.getFirebaseDatabase().child("vistorias");
                                             anunciosUsuarioRef.child(vistoriaId).removeValue();
                                             vistoriaSelecionada.remover();
                                             Listadevistorias.remove(position);
                                             adapterVistorias.notifyItemRemoved(position);
-                                           recuperarAnuncios();
-
+                                            Log.d("MinhasVistorias", "Vistoria excluída, atualizando anúncios...");
+                                            recuperarAnuncios();
                                         })
                                         .setNegativeButton("Não", (dialog, id) -> dialog.cancel())
                                         .create()
@@ -101,26 +106,35 @@ public class MinhasVistorias extends AppCompatActivity {
                         }
                 )
         );
+
     }
 
     private void atualizarAdapter() {
+        Log.d("MinhasVistorias", "Atualizando Adapter...");
         if (adapterVistorias != null) {
             adapterVistorias.notifyDataSetChanged();
+            Log.d("MinhasVistorias", "Adapter atualizado com sucesso");
+        } else {
+            Log.d("MinhasVistorias", "Adapter é null. Não pode ser atualizado");
         }
     }
 
 
     private void showProgressDialog() {
+        Log.d("MinhasVistorias", "Mostrando ProgressDialog...");
         if (alertDialog == null) {
             alertDialog = new AlertDialog.Builder(this)
                     .setMessage("Recuperando Minhas Vistorias...")
                     .setCancelable(false)
                     .create();
+            Log.d("MinhasVistorias", "ProgressDialog criado");
         }
         alertDialog.show();
+        Log.d("MinhasVistorias", "ProgressDialog mostrado");
     }
 
     private void recuperarAnuncios() {
+        Log.d("MinhasVistorias", "Recuperando anúncios...");
         showProgressDialog();
 
         DatabaseReference vistoriasRef = ConFirebase.getFirebaseDatabase()

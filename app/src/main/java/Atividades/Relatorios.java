@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.print.PageRange;
 import android.print.PrintAttributes;
@@ -26,6 +27,7 @@ import android.print.PrintDocumentAdapter;
 import android.print.PrintDocumentInfo;
 import android.print.PrintManager;
 import android.provider.Settings;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,16 +60,31 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -135,12 +152,12 @@ public class Relatorios extends AppCompatActivity {
         Log.d("FIREBASE_STRUCTURE", "anunciosRef: " + vistoriasConcluidasRef);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
-        vistoriaAndamentoAdapter = new VistoriaAndamentoAdapter(this, vistoriasList);
+        vistoriaAndamentoAdapter = new VistoriaAndamentoAdapter(this, vistoriasList,false);
 
         recyclerView.setAdapter(vistoriaAndamentoAdapter);
         editTextLocation.setVisibility(View.GONE);
         createNotificationChannel();
-        vistoriasList= new ArrayList<>();
+        vistoriasList = new ArrayList<>();
         radioButtonLicensePlate.setChecked(true);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         final DatePickerDialog.OnDateSetListener startDateListener = new DatePickerDialog.OnDateSetListener() {
@@ -239,6 +256,7 @@ public class Relatorios extends AppCompatActivity {
                     searchByLicensePlateAndDate(inspectorId, licensePlate, startDate, endDate, callback);
                 }
             }
+
             private void fetchDataAndFilterByLocation(String location, @Nullable String startDate, @Nullable String endDate) {
                 DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
                 Query query = rootRef.child("vistoriasConcluidas");
@@ -342,7 +360,7 @@ public class Relatorios extends AppCompatActivity {
                     if (!vistoriaStartDate.isEmpty() && !vistoriaEndDate.isEmpty()) {
 
                     } else {
-                        Toast.makeText(Relatorios.this, "Por favor, preencha as datas para buscar todos os dados", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(Relatorios.this, "Por favor, Incira algum Dados Para Sua Busca", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -358,10 +376,30 @@ public class Relatorios extends AppCompatActivity {
             public void onClick(View view) {
                 Log.d("QRCode", "Botão Gerar QR Code clicado");
                 if (!currentSearchResults.isEmpty()) {
+
                     String searchResultsData = itemListToJson(currentSearchResults);
+                    Log.d("QRCode", "Dados dos resultados da pesquisa: " + searchResultsData);
+
                     Log.d("QRCode", "Resultados da pesquisa não estão vazios");
                     // Gere o QR Code com as informações dos resultados da pesquisa
-                    Bitmap qrCodeBitmap = gerarteQRCode(searchResultsData, currentSearchResults);
+
+                    String jsonData = itemListToJson(currentSearchResults);
+                    Log.d("QRCode", "Dados JSON: " + jsonData);
+
+                    String encodedData = Base64.encodeToString(jsonData.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
+                    Log.d("QRCode", "Dados codificados em Base64: " + encodedData);
+
+                    String url = null;
+                    try {
+                       // url ="https://ppmv-78b65.firebaseapp.com/?data=" + URLEncoder.encode(encodedData, "UTF-8");
+                        url = "http://www.manoelviana.rs.gov.br/patrimonio/?data=" + URLEncoder.encode(encodedData, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Log.d("QRCode", "URL gerada: " + url);
+
+                    // Substitua pela URL da sua página
+                    Bitmap qrCodeBitmap = generateQRCodeWithUrl(url);
 
                     Log.d("QRCode", "Generated QR Code bitmap: " + qrCodeBitmap);
 
@@ -386,6 +424,7 @@ public class Relatorios extends AppCompatActivity {
         });
 
 
+
         // metodo gerar PDF
         buttonGeneratePdf.setOnClickListener(view -> {
             Log.d("PDF_CLICK", "Botão Gerar PDF");
@@ -393,6 +432,7 @@ public class Relatorios extends AppCompatActivity {
             String endDate = "31/12/2023";
 
             List<Vistoria> filteredVistorias = filterByDate(vistoriasList, startDate, endDate);
+
             if (ContextCompat.checkSelfPermission(Relatorios.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 Log.d("PDF_CLICK", "Permissão concedida, chamando createPdf");
                 createPdf(filteredVistorias);
@@ -401,10 +441,8 @@ public class Relatorios extends AppCompatActivity {
                 ActivityCompat.requestPermissions(Relatorios.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
             }
         });
+
     }
-
-
-
 
     private void searchByLicensePlate(String inspectorId, String licensePlate, SearchCallback callback) {
         searchByLicensePlateAndDate(inspectorId, licensePlate, "", "", callback);
@@ -483,141 +521,101 @@ public class Relatorios extends AppCompatActivity {
         return filteredAnuncios;
     }
 
-    private void fetchDataAndFilterByLocationAndDate(String location, String startDate, String endDate) {
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-
-        try {
-            Date start = sdf.parse(startDate);
-            Date end = sdf.parse(endDate);
-
-            Query query = rootRef.child("vistoriasConcluidas");
-
-            query.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    List<Vistoria> filteredResults = new ArrayList<>();
-
-                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                        for (DataSnapshot snapshot : userSnapshot.getChildren()) {
-                            Vistoria item = snapshot.getValue(Vistoria.class);
-
-                            if (item != null && item.getData() != null && item.getLocalizacao() != null) {
-                                try {
-                                    Date itemDate = sdf.parse(item.getData());
-                                    // Verifique se a localização contém a substring digitada pelo usuário (ignorando a diferença entre maiúsculas e minúsculas)
-                                    if (itemDate != null && (itemDate.after(start) || itemDate.equals(start)) && (itemDate.before(end) || itemDate.equals(end)) && item.getLocalizacao().toUpperCase().contains(location.toUpperCase())) {
-                                        filteredResults.add(item);
-                                    }
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    }
-
-                    // Atualize a lista de vistorias e notifique o adaptador
-                    updateRecyclerView(filteredResults);
-
-                    // Atualize a variável currentSearchResults
-                    currentSearchResults = filteredResults;
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Log.e("FirebaseError", "Erro ao buscar dados: " + databaseError.getMessage());
-                }
-            });
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-
-    // fim do oncrete
-    private void fetchDataAndFilterByLocation(String location) {
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        Query query = rootRef.child("vistoriasConcluidas");
-
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<Vistoria> filteredResults = new ArrayList<>();
-
-                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                    for (DataSnapshot snapshot : userSnapshot.getChildren()) {
-                        Vistoria item = snapshot.getValue(Vistoria.class);
-
-                        if (item != null && item.getLocalizacao() != null) {
-                            // Verifique se a localização contém a substring digitada pelo usuário (ignorando a diferença entre maiúsculas e minúsculas)
-                            if (item.getLocalizacao().toUpperCase().contains(location.toUpperCase())) {
-                                filteredResults.add(item);
-                            }
-                        }
-                    }
-                }
-
-                // Atualize a lista de vistorias e notifique o adaptador
-                updateRecyclerView(filteredResults);
-
-                // Atualize a variável currentSearchResults
-                currentSearchResults = filteredResults;
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("FirebaseError", "Erro ao buscar dados: " + databaseError.getMessage());
-            }
-        });
-    }
-
 
     private String itemListToJson(List<Vistoria> itemList) {
         Gson gson = new Gson();
-        String json = gson.toJson(itemList);
-        json = json.replace("\\u003d", "=").replace("\\u0026", "&");
-        return json;
+        JsonArray jsonArray = new JsonArray();
+
+        for (Vistoria vistoria : itemList) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("localizacao", vistoria.getLocalizacao());
+            jsonObject.addProperty("descricao", vistoria.getNomePerfilU());
+            jsonObject.addProperty("data", vistoria.getData());
+
+            // Adicione os itens da localização
+            JsonArray itemsArray = new JsonArray();
+            for (Item item : vistoria.getItensMap().values()) {
+                JsonObject itemObject = new JsonObject();
+                itemObject.addProperty("nome", item.getNome());
+                itemObject.addProperty("Número Patrimônio", item.getPlaca());
+                itemObject.addProperty("Observações", item.getObservacao());
+
+                // Adicione as fotos do item
+                JsonArray fotosArray = new JsonArray();
+                for (String fotoURL : item.getFotos()) {
+                    fotosArray.add(fotoURL);
+                    Log.d("QRCode", "Adicionando fotoURL ao objeto item: " + fotoURL);
+                }
+                itemObject.add("fotos", fotosArray);
+
+                itemsArray.add(itemObject);
+            }
+            jsonObject.add("itens", itemsArray);
+
+            jsonArray.add(jsonObject);
+        }
+
+        return gson.toJson(jsonArray);
     }
 
 
-    private Bitmap gerarteQRCode(String data, List<Vistoria> itemList) {
-        Log.d("QRCode", "Generating QR Code with data: " + data + " and item list: " + itemList);
 
-        Gson gson = new Gson();
-        String json = gson.toJson(itemList);
-        json = json.replace("\\u003d", "=").replace("\\u0026", "&");
-        data = data.replace("\\u003d", "=").replace("\\u0026", "&");
+    private String formatDataAsText(String jsonData) {
+        return jsonData;
+    }
 
-        // Codifique a lista de itens como um parâmetro de URL
-        String encodedJson = Uri.encode(json);
-
-        // Substitua a URL do esquema do aplicativo pela URL da sua página web
-        String webUrl = "https://ppmv-78b65.web.app" + encodedJson;
-
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+    private Bitmap generateQRCodeWithUrl(String url) {
         try {
-            BitMatrix bitMatrix = qrCodeWriter.encode(webUrl, BarcodeFormat.QR_CODE, 200, 200);
-            Bitmap bitmap = Bitmap.createBitmap(200, 200, Bitmap.Config.RGB_565);
-            for (int x = 0; x < 200; x++) {
-                for (int y = 0; y < 200; y++) {
+            Map<EncodeHintType, Object> hints = new HashMap<>();
+            hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+            hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
+            hints.put(EncodeHintType.MARGIN, 4);
+
+            BitMatrix bitMatrix = new QRCodeWriter().encode(url, BarcodeFormat.QR_CODE, 500, 500, hints);
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
                     bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
                 }
             }
-            Log.d("QRCode", "QR Code generated successfully");
-            String action = "com.google.zxing.client.android.SCAN";
-            Intent intent = new Intent(action);
-            intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-            intent.putExtra("SAVE_HISTORY", false);
-            intent.putExtra("RESULT_DISPLAY_DURATION_MS", 0L);
-            intent.putExtra("PROMPT_MESSAGE", "Aponte a câmera para o QR Code para abrir a página da web");
-            startActivityForResult(intent, 0);
             return bitmap;
         } catch (WriterException e) {
-            Log.e("QRCode", "Error generating QR Code", e);
+            e.printStackTrace();
         }
         return null;
     }
+
+
+
+
+    public Bitmap generateQRCodeBitmap(String data) {
+        try {
+            MultiFormatWriter writer = new MultiFormatWriter();
+            Map<EncodeHintType, Object> hints = new HashMap<>();
+            hints.put(EncodeHintType.MARGIN, 1);
+            BitMatrix bitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, 500, 500, hints);
+
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            Bitmap qrCodeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    qrCodeBitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return qrCodeBitmap;
+        } catch (WriterException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    private Bitmap gerarteQRCode(String searchResultsData, List<Vistoria> currentSearchResults) {
+        return generateQRCodeBitmap(searchResultsData);
+    }
+
 
 
     private void showQRCodeDialog(Bitmap qrCodeBitmap) {
@@ -713,11 +711,6 @@ public class Relatorios extends AppCompatActivity {
         printManager.print(jobName, printDocumentAdapter, null);
     }
 
-
-
-
-
-
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "PDF Notifications";
@@ -766,29 +759,76 @@ public class Relatorios extends AppCompatActivity {
         notificationManager.notify(notificationId, builder.build());
     }
 
-    private void createFile() {
-        Log.d("PDF_CREATE", "create file");
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/pdf");
-        intent.putExtra(Intent.EXTRA_TITLE, "");
-        startActivityForResult(intent, CREATE_FILE_REQUEST);
+    private void createFile(List<Vistoria> vistoriasList) {
+        Document document = new Document();
+        try {
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RelatorioVistoria.pdf";
+            PdfWriter.getInstance(document, new FileOutputStream(path));
+            document.open();
+
+            Font fontTitle = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
+            Font fontNormal = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL);
+
+            for (Vistoria vistoria : vistoriasList) {
+
+                String location = vistoria.getLocalizacao();
+                Paragraph title = new Paragraph("Relatório de Vistoria - Localização: " + location, fontTitle);
+                title.setAlignment(Element.ALIGN_CENTER);
+                document.add(title);
+
+                Paragraph dataVistoria = new Paragraph("Data: " + vistoria.getData(), fontNormal);
+                document.add(dataVistoria);
+
+                Paragraph idVistoria = new Paragraph("ID Vistoria: " + vistoria.getIdVistoria(), fontNormal);
+                document.add(idVistoria);
+
+                Paragraph nomePerfilU = new Paragraph("Nome do Perfil: " + vistoria.getNomePerfilU(), fontNormal);
+                document.add(nomePerfilU);
+
+                Paragraph itensTitle = new Paragraph("Itens:", fontTitle);
+                document.add(itensTitle);
+
+                Map<String, Item> itensMap = vistoria.getItensMap();
+
+                Log.d("PDF_VISTORIA", "Número de itens na vistoria: " + itensMap.size());
+                for (Map.Entry<String, Item> entry : itensMap.entrySet()) {
+                    String itemId = entry.getKey();
+                    Item item = entry.getValue();
+                    String itemName = item.getNome();
+                    Log.d("PDF_ITEM", "Adicionando item ao PDF: ID: " + itemId + ", Nome: " + itemName);
+                    Paragraph itemParagraph = new Paragraph("ID: " + itemId + ", Nome: " + itemName + ", Placa: " + item.getPlaca() +
+                            ", Observação: " + item.getObservacao() + ", Localização: " + item.getLocalizacao() +
+                            ", Latitude: " + item.getLatitude() + ", Longitude: " + item.getLongitude(), fontNormal);
+                    document.add(itemParagraph);
+
+                    if (item.getFotos() != null) {
+                        Paragraph fotosTitle = new Paragraph("Fotos:", fontNormal);
+                        document.add(fotosTitle);
+                        for (String fotoUrl : item.getFotos()) {
+                            Paragraph fotoParagraph = new Paragraph(fotoUrl, fontNormal);
+                            document.add(fotoParagraph);
+                        }
+                    }
+                }
+            }
+
+            document.close();
+
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void createPdf(List<Vistoria> vistoriasList) {
-        Log.d("PDF_CREATE", "createPdf() called");
-
-        if (vistoriasList.isEmpty()) {
-            Toast.makeText(this, "Não há dados para gerar o PDF!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Log.d("PDF", "Número de vistorias filtradas: " + vistoriasList.size());
-
-        // Solicitar permissão de armazenamento externo antes de criar o arquivo
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
+        Log.d("PDF_CREATE_FILE", "Método createFile chamado");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("application/pdf");
+            intent.putExtra(Intent.EXTRA_TITLE, "Relatorio_Vistorias.pdf");
+            startActivityForResult(intent, STORAGE_PERMISSION_CODE);
         } else {
-            createFile();
+            createFile(vistoriasList);
         }
     }
 
@@ -799,7 +839,7 @@ public class Relatorios extends AppCompatActivity {
 
         if (data == null) return;
 
-        if (requestCode == CREATE_FILE_REQUEST && resultCode == RESULT_OK) {
+        if (requestCode == STORAGE_PERMISSION_CODE) {
             handleCreateFileRequestResult(data);
         } else if (requestCode == SCAN_QR_REQUEST_CODE && resultCode == RESULT_OK) {
             handleScanQrRequestResult(data);
@@ -815,6 +855,7 @@ public class Relatorios extends AppCompatActivity {
         String endDate = "31/12/2023";
 
         List<Vistoria> filteredAnuncios = filterByDate(vistoriasList, startDate, endDate);
+        Log.d("PDF_HANDLE_RESULT", "Chamando createFile com " + filteredAnuncios.size() + " vistorias filtradas");
         salvaPdfToFile(uri, filteredAnuncios);
 
         String filePath = uri.getPath();
@@ -840,32 +881,6 @@ public class Relatorios extends AppCompatActivity {
         startActivity(displayInfoIntent);
     }
 
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_WRITE_STORAGE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("PDF", "Permissão de escrita em armazenamento externo concedida após solicitação do usuário!");
-                createPdf(vistoriasList);
-            } else {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Log.d("STORAGE_PERMISSION", "Permissão de armazenamento externo negada pelo usuário");
-                    Toast.makeText(this, "A permissão de armazenamento externo é necessária para gerar o relatório", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.d("STORAGE_PERMISSION", "Permissão de armazenamento externo negada permanentemente pelo usuário");
-                    Toast.makeText(this, "A permissão de armazenamento externo é necessária para gerar o relatório. Por favor, conceda a permissão nas configurações do aplicativo.", Toast.LENGTH_LONG).show();
-
-                    // Encaminhar o usuário para as configurações do aplicativo
-                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                    Uri uri = Uri.fromParts("package", getPackageName(), null);
-                    intent.setData(uri);
-                    startActivity(intent);
-                }
-            }
-        }
-    }
     private void salvaPdfToFile(Uri uri, List<Vistoria> filteredAnuncios) {
         Log.d("PDF_SAVE", "PdfDocument criado e iniciado");
         try {
@@ -882,9 +897,14 @@ public class Relatorios extends AppCompatActivity {
             paint.setTextSize(20);
             paint.setColor(Color.BLACK);
             canvas.drawText("Relatório de Vistorias Concluídas", 50, 100, paint);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
+            String currentDateAndTime = sdf.format(new Date());
+            paint.setTextSize(16);
+            canvas.drawText("Data e Hora do Retório: " + currentDateAndTime, 50, 130, paint);
 
             paint.setTextSize(16);
-            canvas.drawText("Detalhes da Vistoria", 50, 150, paint);
+            canvas.drawText("Detalhes da Vistoria", 50, 160, paint);
+
 
             int startY = 200;
             int startX = 50;
@@ -913,12 +933,22 @@ public class Relatorios extends AppCompatActivity {
 
             int rowIndex = 1;
             for (Vistoria vistoria : filteredAnuncios) {
-                canvas.drawText(vistoria.getNomePerfilU(), startX + 3 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
-                canvas.drawText(vistoria.getData(), startX + 4 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
-                canvas.drawText(vistoria.getLocalizacao(), startX + 5 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
-                rowIndex++;
+                Map<String, Item> itensMap = vistoria.getItensMap();
+                for (Map.Entry<String, Item> entry : itensMap.entrySet()) {
+                    Item item = entry.getValue();
 
-            }       document.finishPage(page);
+                    canvas.drawText(item.getNome(), startX + 10, startY + 30 + rowIndex * 50, paint);
+                    canvas.drawText(item.getPlaca(), startX + cellWidth + 10, startY + 30 + rowIndex * 50, paint);
+                    canvas.drawText(item.getObservacao(), startX + 2 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
+                    canvas.drawText(vistoria.getNomePerfilU(), startX + 3 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
+                    canvas.drawText(vistoria.getData(), startX + 4 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
+                    canvas.drawText(vistoria.getLocalizacao(), startX + 5 * cellWidth + 10, startY + 30 + rowIndex * 50, paint);
+
+                    rowIndex++;
+                }
+
+            }
+            document.finishPage(page);
 
             ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
             Log.d("PDF_SAVE", "Tentativa de salvar o documento no arquivo Uri");
@@ -952,7 +982,9 @@ public class Relatorios extends AppCompatActivity {
         }
     }
 
-    private String saveQRCodeToStorage(Bitmap qrCodeBitmap) {
+
+
+                    private String saveQRCodeToStorage(Bitmap qrCodeBitmap) {
         try {
             File directory = new File(getExternalFilesDir(null), "QRCode");
             if (!directory.exists()) {
@@ -980,6 +1012,7 @@ public class Relatorios extends AppCompatActivity {
 
         // Compartilhar o arquivo usando um Intent
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
+
         shareIntent.setType("image/png");
         shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Adicione esta flag

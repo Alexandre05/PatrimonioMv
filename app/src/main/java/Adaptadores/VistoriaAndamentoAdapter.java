@@ -25,7 +25,7 @@ public class VistoriaAndamentoAdapter extends RecyclerView.Adapter<VistoriaAndam
     private Context context;
     private List<Vistoria> vistorias;
     private boolean showConcluirVistoriaButton;
-    public VistoriaAndamentoAdapter(Context context, List<Vistoria> vistorias) {
+    public VistoriaAndamentoAdapter(Context context, List<Vistoria> vistorias,boolean showConcluirVistoriaButton) {
         this.context = context;
         this.vistorias = vistorias != null ? vistorias : new ArrayList<>();
         this.showConcluirVistoriaButton = showConcluirVistoriaButton;

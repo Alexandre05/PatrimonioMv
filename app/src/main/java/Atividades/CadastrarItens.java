@@ -104,6 +104,7 @@ public class CadastrarItens extends AppCompatActivity
     private int uploadedImagesCount = 0;
     private List<Bitmap> imagens = new ArrayList<>();
     private String ultimaDataVistoriaCadastrada;
+    private OnVistoriaCreatedListener onVistoriaCreatedListener;
 
     private static final int seleCame = 100;
     private static final int seleGale = 200;
@@ -169,6 +170,7 @@ public class CadastrarItens extends AppCompatActivity
         imagens.clear();
         uploadedImagesCount = 0;
     }
+
     private void verificarPermissoesLocalizacao() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -268,23 +270,18 @@ public class CadastrarItens extends AppCompatActivity
         return vistoria;
     }
 
-
-
-
     private void salvarVistoriaNoFirebase(Vistoria vistoria, String localizacaoSelecionada, String nomePerfilUsuario) {
-        DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias");
-        DatabaseReference anuncioPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
-        DatabaseReference localizacaoRef = vistoriasRef.child(localizacaoSelecionada);
-        DatabaseReference localizacaoPuRef = anuncioPuRef.child(localizacaoSelecionada);
+        String vistoriaId = vistoria.getIdVistoria(); // Obtenha o ID da vistoria
+        DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias").child(vistoriaId); // Altere aqui
+        DatabaseReference anuncioPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu").child(vistoriaId); // Altere aqui
 
         vistoria.setNomePerfilU(nomePerfilUsuario);
 
-        localizacaoRef.setValue(vistoria.toMap());
-        localizacaoRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
-        localizacaoPuRef.setValue(vistoria.toMap());
-        localizacaoPuRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
+        vistoriasRef.setValue(vistoria.toMap());
+        vistoriasRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
+        anuncioPuRef.setValue(vistoria.toMap());
+        anuncioPuRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
     }
-
 
     public void adicionarItemVistoria(View view) {
         listaURLFotos.clear();
