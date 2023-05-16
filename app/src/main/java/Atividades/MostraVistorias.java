@@ -154,7 +154,10 @@ public class MostraVistorias extends AppCompatActivity {
                     if (snapshot.hasChild("concluida")) {
                         vistoria.setConcluida(snapshot.child("concluida").getValue(Boolean.class));
                     }
-
+// Se a vistoria não estiver concluída, não a adicionamos à lista e passamos para a próxima.
+                    if (vistoria.getConcluida() == null || !vistoria.getConcluida()) {
+                        continue;
+                    }
                     if (snapshot.hasChild("data")) {
                         vistoria.setData(snapshot.child("data").getValue(String.class));
                     }
@@ -290,22 +293,13 @@ public class MostraVistorias extends AppCompatActivity {
         return super.onPrepareOptionsMenu(menu);
     }
 
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-
             case R.id.menu_cadastrar:
                 startActivity(new Intent(getApplicationContext(), Login.class));
-                break;
-            case R.id.menu_relatorio:
-                startActivity(new Intent(getApplicationContext(), Relatorios.class));
-                break;
-            case R.id.menu_perfil:
-                startActivity(new Intent(getApplicationContext(), Perfil.class));
-                break;
-            case R.id.menuChat:
-                startActivity(new Intent(getApplicationContext(), Chat.class));
-                break;
+                return true;
             case R.id.menu_compartilhar:
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/play");
@@ -313,14 +307,60 @@ public class MostraVistorias extends AppCompatActivity {
                 intent.putExtra(Intent.EXTRA_SUBJECT, "Baixe o App Seu Pet");
                 intent.putExtra(Intent.EXTRA_TEXT, "kkkkk");
                 startActivity(Intent.createChooser(intent, "Compartilhar"));
-                break;
+                return true;
             case R.id.menu_sair:
-                autenticacao.signOut();
+                FirebaseAuth.getInstance().signOut();
+                // Navegue o usuário de volta para a tela de login
+                startActivity(new Intent(getApplicationContext(), MostraVistorias.class));
+                // Encerre a atividade atual
+                finish();
+                return true;
 
-                break;
+        }
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+            DatabaseReference usuarioRef = reference.child("usuarios").child(currentUser.getUid());
+            usuarioRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    String status = dataSnapshot.child("status").getValue(String.class);
+                    String tipo = dataSnapshot.child("tipo").getValue(String.class);
+                    switch (item.getItemId()) {
+                        case R.id.menu_relatorio:
+                            if (status.equals("aprovado") || tipo.equals("AD")) {
+                                startActivity(new Intent(getApplicationContext(), Relatorios.class));
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Sua conta está pendente de aprovação. Você não tem acesso a esta funcionalidade no momento.", Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                        case R.id.menu_perfil:
+                            startActivity(new Intent(getApplicationContext(), Perfil.class));
+                            break;
+                        case R.id.menuChat:
+                            if (status.equals("aprovado") || tipo.equals("AD")) {
+                                startActivity(new Intent(getApplicationContext(), Chat.class));
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Sua conta está pendente de aprovação. Você não tem acesso a esta funcionalidade no momento.", Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    // Handle database error
+                }
+            });
+        } else {
+            Toast.makeText(this, "Usuário não autenticado", Toast.LENGTH_LONG).show();
         }
         return super.onOptionsItemSelected(item);
     }
+
+
+
 
 
     private void navigation() {
@@ -335,27 +375,67 @@ public class MostraVistorias extends AppCompatActivity {
         view.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int id = item.getItemId();
-                switch (id) {
-                    case R.id.Ad:
-                        if (isAdmin) {
-                            startActivity(new Intent(getApplicationContext(), Admininistrar.class));
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    int id = item.getItemId();
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference usuarioRef = reference.child("usuarios").child(currentUser.getUid());
+                    usuarioRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            String status = dataSnapshot.child("status").getValue(String.class);
+                            String tipo = dataSnapshot.child("tipo").getValue(String.class);
+
+                            if (status != null && tipo != null) {
+                                boolean isApprovedOrAdmin = status.equals("aprovado") || tipo.equals("AD");
+                                switch (id) {
+                                    case R.id.Ad:
+                                        if (tipo.equals("AD")) {
+                                            Log.d("NavigationItemSelected", "Botão Admin clicado.");
+                                            startActivity(new Intent(getApplicationContext(), Admininistrar.class));
+                                        } else {
+                                            Toast.makeText(getApplicationContext(), "Esta é uma área restrita somente para administradores.", Toast.LENGTH_SHORT).show();
+                                        }
+                                        break;
+                                    case R.id.ic_minhas:
+                                    case R.id.ic_perfil:
+                                        if (isApprovedOrAdmin) {
+                                            Class<?> targetActivity = (id == R.id.ic_minhas) ? MinhasVistorias.class : VistoriasEmAndamentoActivity.class;
+                                            startActivity(new Intent(getApplicationContext(), targetActivity));
+                                        } else {
+                                            Toast.makeText(getApplicationContext(), "Sua conta está pendente de aprovação. Você não tem acesso a essas funcionalidades no momento.", Toast.LENGTH_SHORT).show();
+                                        }
+                                        break;
+                                    case R.id.inicial:
+                                        recreate();
+                                        break;
+                                }
+                            } else {
+                                // Status ou Tipo são nulos, você pode lidar com isso aqui.
+                                Toast.makeText(getApplicationContext(), "Erro: status ou tipo de usuário é nulo.", Toast.LENGTH_LONG).show();
+                            }
                         }
-                        break;
-                    case R.id.ic_minhas:
-                        startActivity(new Intent(getApplicationContext(), MinhasVistorias.class));
-                        break;
-                    case R.id.ic_perfil:
-                        Intent intent = new Intent(MostraVistorias.this, VistoriasEmAndamentoActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.inicial:
-                        recreate();
-                        break;
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // Lidar com erro no banco de dados
+                            Toast.makeText(getApplicationContext(), "Erro ao acessar o banco de dados.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    Toast.makeText(getApplicationContext(), "Usuário não autenticado", Toast.LENGTH_LONG).show();
                 }
                 return true;
             }
+
         });
     }
 
+
+
+
 }
+
+
+
+

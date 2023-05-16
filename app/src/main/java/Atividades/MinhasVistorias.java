@@ -134,6 +134,7 @@ public class MinhasVistorias extends AppCompatActivity {
     }
 
     private void recuperarAnuncios() {
+
         Log.d("MinhasVistorias", "Recuperando anúncios...");
         showProgressDialog();
 

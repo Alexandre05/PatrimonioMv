@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -40,8 +41,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class Perfil extends AppCompatActivity {
     private ImageButton imagemCamera, imageGaleria;
-    private EditText nomeUs,editIdade, editCPF, editSexo, editEndereco,editSobrenome;
-
+    private EditText nomeUs,editIdade, editSexo, editEndereco,editSobrenome;
+  private TextView editCPF;
     private CircleImageView perfil;
 
     private Usuario usuarioLogado;

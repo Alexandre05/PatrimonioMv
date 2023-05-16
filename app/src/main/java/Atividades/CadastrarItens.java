@@ -151,7 +151,14 @@ public class CadastrarItens extends AppCompatActivity
         verificarPermissoesLocalizacao();
         carregarSpi();
         storage = FirebaseStorage.getInstance().getReference();
-        vistoriaAtual.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
+        if (campoLocalizacao.getSelectedItem() != null && !campoLocalizacao.getSelectedItem().toString().isEmpty()) {
+            vistoriaAtual.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
+        } else if (campoLocalizacao.getCount() == 0) {
+            Toast.makeText(this, "Nenhuma localização selecionada", Toast.LENGTH_SHORT).show();
+        }
+
+
+
         itensVistoria = new ArrayList<>();
         storage = ConFirebase.getFirebaseStorage();
         usuarioLogado= ConFirebase.getDadosUsarioLogado();
@@ -281,6 +288,19 @@ public class CadastrarItens extends AppCompatActivity
         vistoriasRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
         anuncioPuRef.setValue(vistoria.toMap());
         anuncioPuRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
+
+        // Salve cada item na vistoria correta
+        for (Map.Entry<String, Item> itemEntry : vistoria.getItensMap().entrySet()) {
+            String itemId = itemEntry.getKey();
+            Item item = itemEntry.getValue();
+
+            // Define a localização do item
+            item.setLocalizacao(localizacaoSelecionada);
+
+            // Aqui adicionamos cada item ao nó itens da vistoria correta
+            vistoriasRef.child("itens").child(itemId).setValue(item);
+            anuncioPuRef.child("itens").child(itemId).setValue(item);
+        }
     }
 
     public void adicionarItemVistoria(View view) {
@@ -293,7 +313,7 @@ public class CadastrarItens extends AppCompatActivity
             String placa = campoPlaca.getText().toString();
             isPlacaAlreadyInDatabase(placa, placaExists -> {
                 if (placaExists || isPlacaInItemList(placa)) {
-                    Toast.makeText(CadastrarItens.this, "Placa já adicionada! Por favor, insira uma placa diferente.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CadastrarItens.this, "Número de Patrimônio já adicionado! Por favor, Verifique novamente.", Toast.LENGTH_SHORT).show();
                 } else {
                     ProgressDialog progressDialog = new ProgressDialog(this);
                     progressDialog.setMessage("Adicionando item à lista, aguarde...");
@@ -311,6 +331,8 @@ public class CadastrarItens extends AppCompatActivity
 
                                 vistoriaAtual.getItensMap().put(item.getId(), item);
 
+                                // Adicionando item na listaItens
+                                listaItens.add(item);
 
                                 Toast.makeText(CadastrarItens.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
                                 incrementItemCount();
@@ -328,6 +350,7 @@ public class CadastrarItens extends AppCompatActivity
             Toast.makeText(CadastrarItens.this, "Preencha todos os campos e adicione pelo menos uma imagem.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
     private boolean isPlacaInItemList(String placa) {
@@ -738,14 +761,31 @@ public class CadastrarItens extends AppCompatActivity
 
     // carrega A localização
     public void carregarSpi() {
-        String[] Localização = getResources().getStringArray(R.array.Localização);
-        ArrayAdapter<String> Adapter2 = new ArrayAdapter<String>(
-                this, R.layout.spinner_selected_item, Localização
-        );
+        DatabaseReference locRef = FirebaseDatabase.getInstance().getReference("localizacoes");
+        locRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<String> localizacoes = new ArrayList<>();
+                for (DataSnapshot localizacaoSnapshot: dataSnapshot.getChildren()) {
+                    String localizacao = localizacaoSnapshot.getValue(String.class);
+                    localizacoes.add(localizacao);
+                }
 
-        Adapter2.setDropDownViewResource(R.layout.spinner_item);
-        campoLocalizacao.setAdapter(Adapter2);
+                ArrayAdapter<String> Adapter2 = new ArrayAdapter<String>(
+                        CadastrarItens.this, R.layout.spinner_selected_item, localizacoes
+                );
+
+                Adapter2.setDropDownViewResource(R.layout.spinner_item);
+                campoLocalizacao.setAdapter(Adapter2);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(CadastrarItens.this, "Erro ao carregar localizações", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
 
     @Override

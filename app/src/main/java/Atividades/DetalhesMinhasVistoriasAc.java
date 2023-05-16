@@ -171,27 +171,28 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
     private void atualizarItemNoBanco(int position, Item newItem) {
         Item oldItem = listaItens.get(position);
         String itemId = oldItem.getId(); // ID do item antigo
+        String vistoriaId = vistoria.getIdVistoria(); // ID da vistoria
 
         DatabaseReference itemRefVistorias = ConFirebase.getFirebaseDatabase()
                 .child("vistorias")
-                .child(itemId)
+                .child(vistoriaId)
                 .child("itens")
                 .child(itemId);
 
         DatabaseReference itemRefVistoriaPu = ConFirebase.getFirebaseDatabase()
                 .child("vistoriaPu")
-                .child(itemId)
+                .child(vistoriaId)
                 .child("itens")
                 .child(itemId);
 
         Map<String, Object> itemUpdates = new HashMap<>();
-        itemUpdates.put("/" + itemId + "/nome", newItem.getNome());
-        itemUpdates.put("/" + itemId + "/observacao", newItem.getObservacao());
-        itemUpdates.put("/" + itemId + "/fotos", newItem.getFotos());
-        itemUpdates.put("/" + itemId + "/placa", newItem.getPlaca());
-        itemUpdates.put("/" + itemId + "/localizacao", newItem.getLocalizacao());
-        itemUpdates.put("/" + itemId + "/latitude", newItem.getLatitude());
-        itemUpdates.put("/" + itemId + "/longitude", newItem.getLongitude());
+        itemUpdates.put("/nome", newItem.getNome());
+        itemUpdates.put("/observacao", newItem.getObservacao());
+        itemUpdates.put("/fotos", newItem.getFotos());
+        itemUpdates.put("/placa", newItem.getPlaca());
+        itemUpdates.put("/localizacao", newItem.getLocalizacao());
+        itemUpdates.put("/latitude", newItem.getLatitude());
+        itemUpdates.put("/longitude", newItem.getLongitude());
 
         Task<Void> taskVistorias = itemRefVistorias.updateChildren(itemUpdates);
         Task<Void> taskVistoriaPu = itemRefVistoriaPu.updateChildren(itemUpdates);
@@ -207,8 +208,6 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
         });
     }
 
-
-
     private void excluirItem(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Excluir Item")
@@ -219,8 +218,17 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
                         Item item = listaItens.get(position);
                         listaItens.remove(position);
 
-                        // Atualize o Firebase aqui
-                        vistoriasRef.child("itens").child(item.getId()).removeValue();
+                        DatabaseReference vistoriaPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu").child(vistoria.getIdVistoria());
+
+                        // Se não houver mais itens na vistoria, exclua a vistoria inteira
+                        if (listaItens.size() == 0) {
+                            vistoriasRef.removeValue();
+                            vistoriaPuRef.removeValue();
+                        } else {
+                            // Caso contrário, exclua apenas o item
+                            vistoriasRef.child("itens").child(item.getId()).removeValue();
+                            vistoriaPuRef.child("itens").child(item.getId()).removeValue();
+                        }
 
                         adapterItensVistoria.notifyDataSetChanged();
                     }
@@ -232,6 +240,8 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
                 });
         builder.create().show();
     }
+
+
 
     public void adicionarItem(View view) {
         String dataVistoriaStr = vistoria.getData();

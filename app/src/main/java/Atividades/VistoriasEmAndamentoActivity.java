@@ -7,6 +7,7 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import Adaptadores.VistoriaAndamentoAdapter;
@@ -148,34 +150,59 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
         Vistoria vistoria = vistoriasEmAndamento.get(position);
         vistoria.setConcluida(true);
 
-        DatabaseReference vistoriaEmAndamentoRef = mDatabase.child("vistorias").child(vistoria.getIdVistoria());
-        DatabaseReference vistoriasConcluidasRef = mDatabase.child("vistoriasConcluidas").child(vistoria.getIdVistoria());
-        DatabaseReference vistoriaPuRef = mDatabase.child("vistoriaPu").child(vistoria.getIdVistoria());
+        DatabaseReference vistoriasRef = mDatabase.child("vistorias");
+        DatabaseReference vistoriasConcluidasRef = mDatabase.child("vistoriasConcluidas");
+        DatabaseReference vistoriaPuRef = mDatabase.child("vistoriaPu");
+        DatabaseReference vistoriasHistoricoRef = mDatabase.child("vistoriasHistorico");  // novo nó para histórico de vistorias
 
-        // Aqui mantemos "itensMap" mesmo ao concluir a vistoria
-        vistoria.setItensMap(vistoria.getItensMap());
-
-        // Remover a vistoria em andamento
-        vistoriaEmAndamentoRef.removeValue().addOnCompleteListener(task -> {
+        vistoriasConcluidasRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // Adicionar a vistoria ao nó "vistoriasConcluidas"
-                vistoriasConcluidasRef.setValue(vistoria).addOnCompleteListener(task2 -> {
-                    if (task2.isSuccessful()) {
-                        // Adicionar a vistoria ao nó "vistoriaPu"
-                        vistoriaPuRef.setValue(vistoria).addOnCompleteListener(task3 -> {
-                            if (task3.isSuccessful()) {
-                                vistoriasEmAndamento.remove(position);
-                                adapter.notifyDataSetChanged();
-                            } else {
-                                Log.e("VistoriaUpdateError", "Não foi possível adicionar a vistoria concluída ao nó 'vistoriaPu'", task3.getException());
+                DataSnapshot dataSnapshot = task.getResult();
+                List<String> uniqueVistoriaIds = new ArrayList<>();
+
+                for (Map.Entry<String, Item> entry : vistoria.getItensMap().entrySet()) {
+                    String itemId = entry.getKey();
+                    Item item = entry.getValue();
+
+                    for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
+                        Vistoria vistoriaAntiga = vistoriaSnapshot.getValue(Vistoria.class);
+
+                        Optional<Map.Entry<String, Item>> itemAntigoEntry = vistoriaAntiga.getItensMap().entrySet()
+                                .stream()
+                                .filter(e -> e.getValue().getPlaca().equals(item.getPlaca()))
+                                .findFirst();
+
+                        if (itemAntigoEntry.isPresent()) {
+                            DatabaseReference itemRef = vistoriasConcluidasRef.child(vistoriaAntiga.getIdVistoria()).child("itensMap").child(itemAntigoEntry.get().getKey());
+                            itemRef.removeValue();
+
+                            // Se a vistoria antiga tem apenas um item, adicione-a ao histórico
+                            if (vistoriaAntiga.getItensMap().size() == 1) {
+                                vistoriasHistoricoRef.child(vistoriaAntiga.getIdVistoria()).setValue(vistoriaAntiga);
+                                uniqueVistoriaIds.add(vistoriaAntiga.getIdVistoria());
+                            } else { // Se a vistoria antiga tem mais de um item, adicione apenas o item ao histórico
+                                vistoriasHistoricoRef.child(vistoriaAntiga.getIdVistoria()).child("itensMap").child(itemAntigoEntry.get().getKey()).setValue(itemAntigoEntry.get().getValue());
                             }
-                        });
-                    } else {
-                        Log.e("VistoriaUpdateError", "Não foi possível adicionar a vistoria concluída", task2.getException());
+                        }
                     }
-                });
+
+                    vistoriasConcluidasRef.child(vistoria.getIdVistoria()).child("itensMap").child(itemId).setValue(item);
+                }
+
+                vistoriasRef.child(vistoria.getIdVistoria()).removeValue();
+                vistoriasConcluidasRef.child(vistoria.getIdVistoria()).setValue(vistoria);
+                vistoriaPuRef.child(vistoria.getIdVistoria()).setValue(vistoria);
+
+                for (String vistoriaId : uniqueVistoriaIds) {
+                    vistoriasConcluidasRef.child(vistoriaId).removeValue(); // Remover a vistoria única do nó "vistoriasConcluidas"
+                    vistoriaPuRef.child(vistoriaId).removeValue(); // Adicionado: Remover a vistoria do nó "vistoriaPu"
+                }
+
+                vistoriasEmAndamento.remove(position);
+                adapter.notifyDataSetChanged();
+
             } else {
-                Log.e("VistoriaRemovalError", "Não foi possível remover a vistoria em andamento", task.getException());
+                Log.e("Firebase", "Erro ao obter vistorias concluídas", task.getException());
             }
         });
     }
@@ -183,7 +210,13 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
 
 
 
-    @Override
+
+
+
+
+
+
+            @Override
     protected void onDestroy() {
         super.onDestroy();
         if (vistoriasEventListener != null) {

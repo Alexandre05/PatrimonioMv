@@ -21,10 +21,16 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.Arrays;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -75,12 +81,17 @@ public class Cadastrar extends AppCompatActivity {
                 String cpf = campoCPF.getText().toString();
                 String sexo = campoSexo.getText().toString();
                 String tipoUsuario = "membro"; // Valor padrão, caso o usuário não possua código especial
+
+
                 // Verifique se os campos obrigatórios estão preenchidos
                 if (nome.isEmpty() || endereco.isEmpty() || email.isEmpty() || senha.isEmpty() || repetirSenha.isEmpty() || cpf.isEmpty()) {
                     Toast.makeText(Cadastrar.this, "Por favor, preencha todos os campos obrigatórios!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                if (!isCPFValid(cpf)) {
+                    Toast.makeText(Cadastrar.this, "Por favor, insira um CPF válido.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 // A partir daqui, todos os campos obrigatórios estão preenchidos
 
                 if (validar(senha, repetirSenha)) {
@@ -133,62 +144,130 @@ public class Cadastrar extends AppCompatActivity {
         });
 
     }
+    private void criarUsuarioFirebaseAuth() {
+        autenticacao = ConFirebase.getReferenciaAutencicacao();
+        autenticacao.createUserWithEmailAndPassword(usuario.getEmail(), usuario.getSenha())
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("Cadastro", "Autenticação bem-sucedida");
+                            FirebaseUser user = autenticacao.getCurrentUser();
+                            user.sendEmailVerification();
+
+                            String idU = Base64Custon.codificarBase64(usuario.getEmail());
+                            Toast.makeText(Cadastrar.this, "Sucesso ao cadastrar " + "Usuario, Verifique Seu Email" + "Para Novos Acessos", Toast.LENGTH_SHORT).show();
+                            ConFirebase.AtualizarNomeUsuario(usuario.getNome());
+                            usuario.setIdU(idU);
+                            String codigoEspecial = campoCodigoEspecial.getText().toString();
+                            usuario.salvarUsuario(codigoEspecial);
+
+                            if (!codigoEspecial.isEmpty() && codigoEspecial.equals(ConFirebase.CODIGO_ESPECIAL)) {
+                                // Usuário AD, defina o status como "aprovado"
+                                usuario.setStatus("aprovado");
+                                usuario.salvarUsuario(codigoEspecial);
+                            } else {
+                                // Outro tipo de usuário, defina o status como "pendente"
+                                usuario.setStatus("pendente");
+                                usuario.salvarUsuario(codigoEspecial);
+                            }
+
+                            // Adicionar o CPF ao nó "cpfs" vinculado ao ID do usuário
+                            DatabaseReference cpfRef = FirebaseDatabase.getInstance().getReference("cpfs");
+                            cpfRef.child(usuario.getCpf()).setValue(usuario.getIdU());
+
+                            finish();
+                        } else {
+                            String erroExe = "";
+                            try {
+                                throw task.getException();
+                            } catch (FirebaseAuthWeakPasswordException e) {
+                                erroExe = "Atenção," +
+                                        "Digite Uma Senha Mais Forte";
+                            } catch (FirebaseAuthInvalidCredentialsException e) {
+                                erroExe = "Por Favor Digite um E-mail Valido!";
+                            } catch (FirebaseAuthUserCollisionException e) {
+                                erroExe = " Atenção," +
+                                        "Conta Já Cadastrada";
+
+                            } catch (Exception e) {
+                                erroExe = "ao cadastrar usuário" + e.getMessage();
+                                e.printStackTrace();
+
+                            }
+
+                            Toast.makeText(Cadastrar.this,
+                                    "Erro:" + erroExe,
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
 
     private void cadastrarUsuario() {
-        autenticacao = ConFirebase.getReferenciaAutencicacao();
-        autenticacao.createUserWithEmailAndPassword(
-                usuario.getEmail(), usuario.getSenha()
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("usuarios");
+        DatabaseReference cpfRef = FirebaseDatabase.getInstance().getReference("cpfs");
 
-        ).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+        // Verificar se o ID do usuário já existe
+        Query queryId = usersRef.orderByKey().equalTo(String.valueOf(usuario.getIdU()));
+        queryId.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-
-                if (task.isSuccessful()) {
-                    Log.d("Cadastro", "Autenticação bem-sucedida");
-                    FirebaseUser user = autenticacao.getCurrentUser();
-                    user.sendEmailVerification();
-
-                    String idU = Base64Custon.codificarBase64(usuario.getEmail());
-
-                    Toast.makeText(Cadastrar.this,
-                            "Sucesso ao cadastrar " +
-                                    "Usuario, Verifique Seu Email" +
-                                    "Para Novos Acessos",
-                            Toast.LENGTH_SHORT).show();
-                    ConFirebase.AtualizarNomeUsuario(usuario.getNome());
-                    usuario.setIdU(idU);
-                    String codigoEspecial = campoCodigoEspecial.getText().toString();
-                    usuario.salvarUsuario(codigoEspecial); // Modificado aqui
-
-                    usuario.setStatus("pendente");
-                    Log.d("Cadastro", "Usuário salvo no Firebase");
-                    Usuario.getUsuarioAtual();
-
-                    finish();
-
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // ID do usuário já existe
+                    Toast.makeText(Cadastrar.this, "ID do usuário já cadastrado.", Toast.LENGTH_SHORT).show();
                 } else {
-                    String erroExe = "";
-                    try {
-                        throw task.getException();
-                    } catch (FirebaseAuthWeakPasswordException e) {
-                        erroExe = "Atenção," +
-                                "Digite Uma Senha Mais Forte";
-                    } catch (FirebaseAuthInvalidCredentialsException e) {
-                        erroExe = "Por Favor Digite um E-mail Valido!";
-                    } catch (FirebaseAuthUserCollisionException e) {
-                        erroExe = " Atenção," +
-                                "Conta Já Cadastrada";
+                    // ID do usuário não existe, verificar o CPF
+                    Query queryCpf = usersRef.orderByChild("cpf").equalTo(usuario.getCpf());
+                    queryCpf.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                // CPF já existe em "usuarios"
+                                Toast.makeText(Cadastrar.this, "CPF já cadastrado.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                // CPF não existe em "usuarios", verificar em "cpfs"
+                                cpfRef.child(usuario.getCpf()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.exists()) {
+                                            // CPF já existe em "cpfs"
+                                            Toast.makeText(Cadastrar.this, "CPF já cadastrado.", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            // CPF não existe, pode criar o usuário
+                                            criarUsuarioFirebaseAuth();
 
-                    } catch (Exception e) {
-                        erroExe = "ao cadastrar usuário" + e.getMessage();
-                        e.printStackTrace();
+                                            // Adicionar o CPF ao nó "cpfs" vinculado ao ID do usuário
+                                            cpfRef.child(usuario.getCpf()).setValue(usuario.getIdU());
+                                        }
+                                    }
 
-                    }
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        // Erro ao consultar o banco de dados
+                                        Log.d("DatabaseError", "Erro ao consultar o banco de dados: " + databaseError.getMessage());
+                                        Toast.makeText(Cadastrar.this, "Erro ao consultar o banco de dados.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }
 
-                    Toast.makeText(Cadastrar.this,
-                            "Erro:" + erroExe,
-                            Toast.LENGTH_SHORT).show();
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            Log.d("DatabaseError", "Erro ao consultar o banco de dados: " + databaseError.getMessage());
+                            // Erro ao consultar o banco de dados
+                            Toast.makeText(Cadastrar.this, "Erro ao consultar o banco de dados.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Erro ao consultar o banco de dados
+                Log.d("DatabaseError", "Erro ao consultar o banco de dados: " + databaseError.getMessage());
+                Toast.makeText(Cadastrar.this, "Erro ao consultar o banco de dados.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -198,9 +277,58 @@ public class Cadastrar extends AppCompatActivity {
 
 
 
+
+
     public void JaConta(View view) {
         startActivity(new Intent(this, Login.class));
 
+    }
+    public static boolean isCPFValid(String CPF) {
+        if (CPF.equals("00000000000") ||
+                CPF.equals("11111111111") ||
+                CPF.equals("22222222222") || CPF.equals("33333333333") ||
+                CPF.equals("44444444444") || CPF.equals("55555555555") ||
+                CPF.equals("66666666666") || CPF.equals("77777777777") ||
+                CPF.equals("88888888888") || CPF.equals("99999999999") ||
+                (CPF.length() != 11))
+            return(false);
+
+        char dig10, dig11;
+        int sm, i, r, num, peso;
+
+        try {
+            sm = 0;
+            peso = 10;
+            for (i=0; i<9; i++) {
+                num = (int)(CPF.charAt(i) - 48);
+                sm = sm + (num * peso);
+                peso = peso - 1;
+            }
+
+            r = 11 - (sm % 11);
+            if ((r == 10) || (r == 11))
+                dig10 = '0';
+            else dig10 = (char)(r + 48);
+
+            sm = 0;
+            peso = 11;
+            for(i=0; i<10; i++) {
+                num = (int)(CPF.charAt(i) - 48);
+                sm = sm + (num * peso);
+                peso = peso - 1;
+            }
+
+            r = 11 - (sm % 11);
+            if ((r == 10) || (r == 11))
+                dig11 = '0';
+            else dig11 = (char)(r + 48);
+
+            if ((dig10 == CPF.charAt(9)) && (dig11 == CPF.charAt(10)))
+                return(true);
+            else return(false);
+        } catch (InputMismatchException erro) {
+            return(false);
+        }
     }
 
 

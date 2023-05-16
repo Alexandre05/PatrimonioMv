@@ -90,7 +90,7 @@
                 android:textColor="#212121"
                 android:textSize="18sp" />
 
-            <EditText
+            <TextView
                 android:id="@+id/editCPF"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

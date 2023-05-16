@@ -39,6 +39,6 @@ public class Comissao implements Serializable {
         this.encerrada = encerrada;
     }
 
-    // Adicione métodos para criar, atualizar e encerrar comissões, bem como adicionar e remover membros.
+
 }
 
