@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import Ajuda.ConFirebase;
 import br.com.patrimoniomv.R;
 
+
 public class RecuperarSenha extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private TextView RecuEmail;
@@ -30,33 +31,37 @@ public class RecuperarSenha extends AppCompatActivity {
     }
 
     public void reset(View view) {
-        autenticacao.sendPasswordResetEmail(RecuEmail.getText().toString())
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-
-
-
-
-                        if (task.isSuccessful()) {
-                            RecuEmail.setText("");
-                            Toast.makeText(
-                                    RecuperarSenha.this,
-                                    "Recuperação de acesso iniciada. Olhe seu E-mail.",
-                                    Toast.LENGTH_SHORT
-
-                            ).show();
-                        } else {
-                            Toast.makeText(
-                                    RecuperarSenha.this,
-                                    "Falhou! Tente novamente",
-                                    Toast.LENGTH_SHORT
-                            ).show();
+        String emailAddress = RecuEmail.getText().toString();
+        if (emailAddress == null || emailAddress.isEmpty()) {
+            Toast.makeText(
+                    RecuperarSenha.this,
+                    "Por favor, insira um endereço de email",
+                    Toast.LENGTH_SHORT
+            ).show();
+        } else {
+            autenticacao.sendPasswordResetEmail(emailAddress)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                RecuEmail.setText("");
+                                Toast.makeText(
+                                        RecuperarSenha.this,
+                                        "Recuperação de acesso iniciada. Olhe seu E-mail.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            } else {
+                                Toast.makeText(
+                                        RecuperarSenha.this,
+                                        "Falhou! Tente novamente",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
                         }
-                    }
-                });
-
+                    });
+        }
     }
+
     public void callReset(View view){
         Intent intent = new Intent( this, Login.class );
         startActivity(intent);

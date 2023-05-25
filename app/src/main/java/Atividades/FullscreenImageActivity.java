@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.squareup.picasso.Picasso;
 
+
 import br.com.patrimoniomv.R;
 
 public class FullscreenImageActivity extends AppCompatActivity {

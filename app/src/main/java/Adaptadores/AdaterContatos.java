@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import Modelos.Usuario;
+
 import br.com.patrimoniomv.R;
 import de.hdodenhof.circleimageview.CircleImageView;
 

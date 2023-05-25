@@ -14,6 +14,7 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import Modelos.Vistoria;
+
 import br.com.patrimoniomv.R;
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewHolder> {

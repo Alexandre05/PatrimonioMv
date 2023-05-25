@@ -17,6 +17,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.List;
 
 import Modelos.Usuario;
+
 import br.com.patrimoniomv.R;
 
 public class UsuarioAdapter extends ArrayAdapter<Usuario> {

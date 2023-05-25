@@ -15,6 +15,7 @@ import java.util.List;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
+
 public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyViewHolder> {
     private final List<Vistoria> vistorias;
     private Context context;

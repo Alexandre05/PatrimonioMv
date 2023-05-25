@@ -17,6 +17,7 @@ import java.util.List;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
+
 public class DisplayInfoActivity extends AppCompatActivity {
     public static final String EXTRA_ITEM_LIST_JSON = "item_list_json";
 

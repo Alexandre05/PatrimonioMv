@@ -72,14 +72,16 @@ import Ajuda.Permissoes;
 import Modelos.Item;
 import Modelos.Usuario;
 import Modelos.Vistoria;
+
 import br.com.patrimoniomv.R;
 import de.hdodenhof.circleimageview.CircleImageView;
 import dmax.dialog.SpotsDialog;
 
 public class CadastrarItens extends AppCompatActivity
         implements android.view.View.OnClickListener, LocationListener {
-    private EditText campoNome, campoPlaca, campoObs,campoNomeRes;
+    private EditText campoNome, campoPlaca, campoObs;
     private String ultimoUrlImagem = null;
+    private TextView campoNomeRes;
     private Uri imageUri;
     private List<Item> listaItens = new ArrayList<>();
     private static final int REQUEST_LOCATION_PERMISSION_CODE = 1;
@@ -192,34 +194,37 @@ public class CadastrarItens extends AppCompatActivity
             }
         }
     }
-    private void isVistoriaAlreadyInDatabase(String localizacao, String data, OnVistoriaCheckCompleteListener listener) {
+    public void isVistoriasAlreadyInDatabase(String localizacao, String data, OnVistoriasCheckedListener listener) {
         DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias");
-        Query query = vistoriasRef.orderByChild("localizacao_data").equalTo(localizacao + "_" + data);
+        Query query = vistoriasRef.orderByChild("localizacao").equalTo(localizacao);
+
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        Vistoria vistoria = snapshot.getValue(Vistoria.class);
-                        ultimaDataVistoriaCadastrada = vistoria.getData();
+                List<Vistoria> vistoriasList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Vistoria vistoria = snapshot.getValue(Vistoria.class);
+                    if (vistoria != null) {
+                        Log.d("VistoriaCheck", "Vistoria data: " + vistoria.getData());
+                        Log.d("VistoriaCheck", "Expected data: " + data);
+                        Log.d("VistoriaCheck", "Vistoria user ID: " + vistoria.getIdUsuario());
+                        Log.d("VistoriaCheck", "Expected user ID: " + ConFirebase.getIdUsuario());
+                        if (vistoria.getData().equals(data) && vistoria.getIdUsuario().equals(ConFirebase.getIdUsuario())) {
+                            vistoriasList.add(vistoria);
+                        }
                     }
-                    listener.onComplete(true);
-                } else {
-                    listener.onComplete(false);
                 }
+                listener.onVistoriasChecked(vistoriasList);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                listener.onComplete(false);
+                // Trate o erro do banco de dados
             }
         });
     }
 
 
-    interface OnVistoriaCheckCompleteListener {
-        void onComplete(boolean vistoriaExists);
-    }
 
     private void isPlacaAlreadyInDatabase(String placa, OnPlacaCheckCompleteListener listener) {
         DatabaseReference itemsRef = FirebaseDatabase.getInstance().getReference("Itens");
@@ -311,48 +316,55 @@ public class CadastrarItens extends AppCompatActivity
                 imagens.size() > 0) {
 
             String placa = campoPlaca.getText().toString();
-            isPlacaAlreadyInDatabase(placa, placaExists -> {
-                if (placaExists || isPlacaInItemList(placa)) {
-                    Toast.makeText(CadastrarItens.this, "Número de Patrimônio já adicionado! Por favor, Verifique novamente.", Toast.LENGTH_SHORT).show();
-                } else {
-                    ProgressDialog progressDialog = new ProgressDialog(this);
-                    progressDialog.setMessage("Adicionando item à lista, aguarde...");
-                    progressDialog.setCancelable(false);
-                    progressDialog.show();
-                    uploadedImagesCount = 0;
-                    for (int i = 0; i < imagens.size(); i++) {
-                        Bitmap imagem = imagens.get(i);
-                        int tamanhoLista = imagens.size();
-                        salvarFotoStorage(imagem, tamanhoLista, i, vistoriaAtual, () -> {
-                            uploadedImagesCount++;
-                            if (uploadedImagesCount == imagens.size()) {
-                                Item item = criarItem();
-                                item.setFotos(new ArrayList<>(listaURLFotos));
-
-                                vistoriaAtual.getItensMap().put(item.getId(), item);
-
-                                // Adicionando item na listaItens
-                                listaItens.add(item);
-
-                                Toast.makeText(CadastrarItens.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
-                                incrementItemCount();
-                                limparCampos();
-                                recriarLayoutImagens();
-                                itemAdicionado = true;
-                                campoLocalizacao.setEnabled(false);
-                                progressDialog.dismiss();
-                            }
-                        });
+            if (placa != null && !placa.trim().isEmpty()) {
+                isPlacaAlreadyInDatabase(placa, placaExists -> {
+                    if (placaExists || isPlacaInItemList(placa)) {
+                        Toast.makeText(CadastrarItens.this, "Número de Patrimônio já adicionado! Por favor, Verifique novamente.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        adicionarItem(placa);
                     }
-                }
-            });
+                });
+            } else {
+                adicionarItem(placa);
+            }
         } else {
             Toast.makeText(CadastrarItens.this, "Preencha todos os campos e adicione pelo menos uma imagem.", Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void adicionarItem(String placa) {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Adicionando item à lista, aguarde...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        uploadedImagesCount = 0;
+        for (int i = 0; i < imagens.size(); i++) {
+            Bitmap imagem = imagens.get(i);
+            int tamanhoLista = imagens.size();
+            salvarFotoStorage(imagem, tamanhoLista, i, vistoriaAtual, () -> {
+                uploadedImagesCount++;
+                if (uploadedImagesCount == imagens.size()) {
+                    Item item = criarItem();
+                    item.setFotos(new ArrayList<>(listaURLFotos));
 
+                    vistoriaAtual.getItensMap().put(item.getId(), item);
 
+                    // Adicionando item na listaItens
+                    listaItens.add(item);
+
+                    Toast.makeText(CadastrarItens.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
+                    incrementItemCount();
+                    limparCampos();
+                    recriarLayoutImagens();
+                    itemAdicionado = true;
+                    campoLocalizacao.setEnabled(false);
+                    progressDialog.dismiss();
+                }
+            });
+        }
+    }
+
+    
     private boolean isPlacaInItemList(String placa) {
         for (Item item : listaItens) {
             if (item.getPlaca().equalsIgnoreCase(placa)) {
@@ -361,9 +373,12 @@ public class CadastrarItens extends AppCompatActivity
         }
         return false;
     }
+    // metodo para finalizar vistoria
+
 
     public void FinalizarVistoria(View view) {
         Log.d("CadastrarItens", "FinalizarVistoria chamado");
+
         if (vistoriaAtual.getItensMap().isEmpty()) {
             Toast.makeText(CadastrarItens.this, "Por favor, adicione pelo menos um item antes de finalizar a vistoria!", Toast.LENGTH_SHORT).show();
             return;
@@ -372,53 +387,36 @@ public class CadastrarItens extends AppCompatActivity
         String localizacaoSelecionada = campoLocalizacao.getSelectedItem().toString();
         String dataVistoria = DataCuston.dataAtual();
 
-        isVistoriaAlreadyInDatabase(localizacaoSelecionada, dataVistoria, vistoriaExists -> {
-            if (vistoriaExists) {
-                // Atualize a vistoria existente
-                DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias").child(localizacaoSelecionada);
-                DatabaseReference anuncioPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu").child(localizacaoSelecionada);
-
-                vistoriasRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        Vistoria existingVistoria = dataSnapshot.getValue(Vistoria.class);
-
-                        if (existingVistoria != null) {
-                            // Adicione os itens da vistoria atual à vistoria existente
-                            existingVistoria.getItensMap().putAll(vistoriaAtual.getItensMap());
-
-                            // Atualize a vistoria no banco de dados
-                            vistoriasRef.setValue(existingVistoria.toMap());
-                            anuncioPuRef.setValue(existingVistoria.toMap());
-
-                            // Limpe a lista de itens e finalize a atividade
-                            vistoriaAtual.getItensMap().clear();
-                            finish();
-                            itemAdicionado = false;
-                            campoLocalizacao.setEnabled(true);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        // Trate o erro do banco de dados
-                    }
-                });
-
-            } else {
-                exibirDialogSalvando();
-                vistoriaAtual.setLocalizacao(localizacaoSelecionada);
-                String nomePerfilUsuario = usuarioLogado.getNome();
-                salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario);
-                vistoriaAtual.getItensMap().clear();
-                dialog.dismiss();
-                finish();
-                itemAdicionado = false;
-                campoLocalizacao.setEnabled(true);
+        isVistoriasAlreadyInDatabase(localizacaoSelecionada, dataVistoria, vistorias -> {
+            boolean sameDateVistoriaExists = false;
+            for (Vistoria existingVistoria : vistorias) {
+                // Verifique se a data da vistoria existente é a mesma da vistoria atual
+                if (existingVistoria.getData().equals(dataVistoria)) {
+                    sameDateVistoriaExists = true;
+                    break;
+                }
             }
+            if (sameDateVistoriaExists) {
+                Toast.makeText(CadastrarItens.this, "Já existe uma vistoria para esta localização na data atual. Por favor, escolha uma data diferente.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            exibirDialogSalvando();
+            vistoriaAtual.setLocalizacao(localizacaoSelecionada);
+            String nomePerfilUsuario = usuarioLogado.getNome();
+            // Agora salve a vistoria atual no banco de dados
+            salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario);
+            dialog.dismiss();
+            finish();
+            itemAdicionado = false;
+            campoLocalizacao.setEnabled(true);
         });
     }
 
+
+
+    public interface OnVistoriasCheckedListener {
+        void onVistoriasChecked(List<Vistoria> vistorias);
+    }
 
 
     private void salvarFotoStorage(Bitmap imagem, int totalFotos, int contador, Vistoria vistoria, Runnable onSuccess) {

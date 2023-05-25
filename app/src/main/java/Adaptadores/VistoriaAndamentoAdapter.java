@@ -19,6 +19,7 @@ import java.util.Map;
 import Atividades.VistoriasEmAndamentoActivity;
 import Modelos.Item;
 import Modelos.Vistoria;
+
 import br.com.patrimoniomv.R;
 
 public class VistoriaAndamentoAdapter extends RecyclerView.Adapter<VistoriaAndamentoAdapter.ViewHolder> {

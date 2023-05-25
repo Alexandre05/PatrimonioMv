@@ -37,6 +37,7 @@ import java.util.Map;
 
 import br.com.patrimoniomv.R;
 
+
 public class ViewQRCodeActivity extends AppCompatActivity {
 
     private ImageView qrCodeImageView;

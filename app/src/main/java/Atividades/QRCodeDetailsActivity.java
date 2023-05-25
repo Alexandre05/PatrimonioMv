@@ -16,6 +16,7 @@ import java.util.List;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
+
 public class QRCodeDetailsActivity extends AppCompatActivity {
     private TextView formattedQRData;
 

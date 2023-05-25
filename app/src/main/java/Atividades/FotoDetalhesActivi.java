@@ -12,6 +12,7 @@ import java.util.List;
 import Adaptadores.FotosAdapter;
 import br.com.patrimoniomv.R;
 
+
 public class FotoDetalhesActivi extends AppCompatActivity {
     private ViewPager2 viewPager;
     private FotosAdapter fotosAdapter;

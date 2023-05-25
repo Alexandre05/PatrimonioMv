@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
-        tools:context="Atividades.CadastrarItens">
+        tools:context=".CadastrarItens">
 
         <HorizontalScrollView
             android:id="@+id/imageContainer"
@@ -29,11 +29,10 @@
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/imageCada1"
                     android:layout_width="150dp"
-                    android:onClick="selecionarImagem"
                     android:layout_height="100dp"
                     android:layout_gravity="center_horizontal"
-                    android:src="@drawable/camera"
-                    app:civ_border_color="#FF000000" />
+                    android:src="@android:drawable/ic_menu_camera" />
+
 
             </LinearLayout>
 
@@ -61,8 +60,9 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/custonnoecao"
             android:ems="10"
+            android:textColor="@color/black"
             android:hint="Nome Item"
-            android:inputType="textPersonName|textCapWords"
+
             android:padding="10dp"
             android:textSize="16sp" />
 
@@ -70,6 +70,7 @@
             android:id="@+id/editPlaca"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/black"
             android:layout_marginBottom="16dp"
             android:background="@drawable/custonnoecao"
             android:ems="10"
@@ -85,19 +86,19 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/custonnoecao"
             android:ems="10"
+            android:textColor="@color/black"
             android:inputType="textPersonName"
             android:padding="10dp"
             android:hint="Observações"
             android:textSize="16sp" />
 
-        <EditText
+        <TextView
             android:id="@+id/editNomeRes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:background="@drawable/custonnoecao"
             android:ems="10"
-            android:inputType="textPersonName|textCapWords"
+
             android:padding="10dp"
             android:hint="Nome"
             android:textSize="16sp" />
@@ -108,17 +109,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:background="@drawable/custonnoecao"
             android:inputType="datetime"
-            android:padding="10dp"
-            app:maskStyle="completable"/>
+            android:padding="10dp"/>
 
         <Button
             android:id="@+id/finalizarVistoria"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@drawable/botoaentrar"
             android:onClick="FinalizarVistoria"
             android:text="Finalizar Vistoria"
             android:textSize="18sp"
@@ -136,7 +134,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@drawable/botoaentrar"
                 android:onClick="adicionarItemVistoria"
                 android:text="Adicionar Item"
                 android:textSize="18sp"
@@ -157,13 +154,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/item_count_background"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:text="Itens adicionados: 0"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Itens adicionados: 0"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp" />
+
         </LinearLayout>
 
     </LinearLayout>
 </ScrollView>
-

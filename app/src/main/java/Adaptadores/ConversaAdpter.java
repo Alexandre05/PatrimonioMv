@@ -16,6 +16,7 @@ import java.util.List;
 
 import Modelos.ConversaAssunto;
 import Modelos.Usuario;
+
 import br.com.patrimoniomv.R;
 import de.hdodenhof.circleimageview.CircleImageView;
 

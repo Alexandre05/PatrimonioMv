@@ -15,6 +15,7 @@ import java.util.List;
 
 import br.com.patrimoniomv.R;
 
+
 public class FotosAdapter extends RecyclerView.Adapter<FotosAdapter.FotoViewHolder> {
     private List<String> fotos;
     private Context context;

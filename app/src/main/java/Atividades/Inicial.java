@@ -7,6 +7,7 @@ import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+
 import br.com.patrimoniomv.R;
 
 public class Inicial extends AppCompatActivity {

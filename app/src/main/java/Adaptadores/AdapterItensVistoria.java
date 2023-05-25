@@ -20,6 +20,7 @@ import Atividades.FotoDetalhesActivi;
 import Modelos.Item;
 import br.com.patrimoniomv.R;
 
+
 public class AdapterItensVistoria extends RecyclerView.Adapter<AdapterItensVistoria.ItemViewHolder> {
     private List<Item> itens;
     private Context context;

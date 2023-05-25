@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 import br.com.patrimoniomv.R;
 
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link ContatosT1#newInstance} factory method to

@@ -47,6 +47,7 @@ import java.util.Locale;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
+
 public class ImprimirActivity extends AppCompatActivity {
     private FloatingActionButton floatingActionButtonImprimir;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;

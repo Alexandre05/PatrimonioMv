@@ -26,7 +26,6 @@ import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintDocumentInfo;
 import android.print.PrintManager;
-import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -61,7 +60,6 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -95,12 +93,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import Adaptadores.AdapterVistorias;
-import Adaptadores.VistoriaAdapter;
 import Adaptadores.VistoriaAndamentoAdapter;
 import Modelos.Item;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
+
 
 public class Relatorios extends AppCompatActivity {
 
@@ -391,8 +388,8 @@ public class Relatorios extends AppCompatActivity {
 
                     String url = null;
                     try {
-                       // url ="https://ppmv-78b65.firebaseapp.com/?data=" + URLEncoder.encode(encodedData, "UTF-8");
-                        url = "http://www.manoelviana.rs.gov.br/patrimonio/?data=" + URLEncoder.encode(encodedData, "UTF-8");
+                       url ="https://ppmv-78b65.firebaseapp.com/?data=" + URLEncoder.encode(encodedData, "UTF-8");
+                        //url = "http://www.manoelviana.rs.gov.br/patrimonio/?data=" + URLEncoder.encode(encodedData, "UTF-8");
                     } catch (UnsupportedEncodingException e) {
                         throw new RuntimeException(e);
                     }

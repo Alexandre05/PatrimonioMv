@@ -11,6 +11,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.squareup.picasso.Picasso;
 
 import Modelos.Vistoria;
+
 import br.com.patrimoniomv.R;
 
 

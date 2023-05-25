@@ -9,11 +9,12 @@
 
     <ImageView
         android:id="@+id/logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="145dp"
+        android:layout_height="303dp"
         android:src="@drawable/chek"
         app:layout_constraintBottom_toTopOf="@+id/welcome_text"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
@@ -32,14 +33,17 @@
 
     <TextView
         android:id="@+id/app_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="PatriChek"
+        android:layout_width="148dp"
+        android:layout_height="153dp"
+        android:orientation="vertical"
+        android:text="Patri360"
         android:textAppearance="?attr/textAppearanceHeadline4"
         android:textColor="@color/design_default_color_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.516"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/welcome_text" />
+        app:layout_constraintTop_toBottomOf="@+id/welcome_text"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

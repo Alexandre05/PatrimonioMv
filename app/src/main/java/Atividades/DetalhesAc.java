@@ -21,12 +21,12 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 import Adaptadores.AdapterItensVistoria;
 import Modelos.Item;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
+
 
 public class DetalhesAc extends AppCompatActivity {
 

@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+
 import br.com.patrimoniomv.R;
 
 public class PdfViewerActivity extends AppCompatActivity {

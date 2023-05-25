@@ -208,9 +208,9 @@ public class Vistoria implements Serializable {
         setIdInspector(idUsuario);
         setIdUsuario(idUsuario);
 
-
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
-        DatabaseReference vistoriaRef = anuncioRefe.child(idUsuario).child(getLocalizacao()).child(getNomePerfilU()).child(getIdVistoria());
+        // Use localizacao_data como chave
+        DatabaseReference vistoriaRef = anuncioRefe.child(idUsuario).child(getLocalizacao_data());
 
         if (isNew) {
             vistoriaRef.setValue(this);
@@ -222,6 +222,7 @@ public class Vistoria implements Serializable {
         vistoriaRef.child("idUsuario").setValue(getIdUsuario());
         salvarAnuncioPublico();
     }
+
 
     public void remover() {
         String idiUsuario = ConFirebase.getIdUsuario();

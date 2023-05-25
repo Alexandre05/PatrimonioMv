@@ -3,11 +3,10 @@ package Atividades;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,7 +17,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -33,6 +31,7 @@ import Adaptadores.VistoriaAndamentoAdapter;
 import Ajuda.ConFirebase;
 import Modelos.Item;
 import Modelos.Vistoria;
+
 import br.com.patrimoniomv.R;
 
 public class VistoriasEmAndamentoActivity extends AppCompatActivity implements OnVistoriaCreatedListener  {
@@ -76,9 +75,31 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
     }
     @Override
     public void onVistoriaCreated(Vistoria vistoria) {
-        vistoriasEmAndamento.add(vistoria);
-        adapter.notifyDataSetChanged();
+        DatabaseReference vistoriasConcluidasRef = mDatabase.child("vistoriasConcluidas");
+
+        vistoriasConcluidasRef.orderByChild("data").equalTo(vistoria.getData()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot vistoriaSnapshot: dataSnapshot.getChildren()) {
+                    Vistoria vistoriaExistente = vistoriaSnapshot.getValue(Vistoria.class);
+                    if (vistoriaExistente != null && vistoriaExistente.getLocalizacao().equals(vistoria.getLocalizacao())) {
+                        Toast.makeText(VistoriasEmAndamentoActivity.this, "Já existe uma vistoria concluída com a mesma data e localização.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+
+                // Se não encontrou uma vistoria com a mesma data e localização, adiciona a nova vistoria
+                vistoriasEmAndamento.add(vistoria);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("Firebase", "Erro ao verificar vistorias concluídas", databaseError.toException());
+            }
+        });
     }
+
 
     private void checkUserAuthentication() {
         FirebaseUser currentUser = ConFirebase.getUsuarioAtaul();
@@ -207,16 +228,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
         });
     }
 
-
-
-
-
-
-
-
-
-
-            @Override
+           @Override
     protected void onDestroy() {
         super.onDestroy();
         if (vistoriasEventListener != null) {

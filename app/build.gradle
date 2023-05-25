@@ -9,6 +9,9 @@ android {
     compileSdkVersion 33
     buildFeatures {
         viewBinding true
+        lint {
+            baseline = file("lint-baseline.xml")
+        }
     }
     defaultConfig {
         applicationId "br.com.patrimoniomv"

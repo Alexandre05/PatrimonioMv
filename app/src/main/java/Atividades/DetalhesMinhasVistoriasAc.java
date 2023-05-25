@@ -1,6 +1,5 @@
 package Atividades;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -15,8 +14,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -39,8 +36,9 @@ import Adaptadores.AdapterItensVistoria;
 import Ajuda.ConFirebase;
 import Modelos.Item;
 import Modelos.Vistoria;
-import br.com.patrimoniomv.R;
+
 import Modelos.RecyclerItemClickListener;
+import br.com.patrimoniomv.R;
 
 public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
 

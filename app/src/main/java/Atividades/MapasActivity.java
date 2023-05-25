@@ -14,6 +14,7 @@ import com.google.android.gms.maps.model.LatLng;
 import Modelos.Item;
 import br.com.patrimoniomv.R;
 
+
 public class MapasActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;

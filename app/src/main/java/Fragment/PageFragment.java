@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 
 import br.com.patrimoniomv.R;
 
+
 public class PageFragment extends Fragment {
 
     public PageFragment() {

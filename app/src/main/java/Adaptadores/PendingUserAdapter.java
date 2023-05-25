@@ -15,6 +15,7 @@ import java.util.List;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 
+
 public class PendingUserAdapter extends RecyclerView.Adapter<PendingUserAdapter.ViewHolder> {
 
     private Context context;

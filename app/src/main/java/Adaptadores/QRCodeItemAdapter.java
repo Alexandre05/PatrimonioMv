@@ -18,6 +18,7 @@ import java.util.List;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
+
 public class QRCodeItemAdapter extends RecyclerView.Adapter<QRCodeItemAdapter.QRCodeItemViewHolder> {
     private List<Vistoria> itemList;
     private Context context;

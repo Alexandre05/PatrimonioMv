@@ -40,6 +40,7 @@ import Ajuda.Permissoes;
 import Modelos.Usuario;
 import br.com.patrimoniomv.R;
 
+
 public class Cadastrar extends AppCompatActivity {
 
     private Button jatenhoC, botaoCadastro;

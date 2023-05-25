@@ -27,6 +27,8 @@ import Adaptadores.AdapterVistorias;
 import Ajuda.ConFirebase;
 import Modelos.RecyclerItemClickListener;
 import Modelos.Vistoria;
+
+
 import br.com.patrimoniomv.R;
 import br.com.patrimoniomv.databinding.ActivityMeusAnimaisBinding;
 
@@ -88,7 +90,9 @@ public class MinhasVistorias extends AppCompatActivity {
                                             String vistoriaId = vistoriaSelecionada.getIdVistoria();
                                             Log.d("MinhasVistorias", "Excluindo vistoria: " + vistoriaId);
                                             DatabaseReference anunciosUsuarioRef = ConFirebase.getFirebaseDatabase().child("vistorias");
+                                            DatabaseReference anuncio=ConFirebase.getFirebaseDatabase().child("vistoriaPu");
                                             anunciosUsuarioRef.child(vistoriaId).removeValue();
+                                            anuncio.child(vistoriaId).removeValue();
                                             vistoriaSelecionada.remover();
                                             Listadevistorias.remove(position);
                                             adapterVistorias.notifyItemRemoved(position);
