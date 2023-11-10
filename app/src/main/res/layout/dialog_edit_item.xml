@@ -1,40 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/inputLayoutNomeItem"
+    <EditText
+        android:id="@+id/editTextNomeItem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:hintEnabled="true"
-        app:hintTextAppearance="@style/TextAppearance.MaterialComponents.Caption">
+        android:hint="Nome do Item" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextNomeItem"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nome do item"
-            android:inputType="text" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/inputLayoutObservacao"
+    <EditText
+        android:id="@+id/editTextObservacao"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:hintEnabled="true"
-        app:hintTextAppearance="@style/TextAppearance.MaterialComponents.Caption">
+        android:hint="Observação" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextObservacao"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Observação"
-            android:inputType="text" />
-    </com.google.android.material.textfield.TextInputLayout>
+    <EditText
+        android:id="@+id/editTextNumeroPlaca"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Número da Placa" />
 
+    <!-- Adicione um botão para escolher ou capturar fotos -->
+    <Button
+        android:id="@+id/buttonAdicionarFoto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Adicionar Foto" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewFotos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
 
 </LinearLayout>

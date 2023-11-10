@@ -9,14 +9,28 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.Image;
+import android.media.ImageReader;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Size;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -56,9 +70,14 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -81,9 +100,14 @@ public class CadastrarItens extends AppCompatActivity
         implements android.view.View.OnClickListener, LocationListener {
     private EditText campoNome, campoPlaca, campoObs;
     private String ultimoUrlImagem = null;
+    private TextureView mTextureView;
+
     private TextView campoNomeRes;
     private Uri imageUri;
+    private Size mPreviewSize;
     private List<Item> listaItens = new ArrayList<>();
+    private static final int CAMERA_PERMISSION_CODE = 1001;
+
     private static final int REQUEST_LOCATION_PERMISSION_CODE = 1;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
     private boolean itemAdicionado = false;
@@ -95,6 +119,7 @@ public class CadastrarItens extends AppCompatActivity
     private Usuario usuario;
     private int imageSize;
     private double currentLatitude;
+
     private double currentLongitude;
 
     private AlertDialog dialog;
@@ -102,6 +127,9 @@ public class CadastrarItens extends AppCompatActivity
     Bitmap imagem=null;
     Bitmap imagem2=null;
     private Button salvar,botaoAdicionarItem;
+    private CameraDevice mCameraDevice;
+    private CameraCaptureSession mCaptureSession;
+    private CaptureRequest.Builder mPreviewRequestBuilder;
     private TextView campoData;
     private int uploadedImagesCount = 0;
     private List<Bitmap> imagens = new ArrayList<>();
@@ -111,6 +139,8 @@ public class CadastrarItens extends AppCompatActivity
     private static final int seleCame = 100;
     private static final int seleGale = 200;
     private Spinner campoLocalizacao;
+    int imageWidth = 1920; // Largura da imagem
+    int imageHeight = 1080;
     private StorageReference storage;
     private String[] permissoes = new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -127,6 +157,8 @@ public class CadastrarItens extends AppCompatActivity
     private int itemCount = 0;
     private TextView itemCountTextView;
     private double longitude;
+    private ImageReader mImageReader;
+
     private DatabaseReference databaseReference;
     private ChildEventListener childEventListener;
     private File createTempImageFile() throws IOException {
@@ -151,15 +183,15 @@ public class CadastrarItens extends AppCompatActivity
         iniciarCamponentes();
         setupLocationManager();
         verificarPermissoesLocalizacao();
+
         carregarSpi();
         storage = FirebaseStorage.getInstance().getReference();
         if (campoLocalizacao.getSelectedItem() != null && !campoLocalizacao.getSelectedItem().toString().isEmpty()) {
             vistoriaAtual.setLocalizacao(campoLocalizacao.getSelectedItem().toString());
-        } else if (campoLocalizacao.getCount() == 0) {
-            Toast.makeText(this, "Nenhuma localização selecionada", Toast.LENGTH_SHORT).show();
+        } else if (campoLocalizacao.getCount() > 0) {
+            String primeiraLocalizacao = campoLocalizacao.getItemAtPosition(0).toString();
+            vistoriaAtual.setLocalizacao(primeiraLocalizacao);
         }
-
-
 
         itensVistoria = new ArrayList<>();
         storage = ConFirebase.getFirebaseStorage();
@@ -170,6 +202,21 @@ public class CadastrarItens extends AppCompatActivity
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
+        mImageReader = ImageReader.newInstance(imageWidth, imageHeight, ImageFormat.JPEG, 1);
+        mImageReader.setOnImageAvailableListener(
+                new ImageReader.OnImageAvailableListener() {
+                    @Override
+                    public void onImageAvailable(ImageReader reader) {
+                        // Lida com a imagem capturada
+                        Image image = reader.acquireLatestImage();
+                        if (image != null) {
+                            // Faça o que for necessário com a imagem
+                            image.close();
+                        }
+                    }
+                },
+                null
+        );
     }
 // limpa os capos
     private void limparCampos() {
@@ -194,9 +241,13 @@ public class CadastrarItens extends AppCompatActivity
             }
         }
     }
-    public void isVistoriasAlreadyInDatabase(String localizacao, String data, OnVistoriasCheckedListener listener) {
+    public void isVistoriasAlreadyInDatabase(String localizacao, String data, String idUsuario, OnVistoriasCheckedListener listener) {
         DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistorias");
-        Query query = vistoriasRef.orderByChild("localizacao").equalTo(localizacao);
+        DatabaseReference vistoriaPuRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
+        Query query = vistoriasRef.orderByChild("localizacao_data_idUsuario").equalTo(localizacao + "_" + data + "_" + idUsuario);
+        Query queryPu = vistoriaPuRef.orderByChild("localizacao_data_idUsuario").equalTo(localizacao + "_" + data + "_" + idUsuario);
+
+        Log.d("DEBUG", "Query: " + query.toString()); // Log da consulta
 
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -205,25 +256,41 @@ public class CadastrarItens extends AppCompatActivity
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Vistoria vistoria = snapshot.getValue(Vistoria.class);
                     if (vistoria != null) {
-                        Log.d("VistoriaCheck", "Vistoria data: " + vistoria.getData());
-                        Log.d("VistoriaCheck", "Expected data: " + data);
-                        Log.d("VistoriaCheck", "Vistoria user ID: " + vistoria.getIdUsuario());
-                        Log.d("VistoriaCheck", "Expected user ID: " + ConFirebase.getIdUsuario());
-                        if (vistoria.getData().equals(data) && vistoria.getIdUsuario().equals(ConFirebase.getIdUsuario())) {
-                            vistoriasList.add(vistoria);
-                        }
+                        vistoriasList.add(vistoria);
+                        Log.d("DEBUG", "Vistoria encontrada em 'vistorias': " + vistoria.toString()); // Log das vistorias encontradas em 'vistorias'
                     }
                 }
-                listener.onVistoriasChecked(vistoriasList);
+                Log.d("DEBUG", "Total de vistorias encontradas em 'vistorias': " + vistoriasList.size()); // Log do total de vistorias encontradas em 'vistorias'
+
+                // Verifique a existência de vistorias em 'vistoriaPu'
+                queryPu.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshotPu) {
+                        for (DataSnapshot snapshotPu : dataSnapshotPu.getChildren()) {
+                            Vistoria vistoriaPu = snapshotPu.getValue(Vistoria.class);
+                            if (vistoriaPu != null) {
+                                vistoriasList.add(vistoriaPu);
+                                Log.d("DEBUG", "Vistoria encontrada em 'vistoriaPu': " + vistoriaPu.toString()); // Log das vistorias encontradas em 'vistoriaPu'
+                            }
+                        }
+                        Log.d("DEBUG", "Total de vistorias encontradas em 'vistoriaPu': " + vistoriasList.size()); // Log do total de vistorias encontradas em 'vistoriaPu'
+
+                        listener.onVistoriasChecked(vistoriasList);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseErrorPu) {
+                        Log.d("DEBUG", "Erro no banco de dados 'vistoriaPu': " + databaseErrorPu.getMessage()); // Log do erro do banco de dados 'vistoriaPu'
+                    }
+                });
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Trate o erro do banco de dados
+                Log.d("DEBUG", "Erro no banco de dados 'vistorias': " + databaseError.getMessage()); // Log do erro do banco de dados 'vistorias'
             }
         });
     }
-
 
 
     private void isPlacaAlreadyInDatabase(String placa, OnPlacaCheckCompleteListener listener) {
@@ -291,8 +358,11 @@ public class CadastrarItens extends AppCompatActivity
 
         vistoriasRef.setValue(vistoria.toMap());
         vistoriasRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
+        vistoriasRef.child("localizacao_data_idUsuario").setValue(localizacaoSelecionada + "_" + DataCuston.dataAtual() + "_" + ConFirebase.getIdUsuario());
+
         anuncioPuRef.setValue(vistoria.toMap());
         anuncioPuRef.child("idUsuario").setValue(ConFirebase.getIdUsuario());
+        anuncioPuRef.child("localizacao_data_idUsuario").setValue(localizacaoSelecionada + "_" + DataCuston.dataAtual() + "_" + ConFirebase.getIdUsuario());
 
         // Salve cada item na vistoria correta
         for (Map.Entry<String, Item> itemEntry : vistoria.getItensMap().entrySet()) {
@@ -307,6 +377,7 @@ public class CadastrarItens extends AppCompatActivity
             anuncioPuRef.child("itens").child(itemId).setValue(item);
         }
     }
+
 
     public void adicionarItemVistoria(View view) {
         listaURLFotos.clear();
@@ -364,7 +435,7 @@ public class CadastrarItens extends AppCompatActivity
         }
     }
 
-    
+
     private boolean isPlacaInItemList(String placa) {
         for (Item item : listaItens) {
             if (item.getPlaca().equalsIgnoreCase(placa)) {
@@ -387,30 +458,40 @@ public class CadastrarItens extends AppCompatActivity
         String localizacaoSelecionada = campoLocalizacao.getSelectedItem().toString();
         String dataVistoria = DataCuston.dataAtual();
 
-        isVistoriasAlreadyInDatabase(localizacaoSelecionada, dataVistoria, vistorias -> {
-            boolean sameDateVistoriaExists = false;
-            for (Vistoria existingVistoria : vistorias) {
-                // Verifique se a data da vistoria existente é a mesma da vistoria atual
-                if (existingVistoria.getData().equals(dataVistoria)) {
-                    sameDateVistoriaExists = true;
-                    break;
+        isVistoriasAlreadyInDatabase(localizacaoSelecionada, dataVistoria, usuarioLogado.getIdU(), new OnVistoriasCheckedListener() {
+            @Override
+            public void onVistoriasChecked(List<Vistoria> vistorias) {
+                boolean sameDateVistoriaExists = false;
+                for (Vistoria existingVistoria : vistorias) {
+                    // Verifique se a data da vistoria existente é a mesma da vistoria atual
+                    if (existingVistoria.getData().equals(dataVistoria)) {
+                        if (existingVistoria.getLocalizacao().equals(localizacaoSelecionada)) {
+                            sameDateVistoriaExists = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (sameDateVistoriaExists) {
+                    Toast.makeText(CadastrarItens.this, "Já existe uma vistoria para esta localização na data atual. Por favor, escolha uma data ou localização diferente.", Toast.LENGTH_SHORT).show();
+                } else {
+                    exibirDialogSalvando();
+
+                    vistoriaAtual.setLocalizacao(localizacaoSelecionada);
+                    String nomePerfilUsuario = usuarioLogado.getNome();
+
+                    // Agora salve a vistoria atual no banco de dados
+                    salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario);
+
+                    dialog.dismiss();
+                    finish();
+                    itemAdicionado = false;
+                    campoLocalizacao.setEnabled(true);
                 }
             }
-            if (sameDateVistoriaExists) {
-                Toast.makeText(CadastrarItens.this, "Já existe uma vistoria para esta localização na data atual. Por favor, escolha uma data diferente.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            exibirDialogSalvando();
-            vistoriaAtual.setLocalizacao(localizacaoSelecionada);
-            String nomePerfilUsuario = usuarioLogado.getNome();
-            // Agora salve a vistoria atual no banco de dados
-            salvarVistoriaNoFirebase(vistoriaAtual, localizacaoSelecionada, nomePerfilUsuario);
-            dialog.dismiss();
-            finish();
-            itemAdicionado = false;
-            campoLocalizacao.setEnabled(true);
         });
     }
+
 
 
 
@@ -578,6 +659,34 @@ public class CadastrarItens extends AppCompatActivity
         Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show();
     }
 
+    private ImageReader.OnImageAvailableListener onImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Image image = reader.acquireNextImage();
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+
+            // Salvar a imagem em um arquivo
+            File arquivoImagem = new File(getExternalFilesDir(null), "minha_imagem.jpg");
+            FileOutputStream output = null;
+            try {
+                output = new FileOutputStream(arquivoImagem);
+                output.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                image.close();
+                if (output != null) {
+                    try {
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    };
 
 
  // metodo que clica na imagem, e abre e as abrem
@@ -592,6 +701,84 @@ public class CadastrarItens extends AppCompatActivity
                 break;
         }
 
+    }
+    private void openCamera() {
+        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            String cameraId = manager.getCameraIdList()[0]; // Use a câmera traseira, se disponível
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+            // Configure a captura da imagem
+            Size[] outputSizes = map.getOutputSizes(ImageFormat.JPEG);
+            Size largestSize = Collections.max(Arrays.asList(outputSizes), new CompareSizesByArea());
+            ImageReader imageReader = ImageReader.newInstance(largestSize.getWidth(), largestSize.getHeight(), ImageFormat.JPEG, 1);
+            imageReader.setOnImageAvailableListener(onImageAvailableListener, null);
+
+            // Solicite permissão de câmera, abra a câmera e crie uma sessão de captura
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+                return;
+            }
+
+            manager.openCamera(cameraId, new CameraDevice.StateCallback() {
+                @Override
+                public void onOpened(@NonNull CameraDevice camera) {
+                    mCameraDevice = camera;
+                    createCameraPreview();
+                }
+
+                @Override
+                public void onDisconnected(@NonNull CameraDevice camera) {
+                    camera.close();
+                    mCameraDevice = null;
+                }
+
+                @Override
+                public void onError(@NonNull CameraDevice camera, int error) {
+                    camera.close();
+                    mCameraDevice = null;
+                }
+            }, null);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+    private static class CompareSizesByArea implements Comparator<Size> {
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            // Compare as áreas das duas resoluções
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() - (long) rhs.getWidth() * rhs.getHeight());
+        }
+    }
+
+    private void createCameraPreview() {
+        try {
+            SurfaceTexture texture = mTextureView.getSurfaceTexture();
+            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            Surface surface = new Surface(texture);
+
+            mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            mPreviewRequestBuilder.addTarget(surface);
+
+            mCameraDevice.createCaptureSession(Collections.singletonList(surface), new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession session) {
+                    mCaptureSession = session;
+                    try {
+                        mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, null);
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                }
+            }, null);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
     private Bitmap generateQRCode(String text) {
         int width = 500;
@@ -675,6 +862,7 @@ public class CadastrarItens extends AppCompatActivity
                     ActivityCompat.requestPermissions(CadastrarItens.this, new String[]{Manifest.permission.CAMERA}, seleCame);
                 }
             }
+
         });
 
         builder.setNegativeButton("Galeria", new DialogInterface.OnClickListener() {
@@ -850,6 +1038,8 @@ public class CadastrarItens extends AppCompatActivity
         imageCada1 = findViewById(R.id.imageCada1);
         imageContainer = findViewById(R.id.imageContainer);
         //campoanimais = findViewById(R.id.tipo);
+        TextureView mTextureView = findViewById(R.id.textureView);
+
         campoLocalizacao = findViewById(R.id.localizacao);
         campoData = findViewById(R.id.fone);
         botaoAdicionarItem=findViewById(R.id.adicionarItemVistoria);

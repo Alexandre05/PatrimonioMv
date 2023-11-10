@@ -389,7 +389,7 @@ public class Relatorios extends AppCompatActivity {
                     String url = null;
                     try {
                        url ="https://ppmv-78b65.firebaseapp.com/?data=" + URLEncoder.encode(encodedData, "UTF-8");
-                        //url = "http://www.manoelviana.rs.gov.br/patrimonio/?data=" + URLEncoder.encode(encodedData, "UTF-8");
+                        //url = "https://www.blogger.com/blog/post/edit/preview/172134191450800557/4126746025157082307?data=" + URLEncoder.encode(encodedData, "UTF-8");
                     } catch (UnsupportedEncodingException e) {
                         throw new RuntimeException(e);
                     }

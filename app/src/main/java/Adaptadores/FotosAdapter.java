@@ -44,8 +44,12 @@ public class FotosAdapter extends RecyclerView.Adapter<FotosAdapter.FotoViewHold
 
     @Override
     public int getItemCount() {
+        if (fotos == null) {
+            return 0;
+        }
         return fotos.size();
     }
+
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;

@@ -16,6 +16,15 @@ import Ajuda.ConFirebase;
 
 public class Vistoria implements Serializable {
     private String idUsuario;
+    private String idVistoriaAnexada;
+
+    public String getIdVistoriaAnexada() {
+        return idVistoriaAnexada;
+    }
+
+    public void setIdVistoriaAnexada(String idVistoriaAnexada) {
+        this.idVistoriaAnexada = idVistoriaAnexada;
+    }
 
     public String getIdUsuario() {
         return idUsuario;
@@ -209,19 +218,24 @@ public class Vistoria implements Serializable {
         setIdUsuario(idUsuario);
 
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
-        // Use localizacao_data como chave
-        DatabaseReference vistoriaRef = anuncioRefe.child(idUsuario).child(getLocalizacao_data());
+        DatabaseReference vistoriaRef = anuncioRefe.child(idUsuario).child(getLocalizacao()).child(getLocalizacao_data());
 
-        if (isNew) {
-            vistoriaRef.setValue(this);
-            vistoriaRef.child("itens").setValue(itensMap);
-        } else {
-            vistoriaRef.child("itens").setValue(itensMap);
+        try {
+            if (isNew) {
+                vistoriaRef.setValue(this);
+                vistoriaRef.child("itens").setValue(itensMap);
+            } else {
+                vistoriaRef.child("itens").setValue(itensMap);
+            }
+
+            vistoriaRef.child("idUsuario").setValue(getIdUsuario());
+            salvarAnuncioPublico();
+            Log.d("Salvar", "Vistoria salva com sucesso.");
+        } catch (Exception e) {
+            Log.d("Salvar", "Erro ao salvar vistoria: " + e.getMessage());
         }
-
-        vistoriaRef.child("idUsuario").setValue(getIdUsuario());
-        salvarAnuncioPublico();
     }
+
 
 
     public void remover() {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,9 +12,9 @@
         android:id="@+id/novaLocalizacaoTextInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/edit_company_info_button"
+        app:layout_constraintTop_toBottomOf="@id/edit_company_info_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/adicionarLocalizacaoButton">
+        app:layout_constraintEnd_toStartOf="@id/adicionarLocalizacaoButton">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/novaLocalizacaoEditText"
@@ -28,17 +29,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Adicionar"
-        android:layout_marginStart="8dp"
-        app:layout_constraintTop_toTopOf="@+id/novaLocalizacaoTextInputLayout"
-        app:layout_constraintBottom_toBottomOf="@+id/novaLocalizacaoTextInputLayout"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/novaLocalizacaoTextInputLayout"
+        app:layout_constraintBottom_toBottomOf="@id/novaLocalizacaoTextInputLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/novaLocalizacaoTextInputLayout"
+        android:layout_marginStart="8dp"/>
 
     <ListView
         android:id="@+id/list_view_usuarios"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/adicionarLocalizacaoButton"
+        app:layout_constraintTop_toBottomOf="@id/adicionarLocalizacaoButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -48,7 +50,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/updateCodigoEspecialButton">
+        app:layout_constraintEnd_toStartOf="@id/updateCodigoEspecialButton">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/codigoEspecialEditText"
@@ -63,18 +65,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Alterar"
-        android:layout_marginStart="8dp"
-        app:layout_constraintTop_toTopOf="@+id/codigoEspecialTextInputLayout"
-        app:layout_constraintBottom_toBottomOf="@+id/codigoEspecialTextInputLayout"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/codigoEspecialTextInputLayout"
+        app:layout_constraintBottom_toBottomOf="@id/codigoEspecialTextInputLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="8dp"/>
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/et_numero_portarias_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/updateCodigoEspecialButton"
+        app:layout_constraintTop_toBottomOf="@id/updateCodigoEspecialButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/et_vistoriadores_por_portaria_layout">
+        app:layout_constraintEnd_toStartOf="@id/et_vistoriadores_por_portaria_layout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_numero_portarias"
@@ -89,10 +92,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        app:layout_constraintStart_toEndOf="@+id/et_numero_portarias_layout"
+        app:layout_constraintStart_toEndOf="@id/et_numero_portarias_layout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/et_numero_portarias_layout"
-        app:layout_constraintBottom_toBottomOf="@+id/et_numero_portarias_layout">
+        app:layout_constraintTop_toTopOf="@id/et_numero_portarias_layout"
+        app:layout_constraintBottom_toBottomOf="@id/et_numero_portarias_layout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_vistoriadores_por_portaria"
@@ -108,7 +111,7 @@
         android:layout_height="wrap_content"
         android:text="Salvar Configurações"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/et_vistoriadores_por_portaria_layout"
+        app:layout_constraintTop_toBottomOf="@id/et_vistoriadores_por_portaria_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -118,7 +121,7 @@
         android:layout_width="0dp"
         android:text="Editar informações da empresa"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/btn_salvar_configuracoes"
+        app:layout_constraintTop_toBottomOf="@id/btn_salvar_configuracoes"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -58,7 +58,7 @@
             android:layout_below="@+id/item_list_container"
             android:backgroundTint="@color/accentColor"
             android:text="Concluir Vistoria"
-            android:textColor="@color/white"
+            android:textColor="@color/design_default_color_on_primary"
             android:textSize="16sp"
             android:padding="8dp"
             android:layout_marginTop="12dp" />

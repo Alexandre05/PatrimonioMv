@@ -2,12 +2,13 @@
     <!-- Base application theme. -->
     <style name="Theme.PatrimonioMv" parent="Theme.MaterialComponents.DayNight">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/dark_blue</item> <!-- darker shade of blue -->
-        <item name="colorPrimaryVariant">@color/dark_blue_variant</item> <!-- darkest shade of blue -->
+        <item name="colorPrimary">@color/dark_blue</item>
+
+        <item name="colorPrimaryVariant">@color/dark_blue_variant</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/dark_green</item> <!-- darker shade of green -->
-        <item name="colorSecondaryVariant">@color/dark_green_variant</item> <!-- darkest shade of green -->
+        <item name="colorSecondary">@color/dark_green</item>
+        <item name="colorSecondaryVariant">@color/dark_green_variant</item>
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
@@ -33,7 +34,7 @@
 
     <!-- Style for toolbar -->
     <style name="Widget.PatrimonioMv.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
-        <item name="android:background">@color/dark_blue</item> <!-- darker shade of blue -->
+        <item name="android:background">@color/dark_blue</item>
         <item name="android:textColorPrimary">@color/white</item>
         <item name="titleTextColor">@color/white</item>
         <item name="android:elevation">8dp</item>
@@ -41,8 +42,8 @@
 
     <!-- Style for floating action button -->
     <style name="Widget.PatrimonioMv.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
-        <item name="backgroundTint">@color/dark_green</item> <!-- darker shade of green -->
-        <item name="rippleColor">@color/dark_green_variant</item> <!-- darkest shade of green -->
+        <item name="backgroundTint">@color/dark_green</item>
+        <item name="rippleColor">@color/dark_green_variant</item>
         <item name="android:translationZ">4dp</item>
         <item name="iconTint">@color/white</item>
         <item name="tint">@color/white</item>

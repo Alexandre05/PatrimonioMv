@@ -2,11 +2,16 @@ package Atividades;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -48,6 +53,7 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
     private AdapterItensVistoria adapterItensVistoria;
     private List<Item> listaItens;
     private DatabaseReference vistoriasRef;
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -242,6 +248,116 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
 
 
     public void adicionarItem(View view) {
+        // Verifica se é possível adicionar itens à vistoria
+        if (!verificarDataVistoria()) {
+            Toast.makeText(this, "Não é possível adicionar itens a vistorias de dias anteriores.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_edit_item, null);
+
+        EditText editTextNomeItem = dialogView.findViewById(R.id.editTextNomeItem);
+        EditText editTextObservacao = dialogView.findViewById(R.id.editTextObservacao);
+        EditText editTextNumeroPlaca = dialogView.findViewById(R.id.editTextNumeroPlaca);
+        Button buttonAdicionarFoto = dialogView.findViewById(R.id.buttonAdicionarFoto);
+
+        builder.setView(dialogView)
+                .setPositiveButton("Adicionar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        String nomeItem = editTextNomeItem.getText().toString();
+                        String observacao = editTextObservacao.getText().toString();
+                        String numeroPlaca = editTextNumeroPlaca.getText().toString();
+
+                        // Adiciona a lógica para escolher ou capturar fotos aqui
+                        // ...
+
+                        // Criar um novo item
+                        Item newItem = new Item();
+                        newItem.setNome(nomeItem);
+                        newItem.setObservacao(observacao);
+                        newItem.setPlaca(numeroPlaca);
+
+                        // Adiciona a lógica para salvar o caminho da foto no item, se necessário
+                        adicionarFotoAoItem(newItem);
+
+                        // Gere um novo ID para o item
+                        String newItemId = vistoriasRef.child("itens").push().getKey();
+                        newItem.setId(newItemId);
+
+                        // Adiciona o item à lista e ao Firebase
+                        listaItens.add(newItem);
+                        vistoriasRef.child("itens").child(newItemId).setValue(newItem);
+
+                        // Notifica o adapter sobre a mudança
+                        adapterItensVistoria.notifyDataSetChanged();
+
+                        // Exibe uma mensagem ao usuário
+                        Toast.makeText(DetalhesMinhasVistoriasAc.this, "Item adicionado com sucesso!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                });
+        AlertDialog alertDialog = builder.create();
+
+        // Adiciona a lógica para escolher ou capturar fotos aqui
+        buttonAdicionarFoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Cria um Intent para abrir o seletor de imagem
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");  // Define o tipo de conteúdo como imagens
+
+                // Cria um seletor para permitir que o usuário escolha entre a galeria e a câmera
+                Intent chooserIntent = Intent.createChooser(intent, "Escolha uma fonte de imagem");
+
+                // Adiciona a opção de capturar imagem pela câmera
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Parcelable[]{cameraIntent});
+
+                // Inicia a atividade para resultado
+                startActivityForResult(chooserIntent, PICK_IMAGE_REQUEST);
+            }
+
+        });
+
+        alertDialog.show();
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK) {
+            if (data != null) {
+                // A imagem foi escolhida da galeria
+                Uri selectedImageUri = data.getData();
+                // Faça algo com a Uri, como exibir a imagem ou salvar o caminho
+
+
+                // ...
+
+            } else {
+                // A imagem foi capturada pela câmera
+                // A imagem capturada está no objeto data, faça algo com ela
+                // ...
+            }
+        }
+    }
+
+    private void adicionarFotoAoItem(Item item) {
+        // Adiciona a lógica para obter o caminho da foto e salvar no item
+        // ...
+
+        // Exemplo: item.setCaminhoFoto(caminhoDaFoto);
+    }
+
+    // Adicione esta função à sua classe DetalhesMinhasVistoriasAc
+    private boolean verificarDataVistoria() {
         String dataVistoriaStr = vistoria.getData();
         String dataAtualStr = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
 
@@ -258,55 +374,16 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
             calAtual.setTime(dataAtual);
 
             // Verifique se a data da vistoria é igual à data atual
-            if (calVistoria.get(Calendar.YEAR) != calAtual.get(Calendar.YEAR) ||
-                    calVistoria.get(Calendar.MONTH) != calAtual.get(Calendar.MONTH) ||
-                    calVistoria.get(Calendar.DAY_OF_MONTH) != calAtual.get(Calendar.DAY_OF_MONTH)) {
-                Toast.makeText(this, "Não é possível adicionar itens a vistorias de dias anteriores.", Toast.LENGTH_LONG).show();
-                return;
-            }
+            return calVistoria.get(Calendar.YEAR) == calAtual.get(Calendar.YEAR) &&
+                    calVistoria.get(Calendar.MONTH) == calAtual.get(Calendar.MONTH) &&
+                    calVistoria.get(Calendar.DAY_OF_MONTH) == calAtual.get(Calendar.DAY_OF_MONTH);
+
         } catch (ParseException e) {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao comparar as datas. Tente novamente.", Toast.LENGTH_LONG).show();
-            return;
+            return false;
         }
-
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = this.getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_edit_item, null);
-
-        EditText editTextNomeItem = dialogView.findViewById(R.id.editTextNomeItem);
-        EditText editTextObservacao = dialogView.findViewById(R.id.editTextObservacao);
-
-        builder.setView(dialogView)
-                .setPositiveButton("Adicionar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        String nomeItem = editTextNomeItem.getText().toString();
-                        String observacao = editTextObservacao.getText().toString();
-
-                        Item newItem = new Item();
-                        newItem.setNome(nomeItem);
-                        newItem.setObservacao(observacao);
-
-                        // Gere um novo ID para o item
-                        String newItemId = vistoriasRef.child("itens").push().getKey();
-                        newItem.setId(newItemId);
-
-                        listaItens.add(newItem);
-
-                        // Atualize o Firebase aqui
-                        vistoriasRef.child("itens").child(newItemId).setValue(newItem);
-
-                        adapterItensVistoria.notifyDataSetChanged();
-                    }
-                })
-                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.dismiss();
-                    }
-                });
-        builder.create().show();
     }
+
 }
 
