@@ -3,6 +3,7 @@ package Atividades;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,7 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import Adaptadores.AdapterItensVistoria;
+import Adaptadores.AdapterItensVistoriaParaEditar;
 import Modelos.Item;
 import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
@@ -36,8 +37,8 @@ public class DetalhesAc extends AppCompatActivity {
     private String idVistoria;
 
     private RecyclerView recyclerView;
-    private AdapterItensVistoria detalhesVistoriaAdapter;
-    private Button btnChat;
+    private AdapterItensVistoriaParaEditar detalhesVistoriaAdapter;
+    //private Button btnViewOnMapa;
     private ArrayList<Item> itens;
 
     @Override
@@ -53,11 +54,16 @@ public class DetalhesAc extends AppCompatActivity {
             startActivity(loginIntent);
             finish();
             return;
-        }
+
+
+    }
+
+
+
         recyclerView = findViewById(R.id.recyclerViewItens);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         itens = new ArrayList<>();
-        detalhesVistoriaAdapter = new AdapterItensVistoria(itens, this);
+        detalhesVistoriaAdapter = new AdapterItensVistoriaParaEditar(itens, this);
         recyclerView.setAdapter(detalhesVistoriaAdapter);
         ;
 
@@ -183,6 +189,7 @@ public class DetalhesAc extends AppCompatActivity {
         longitudeTextView = findViewById(R.id.longitude);
         fotoA = findViewById(R.id.fotoA);
         recyclerView = findViewById(R.id.recyclerViewItens);
+        //btnViewOnMapa = findViewById(R.id.BtnViewOnMa);
     }
 
 }

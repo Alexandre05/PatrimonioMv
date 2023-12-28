@@ -3,20 +3,23 @@
     <style name="Theme.PatrimonioMv" parent="Theme.MaterialComponents.DayNight">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/dark_blue</item>
-
         <item name="colorPrimaryVariant">@color/dark_blue_variant</item>
         <item name="colorOnPrimary">@color/white</item>
+
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/dark_green</item>
         <item name="colorSecondaryVariant">@color/dark_green_variant</item>
         <item name="colorOnSecondary">@color/white</item>
+
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Navigation bar color (if applicable) -->
         <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
+
         <!-- Customize your theme here. -->
         <item name="android:textColorPrimary">@color/white</item>
         <item name="android:textColorSecondary">@color/white</item>
+
         <!-- Style for toolbar -->
         <item name="toolbarStyle">@style/Widget.PatrimonioMv.Toolbar</item>
         <!-- Style for floating action button -->
@@ -35,8 +38,8 @@
     <!-- Style for toolbar -->
     <style name="Widget.PatrimonioMv.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
         <item name="android:background">@color/dark_blue</item>
-        <item name="android:textColorPrimary">@color/white</item>
         <item name="titleTextColor">@color/white</item>
+        <item name="subtitleTextColor">@color/white</item>
         <item name="android:elevation">8dp</item>
     </style>
 

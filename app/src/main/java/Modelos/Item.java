@@ -1,5 +1,8 @@
 package Modelos;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.Task;
@@ -17,10 +20,62 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Item  implements Serializable {
+public class Item implements Parcelable, Serializable {
     private String localizacao;
     private String id;
     private String nome;
+    private String placa;
+    private List<String> fotos;
+    private String observacao;
+    private String fotoURL;
+    private double latitude;
+    private double longitude;
+
+    public Item() {
+    }
+
+    // Métodos necessários para Parcelable
+    protected Item(Parcel in) {
+        localizacao = in.readString();
+        id = in.readString();
+        nome = in.readString();
+        placa = in.readString();
+        fotos = in.createStringArrayList();
+        observacao = in.readString();
+        fotoURL = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(localizacao);
+        dest.writeString(id);
+        dest.writeString(nome);
+        dest.writeString(placa);
+        dest.writeStringList(fotos);
+        dest.writeString(observacao);
+        dest.writeString(fotoURL);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Item> CREATOR = new Creator<Item>() {
+        @Override
+        public Item createFromParcel(Parcel in) {
+            return new Item(in);
+        }
+
+        @Override
+        public Item[] newArray(int size) {
+            return new Item[size];
+        }
+    };
 
     public String getLocalizacao() {
         return localizacao;
@@ -28,41 +83,6 @@ public class Item  implements Serializable {
 
     public void setLocalizacao(String localizacao) {
         this.localizacao = localizacao;
-    }
-
-    private String placa;
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    private List<String> fotos;
-    private String observacao;
-    private String fotoURL;
-    private double latitude; // Adicione esta linha
-    private double longitude; // Adicione esta linha
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
-    public Item() {
     }
 
     @PropertyName("id")
@@ -75,7 +95,13 @@ public class Item  implements Serializable {
         this.id = id;
     }
 
+    public String getNome() {
+        return nome;
+    }
 
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 
     @PropertyName("placa")
     public String getPlaca() {
@@ -112,13 +138,33 @@ public class Item  implements Serializable {
         return fotos;
     }
 
-    public static Task<Boolean> verificarPlacaExistente(String placa) {
-        TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+    public void setFotos(List<String> fotos) {
+        this.fotos = fotos;
+    }
 
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public static Task<Boolean> verificarPlacaExistente(String placa) {
         DatabaseReference vistoriasRef = FirebaseDatabase.getInstance().getReference("vistoriaPu");
         Query query = vistoriasRef.orderByChild("itens/placa").equalTo(placa);
 
-        ValueEventListener valueEventListener = new ValueEventListener() {
+        TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 boolean placaExistente = dataSnapshot.exists();
@@ -129,12 +175,11 @@ public class Item  implements Serializable {
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 taskCompletionSource.setException(databaseError.toException());
             }
-        };
-
-        query.addListenerForSingleValueEvent(valueEventListener);
+        });
 
         return taskCompletionSource.getTask();
     }
+
     public static Item fromMap(Map<String, Object> map) {
         Item item = new Item();
         item.setId((String) map.get("id"));
@@ -146,12 +191,24 @@ public class Item  implements Serializable {
         item.setLatitude((double) map.get("latitude"));
         item.setLongitude((double) map.get("longitude"));
 
-        // Adicione esta linha para preencher a propriedade "fotoURL"
         if (item.getFotos() != null && !item.getFotos().isEmpty()) {
             item.setFotoURL(item.getFotos().get(0));
         }
 
         return item;
+    }
+
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("id", id);
+        result.put("nome", nome);
+        result.put("placa", placa);
+        result.put("observacao", observacao);
+        result.put("fotos", fotos);
+        result.put("localizacao", localizacao);
+        result.put("latitude", latitude);
+        result.put("longitude", longitude);
+        return result;
     }
 
     @Override
@@ -162,22 +219,4 @@ public class Item  implements Serializable {
                 ", observacao='" + observacao + '\'' +
                 '}';
     }
-
-    @PropertyName("fotos")
-    public void setFotos(List<String> fotos) {
-        this.fotos = fotos;
-    }
-    public Map<String, Object> toMap() {
-        HashMap<String, Object> result = new HashMap<>();
-        result.put("id", id);
-        result.put("nome", nome);
-        result.put("placa", placa);
-        result.put("observacao", observacao);
-        result.put("fotos", fotos);
-        result.put("localizacao",localizacao);
-        result.put("latitude", latitude);
-        result.put("longitude", longitude);
-        return result;
-    }
-
 }

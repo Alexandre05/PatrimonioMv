@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import Adaptadores.AdapterItensVistoria;
+import Adaptadores.AdapterItensVistoriaParaEditar;
 import Ajuda.ConFirebase;
 import Modelos.Item;
 import Modelos.Vistoria;
@@ -50,7 +50,7 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
     private Vistoria vistoria;
 
     private RecyclerView recyclerViewItens;
-    private AdapterItensVistoria adapterItensVistoria;
+    private AdapterItensVistoriaParaEditar adapterItensVistoria;
     private List<Item> listaItens;
     private DatabaseReference vistoriasRef;
     private static final int PICK_IMAGE_REQUEST = 1;
@@ -77,7 +77,7 @@ public class DetalhesMinhasVistoriasAc extends AppCompatActivity {
         // Configurar RecyclerView
         recyclerViewItens = findViewById(R.id.recyclerViewItens);
         listaItens = new ArrayList<>(); // Inicialize listaItens como um novo ArrayList vazio
-        adapterItensVistoria = new AdapterItensVistoria(listaItens, this);
+        adapterItensVistoria = new AdapterItensVistoriaParaEditar(listaItens, this);
         recyclerViewItens.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewItens.setHasFixedSize(true);
         recyclerViewItens.setAdapter(adapterItensVistoria);

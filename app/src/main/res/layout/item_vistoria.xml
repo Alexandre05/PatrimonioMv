@@ -84,7 +84,7 @@
         android:textSize="16sp" />
 
     <Button
-        android:id="@+id/btnViewOnMapA"
+        android:id="@+id/BtnViewOnMa"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Ver no mapa" />

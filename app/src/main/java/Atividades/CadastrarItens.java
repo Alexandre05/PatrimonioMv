@@ -525,7 +525,7 @@ public class CadastrarItens extends AppCompatActivity
 
         return storage
                 .child("imagens")
-                .child("Itens")
+                .child("itens")
                 .child(idVistoria)
                 .child(nomeImagem);
     }

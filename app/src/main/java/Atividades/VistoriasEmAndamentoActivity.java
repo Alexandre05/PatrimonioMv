@@ -1,12 +1,15 @@
 package Atividades;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import Adaptadores.VistoriaAndamentoAdapter;
@@ -33,7 +35,6 @@ import Ajuda.ConFirebase;
 import Modelos.Item;
 import Modelos.Vistoria;
 
-import Modelos.VistoriaAnexada;
 import br.com.patrimoniomv.R;
 
 public class VistoriasEmAndamentoActivity extends AppCompatActivity implements OnVistoriaCreatedListener {
@@ -46,7 +47,11 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
     private VistoriaAndamentoAdapter adapter;
     private List<Vistoria> vistoriasEmAndamento;
     private ChildEventListener vistoriasEventListener;
+    private ArrayList<? extends Parcelable> listaItens;
     private ChildEventListener vistoriasPuEventListener;
+
+    public VistoriasEmAndamentoActivity() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +61,8 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
         uniqueLicensePlates = new HashSet<>();
 
         vistoriasAndamentoRecyclerView = findViewById(R.id.vistorias_andamento_recyclerview);
-
+        // Obtenha o ID da vistoria passado da activity anterior
+        String idVistoria = getIntent().getStringExtra("idVistoria");
         checkUserAuthentication();
         vistoriasEmAndamento = new ArrayList<>();
         adapter = new VistoriaAndamentoAdapter(this, vistoriasEmAndamento, true);
@@ -65,7 +71,7 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         vistoriasAndamentoRecyclerView.setLayoutManager(layoutManager);
         vistoriasAndamentoRecyclerView.setHasFixedSize(true);
-        vistoriasAndamentoRecyclerView.setAdapter(adapter);
+        //vistoriasAndamentoRecyclerView.setAdapter(adapter);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
@@ -169,51 +175,121 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
     // Método chamado quando o usuário conclui uma vistoria
     public void concluirVistoria(int position) {
         Vistoria vistoria = vistoriasEmAndamento.get(position);
-        vistoria.setConcluida(true);
 
-        DatabaseReference vistoriasRef = mDatabase.child("vistorias");
-        DatabaseReference vistoriasConcluidasRef = mDatabase.child("vistoriasConcluidas");
-        DatabaseReference vistoriaPuRef = mDatabase.child("vistoriaPu");
-
-        String localizacao = vistoria.getLocalizacao();
-        String data = vistoria.getData();
-        String vistoriadorId = vistoria.getIdUsuario();
-
-        // Consulta o banco para vistorias anteriores com a mesma data, localização e vistoriador
-        Query query = vistoriasRef.orderByChild("localizacao_data_idUsuario")
-                .equalTo(localizacao + data + vistoriadorId);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(VistoriasEmAndamentoActivity.this);
+        builder.setTitle("Confirmação");
+        builder.setMessage("Deseja realmente concluir esta vistoria?");
+        builder.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // Itera sobre as vistorias anteriores
-                for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
-                    Vistoria vistoriaAntiga = vistoriaSnapshot.getValue(Vistoria.class);
-                    if (vistoriaAntiga != null) {
-                        // Adiciona os itens da vistoria antiga à vistoria atual
-                        Map<String, Item> itensMapAntiga = vistoriaAntiga.getItensMap();
-                        vistoria.getItensMap().putAll(itensMapAntiga);
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // Define a vistoria como concluída
+                vistoria.setConcluida(true);
 
-                        // Remove a vistoria antiga
-                        vistoriaSnapshot.getRef().removeValue();
+                // Restante do código para concluir a vistoria
+
+                // Notifica o usuário que a vistoria foi concluída
+                Toast.makeText(VistoriasEmAndamentoActivity.this, "Vistoria concluída com sucesso!", Toast.LENGTH_SHORT).show();
+
+                // Remove espaços e caracteres especiais dos valores
+                String localizacao = vistoria.getLocalizacao().replaceAll("\\s+", "");
+                String idVistoriador = vistoria.getIdVistoria().replaceAll("\\s+", "");
+                String vistoriadorId = vistoria.getIdUsuario().replaceAll("\\s+", "");
+
+                // Cria uma consulta para verificar se existem vistorias anteriores com a mesma data, localização e vistoriador
+                Query query = mDatabase.child("vistorias")
+                        .orderByKey()
+                        .equalTo(localizacao + vistoriadorId + idVistoriador);
+
+                // Adiciona um ouvinte de eventos único para a consulta
+                query.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        // Itera sobre as vistorias anteriores encontradas na consulta
+                        for (DataSnapshot vistoriaSnapshot : dataSnapshot.getChildren()) {
+                            Vistoria vistoriaAntiga = vistoriaSnapshot.getValue(Vistoria.class);
+                            if (vistoriaAntiga != null) {
+                                // Adiciona os itens da vistoria antiga à vistoria atual
+                                vistoria.getItensMap().putAll(vistoriaAntiga.getItensMap());
+
+                                // Remove a vistoria antiga do banco de dados Firebase
+                                vistoriaSnapshot.getRef().removeValue();
+                            }
+                        }
+
+                        // Adiciona a vistoria atual às vistorias concluídas
+                        String idVistoria = mDatabase.child("vistoriasConcluidas").push().getKey();
+                        mDatabase.child("vistoriasConcluidas").child(idVistoria).setValue(vistoria);
+
+                        // Adiciona a vistoria atual aos nós de vistorias concluídas e patrimônio público
+                        mDatabase.child("vistoriaPu").child(idVistoria).setValue(vistoria);
+
+                        // Remove a vistoria em andamento da lista local e notifica o adapter para atualizar a UI.
+                        vistoriasEmAndamento.remove(position);
+                        adapter.notifyDataSetChanged();
                     }
-                }
 
-                // Adiciona a vistoria atual às vistorias concluídas
-                String idVistoria = vistoriasConcluidasRef.push().getKey();
-                vistoriasConcluidasRef.child(idVistoria).setValue(vistoria);
-
-                // Adiciona a vistoria atual à vistoriaPu
-                vistoriaPuRef.child(idVistoria).setValue(vistoria);
-
-                // Remove a vistoria em andamento
-                vistoriasEmAndamento.remove(position);
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("Firebase", "Erro ao verificar vistorias anteriores", databaseError.toException());
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Log.e("Firebase", "Erro ao verificar vistorias anteriores", databaseError.toException());
+                    }
+                });
             }
         });
+
+        builder.setNeutralButton("Editar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // Aqui você pode adicionar a lógica para abrir a tela de edição
+                abrirOpcoesVistoria(vistoria.getIdVistoria(), new ArrayList<>(vistoria.getItensMap().values()));
+            }
+        });
+
+        builder.setNegativeButton("Não", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // O usuário optou por não concluir a vistoria, não faz nada
+            }
+        });
+
+        // Exibe o AlertDialog
+        builder.create().show();
     }
+
+    // Exemplo de um método para abrir a tela de edição
+    private void abrirTelaDeEdicao(Vistoria vistoria) {
+        // Adicione a lógica para abrir a tela de edição aqui
+        // Pode ser uma nova Activity, Fragment, etc.
+        // Por exemplo:error: incompatible types: ArrayList<Item> cannot be converted to ArrayList<? extends Parcelable>
+        //            intent.putParcelableArrayListExtra("listaItens", (ArrayList<? extends Parcelable>) itemList);
+        //                                                                                               ^
+        Intent intent = new Intent(VistoriasEmAndamentoActivity.this, DetalhesVistoriaActivity.class);
+        intent.putExtra("vistorias", vistoria); // Se necessário, envie a vistoria para a tela de edição
+        startActivity(intent);
+    }
+
+    private void abrirOpcoesVistoria(String idVistoria, List<Item> listaItens) {
+        Toast.makeText(this, "ID da Vistoria: " + idVistoria, Toast.LENGTH_SHORT).show();
+
+        // Adiciona logs para verificar se a lista está sendo passada corretamente
+        if (listaItens != null) {
+            for (Item item : listaItens) {
+                Log.d("Item", "Item: " + item.toString());
+            }
+        } else {
+            Log.d("Item", "Lista de itens é nula.");
+        }
+
+        Intent intent = new Intent(VistoriasEmAndamentoActivity.this, OpcoesVistoriaActivity.class);
+        // Passe os dados da vistoria, se necessário
+        intent.putExtra("idVistoria", idVistoria);
+        // Se a lista de itens não for nula, passe-a como um extra
+        if (listaItens != null) {
+            ArrayList<Item> itemList = new ArrayList<>(listaItens);
+            intent.putParcelableArrayListExtra("listaItens", itemList);
+        }
+        startActivity(intent);
+    }
+
+
+
 }

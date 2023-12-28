@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -23,9 +24,8 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/vistoriaTitle"
@@ -40,10 +40,26 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewVistorias"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="1dp"
+            android:layout_height="0dp"
             android:layout_below="@+id/vistoriaTitle"
+            android:layout_above="@+id/fab"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/impriB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:src="@drawable/imprime"
+            app:maxImageSize="24dp"
+            app:tint="@color/white"
+            android:layout_above="@id/fab"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="@dimen/fab_margin"
+            android:layout_marginTop="@dimen/fab_margin"
+            android:layout_marginEnd="@dimen/fab_margin"
+            android:layout_marginBottom="@dimen/fab_margin"
+            android:importantForAccessibility="no" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
@@ -52,24 +68,15 @@
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/add"
             app:maxImageSize="24dp"
-            android:importantForAccessibility="no"
             app:tint="@color/white"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true" />
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/impriB"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:importantForAccessibility="no"
-            android:layout_above="@id/fab"
-            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
             android:layout_marginStart="@dimen/fab_margin"
             android:layout_marginTop="@dimen/fab_margin"
             android:layout_marginEnd="@dimen/fab_margin"
             android:layout_marginBottom="@dimen/fab_margin"
-            android:src="@drawable/imprime"
-            app:maxImageSize="24dp"
-            app:tint="@color/white" />
+            android:importantForAccessibility="no"
+     />
 
     </RelativeLayout>
 

@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,6 +20,7 @@ import br.com.patrimoniomv.R;
 public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyViewHolder> {
     private final List<Vistoria> vistorias;
     private Context context;
+
 
     public AdapterVistorias(List<Vistoria> vistorias, Context context) {
         this.vistorias = vistorias;
@@ -48,6 +50,7 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
             holder.nomeU.setText(vistoria.getNomePerfilU());
             holder.Data.setText(vistoria.getData());
             holder.locali.setText(vistoria.getLocalizacao());
+            //holder.mapa.setVisibility(View.VISIBLE);
             Log.i("AdapterVistorias", "Nome do Usuário: " + vistoria.getNomePerfilU());
             Log.i("AdapterVistorias", "Data: " + vistoria.getData());
             Log.i("AdapterVistorias", "Localização: " + vistoria.getLocalizacao());
@@ -69,6 +72,7 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView Data;
+
         TextView nomeU;
         TextView locali;
 
@@ -77,6 +81,8 @@ public class AdapterVistorias extends RecyclerView.Adapter<AdapterVistorias.MyVi
             locali = itemView.findViewById(R.id.texLocali);
             Data = itemView.findViewById(R.id.textData);
             nomeU = itemView.findViewById(R.id.textNomeUsuario);
+
+
         }
     }
 }

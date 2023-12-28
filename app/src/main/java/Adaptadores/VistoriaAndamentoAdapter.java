@@ -82,6 +82,7 @@ public class VistoriaAndamentoAdapter extends RecyclerView.Adapter<VistoriaAndam
         holder.concluirVistoriaButton.setOnClickListener(view -> {
             ((VistoriasEmAndamentoActivity) context).concluirVistoria(position);
         });
+
     }
 
     @Override

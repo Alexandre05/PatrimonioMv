@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -20,18 +19,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="16dp"
-            android:contentDescription="@string/image_container_description">
+            android:layout_marginBottom="16dp">
 
-
-        <LinearLayout
+            <LinearLayout
                 android:id="@+id/imagesLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/imageCada1"
+                    android:id="@+id/NovimageCada1"
                     android:layout_width="150dp"
                     android:layout_height="100dp"
                     android:layout_gravity="center_horizontal"
@@ -50,16 +47,15 @@
             android:textColor="#1C1C1C"
             android:layout_marginBottom="4dp"/>
 
-        <Spinner
-            android:id="@+id/localizacao"
+        <TextView
+            android:id="@+id/Novolocalizacao"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="16dp"
-            android:padding="8dp"/>
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
 
         <!-- Name EditText -->
         <EditText
-            android:id="@+id/editNome"
+            android:id="@+id/NovoNome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -67,12 +63,12 @@
             android:ems="10"
             android:textColor="@color/black"
             android:hint="Nome Item"
-            android:padding="16dp"
+            android:padding="10dp"
             android:textSize="16sp" />
 
         <!-- Plate Number EditText -->
         <EditText
-            android:id="@+id/editPlaca"
+            android:id="@+id/NovaPlaca"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
@@ -80,13 +76,13 @@
             android:background="@drawable/custonnoecao"
             android:ems="10"
             android:inputType="number"
-            android:padding="16dp"
+            android:padding="10dp"
             android:hint="Nº Placa"
             android:textSize="16sp" />
 
         <!-- Observations EditText -->
         <EditText
-            android:id="@+id/editObs"
+            android:id="@+id/NovaObs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -94,13 +90,15 @@
             android:ems="10"
             android:textColor="@color/black"
             android:inputType="textPersonName"
-            android:padding="16dp"
+            android:padding="10dp"
             android:hint="Observações"
             android:textSize="16sp" />
+        <!-- Add this to itensvistoria.xml -->
+
 
         <!-- Name Result TextView -->
         <TextView
-            android:id="@+id/editNomeRes"
+            android:id="@+id/NovoNomeRes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -119,40 +117,32 @@
             android:inputType="datetime"
             android:padding="10dp"/>
 
-        <!-- Buttons Section -->
-        <LinearLayout
+        <!-- Finish Inspection Button -->
+        <Button
+            android:id="@+id/NovofinalizarVistoria"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginTop="16dp"
+            android:onClick="FinalizarVistoria"
+            android:text="Finalizar Vistoria"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:theme="@style/Theme.AppCompat.Dialog.MinWidth" />
 
-            <!-- Finish Inspection Button -->
-            <Button
-                android:id="@+id/finalizarVistoria"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:onClick="FinalizarVistoria"
-                android:text="Finalizar Vistoria"
-                android:textSize="18sp"
-                android:textColor="#FFFFFF"
-                android:theme="@style/Theme.AppCompat.Dialog.MinWidth" />
-
-            <!-- Add Item Button -->
-            <Button
-                android:id="@+id/adicionarItemVistoria"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:onClick="adicionarItemVistoria"
-                android:text="Adicionar Item"
-                android:textSize="18sp"
-                android:textColor="#FFFFFF"/>
-
-        </LinearLayout>
+        <!-- Add Item Button -->
+        <Button
+            android:id="@+id/NovoadicionarItemVistoria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:onClick="adicionarItemVistoria"
+            android:text="Adicionar Item"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"/>
 
         <!-- Item Count TextView -->
         <TextView
-            android:id="@+id/itemCountTextView"
+            android:id="@+id/NovoitemCountTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -162,6 +152,17 @@
             android:text="Itens adicionados: 0"
             android:textColor="#FFFFFF"
             android:textSize="18sp" />
+        <!-- Adicione a RecyclerView abaixo dos itens existentes -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewItensVistoria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/transparent"
+            android:padding="8dp"
+            app:layout_constraintTop_toBottomOf="@id/adicionarItemVistoria"
+            tools:listitem="@layout/item_vistoria" />
+
 
     </LinearLayout>
 </ScrollView>

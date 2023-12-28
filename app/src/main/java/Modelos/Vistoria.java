@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.PropertyName;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -297,6 +298,9 @@ public class Vistoria implements Serializable {
         }
 
         return vistoria;
+    }
+    public static DatabaseReference getVistoriaReference(String idVistoria) {
+        return ConFirebase.getFirebaseDatabase().child("vistorias").child(idVistoria);
     }
 
     public Map<String, Object> toMap() {

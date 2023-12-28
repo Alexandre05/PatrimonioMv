@@ -33,6 +33,8 @@ import Modelos.Vistoria;
 import br.com.patrimoniomv.R;
 
 public class Admininistrar extends AppCompatActivity {
+    // como melhorar essa tela?
+
     private ListView listViewVistorias;
     private List<Vistoria> vistorias;
     private VistoriaAdapter vistoriaAdapter;
