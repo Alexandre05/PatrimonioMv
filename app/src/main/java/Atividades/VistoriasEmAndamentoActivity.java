@@ -210,6 +210,8 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
                             if (vistoriaAntiga != null) {
                                 // Adiciona os itens da vistoria antiga à vistoria atual
                                 vistoria.getItensMap().putAll(vistoriaAntiga.getItensMap());
+                                Log.d("Debug", "Itens da Vistoria Antiga: " + vistoriaAntiga.getItensMap().toString());
+                                Log.d("Debug", "Itens da Vistoria Atual: " + vistoria.getItensMap().toString());
 
                                 // Remove a vistoria antiga do banco de dados Firebase
                                 vistoriaSnapshot.getRef().removeValue();

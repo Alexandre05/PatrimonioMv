@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,6 +31,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -63,6 +65,7 @@ public class EditVistoriaActivity extends AppCompatActivity {
     private double currentLongitude;
     private Button botaoAdicionarItem;
     private Vistoria vistoriaAtual;
+    private ProgressDialog progressDialog;
     private static final int PERMISSAO_CAMERA = 1;
     private int uploadedImagesCount = 0;
     private StorageReference storage;
@@ -79,6 +82,9 @@ public class EditVistoriaActivity extends AppCompatActivity {
         IniciarComponentes();
         solicitarPermissaoCamera();
         Intent intent = getIntent();
+        storage = FirebaseStorage.getInstance().getReference();
+     
+
         ArrayList<Item> listaItens = getIntent().getParcelableArrayListExtra("listaItens");
 // Agora você pode usar a listaItens como precisar
         if (listaItens != null) {
@@ -118,13 +124,7 @@ public class EditVistoriaActivity extends AppCompatActivity {
         });
 
     }
-    public void onLocationChanged(Location location) {
-        currentLatitude = location.getLatitude();
-        currentLongitude = location.getLongitude();
-        Log.e("INFO", "onLocationChanged - Latitude: " + currentLatitude);
-        Log.e("INFO", "onLocationChanged - Longitude: " + currentLongitude);
-        // Aqui você pode atualizar a localização do item no objeto Anuncios
-    }
+
     private void solicitarPermissaoCamera() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -215,26 +215,12 @@ public class EditVistoriaActivity extends AppCompatActivity {
 
         return storage
                 .child("imagens")
-                .child("Itens")
+                .child("itens")
                 .child(idVistoria)
                 .child(nomeImagem);
     }
 
-    private void uploadImageToStorage(byte[] dadosImagem, StorageReference imagemRef, Runnable onSuccess) {
-        UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
-        uploadTask.addOnSuccessListener(taskSnapshot -> imagemRef.getDownloadUrl()
-                .addOnSuccessListener(uri -> {
-                    String urlConverted = uri.toString();
-                    // Certifique-se de que você está adicionando a URL da imagem ao item correto na vistoria
-                    // Exemplo: item.setFotoUrl(urlConverted);
 
-                    onSuccess.run();
-                })
-                .addOnFailureListener(e -> {
-                    exibirMensagemErro("Falha ao fazer upload");
-                    Log.e("INFO", "Falha ao fazer upload:" + e.getMessage());
-                }));
-    }
 
     private void exibirMensagemErro(String mensagem) {
         Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show();
@@ -286,6 +272,12 @@ public class EditVistoriaActivity extends AppCompatActivity {
                         // Adicionando item na listaItens
                         listaItens.add(item);
 
+                        // Incrementa o contador de itens
+                        itemCount++;
+
+                        // Atualiza o TextView com o novo valor do contador
+                        updateItemCountText();
+
                         Toast.makeText(EditVistoriaActivity.this, "Item adicionado à vistoria!", Toast.LENGTH_SHORT).show();
                         progressDialog.dismiss();
                     }
@@ -295,6 +287,10 @@ public class EditVistoriaActivity extends AppCompatActivity {
             progressDialog.dismiss();
             Toast.makeText(EditVistoriaActivity.this, "Erro: Vistoria ou ID de Vistoria nulos.", Toast.LENGTH_SHORT).show();
         }
+    }
+    private void updateItemCountText() {
+        // Atualiza o TextView com o número atual de itens
+        itemCountTextView.setText("Total de Itens: " + itemCount);
     }
 
     private void exibirDialogSemImagens() {
@@ -353,7 +349,6 @@ public class EditVistoriaActivity extends AppCompatActivity {
         }
     }
 
-
     private void abrirGaleria() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, CODIGO_GALERIA);
@@ -361,31 +356,53 @@ public class EditVistoriaActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            if (data != null && data.getExtras() != null) {
-                Log.d("INFO", "Imagem capturada com sucesso.");
-                // A imagem foi capturada com sucesso, você pode processar a imagem aqui
-                Bundle extras = data.getExtras();
-                Bitmap imageBitmap = (Bitmap) extras.get("data");
-                // Faça algo com a imagem capturada
-            } else {
-                Log.e("ERROR", "Data ou Extras são nulos.");
-            }
+
+        if (requestCode == CODIGO_GALERIA && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            processarImagemSelecionada(data.getData());
         }
+    }
+    private void processarImagemSelecionada(Uri imageUri) {
+        Log.d("INFO", "Imagem da galeria selecionada com sucesso.");
+        // Faça algo com a imagem da galeria
+        try {
+            Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+            imagens.add(imageBitmap);
+            // Exemplo: exibir a imagem em um ImageView
+            imageCada1.setImageBitmap(imageBitmap);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void processarImagemCapturada(Bitmap imageBitmap) {
+        Log.d("INFO", "Imagem capturada com sucesso.");
+        // Faça algo com a imagem capturada
+        imagens.add(imageBitmap);
+        // Exemplo: exibir a imagem em um ImageView
+        imageCada1.setImageBitmap(imageBitmap);
     }
 
     private Item criarItem() {
+        String nomeItem = CampoNomeItem.getText().toString().trim();
+        String observacao = CampoObservacoes.getText().toString().trim();
+        String placa = campoPlaca.getText().toString().trim();
+
+        if (nomeItem.isEmpty() || observacao.isEmpty() || placa.isEmpty()) {
+            // Adicione a lógica de tratamento para valores vazios
+            Toast.makeText(EditVistoriaActivity.this, "Preencha todos os campos obrigatórios.", Toast.LENGTH_SHORT).show();
+            progressDialog.dismiss();
+            return null; // Retorna null para indicar que o item não pode ser criado
+        }
+
         Item item = new Item();
-        item.setNome(CampoNomeItem.getText().toString());
-        item.setObservacao(CampoObservacoes.getText().toString());
-        item.setPlaca(campoPlaca.getText().toString());
+        item.setNome(nomeItem);
+        item.setObservacao(observacao);
+        item.setPlaca(placa);
         //item.setLocalizacao(vistoriaAtual.getLocalizacao());
         item.setFotos(listaURLFotos);
         // Definir latitude e longitude do item
         item.setLatitude(currentLatitude);
         item.setLongitude(currentLongitude);
-        Log.e("INFO", "Latitude"+currentLatitude);
-        Log.e("INFO", "Longe"+currentLongitude);
+
         // Gere um ID único para o item usando o Firebase
         DatabaseReference itemsRef = FirebaseDatabase.getInstance().getReference("itens");
         String itemId = itemsRef.push().getKey();
@@ -395,30 +412,6 @@ public class EditVistoriaActivity extends AppCompatActivity {
     }
 
 
-
-    public void adicionarItemVistoriaExistente(View view) {
-        listaURLFotos.clear();
-
-        if (!CampoNomeItem.getText().toString().trim().isEmpty() &&
-                !CampoObservacoes.getText().toString().trim().isEmpty() &&
-                imagens.size() > 0) {
-
-            String placa = campoPlaca.getText().toString();
-            if (placa != null && !placa.trim().isEmpty()) {
-                isPlacaAlreadyInDatabase(placa, placaExists -> {
-                    if (placaExists || isPlacaInItemList(placa)) {
-                        Toast.makeText(EditVistoriaActivity.this, "Número de Patrimônio já adicionado! Por favor, Verifique novamente.", Toast.LENGTH_SHORT).show();
-                    } else {
-                        adicionarNovoItemVistoria(placa);
-                    }
-                });
-            } else {
-                adicionarNovoItemVistoria(placa);
-            }
-        } else {
-            Toast.makeText(EditVistoriaActivity.this, "Preencha todos os campos e adicione pelo menos uma imagem.", Toast.LENGTH_SHORT).show();
-        }
-    }
     private boolean isPlacaInItemList(String placa) {
         for (Item item : listaItens) {
             if (item.getPlaca().equalsIgnoreCase(placa)) {
@@ -446,44 +439,104 @@ public class EditVistoriaActivity extends AppCompatActivity {
             }
         });
     }
-    private void adicionarNovoItemVistoria(String placa) {
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Adicionando novo item à vistoria, aguarde...");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
-        uploadedImagesCount = 0;
+    public void FinalizarVistoria(View view) {
+        if (vistoria != null && vistoria.getIdVistoria() != null) {
+            // Salve os itens da lista no banco de dados
+            salvarItensNoBanco(vistoria, listaItens);
 
-        for (int i = 0; i < imagens.size(); i++) {
-            Bitmap imagem = imagens.get(i);
-            int tamanhoLista = imagens.size();
-            salvarFotoStorage(imagem, tamanhoLista, i, vistoriaAtual, () -> {
-                uploadedImagesCount++;
-                if (uploadedImagesCount == imagens.size()) {
-                    Item novoItem = criarItem();
-                    novoItem.setFotos(new ArrayList<>(listaURLFotos));
+            // Adicione a lógica para finalizar a vistoria aqui
+            // Por exemplo, você pode exibir uma mensagem ou iniciar uma nova atividade
+            Toast.makeText(this, "Vistoria finalizada com sucesso!", Toast.LENGTH_SHORT).show();
 
-                    // Adiciona o novo item à vistoria existente
-                    vistoriaAtual.getItensMap().put(novoItem.getId(), novoItem);
+            // Aqui você pode adicionar qualquer lógica adicional que precisa ser executada ao finalizar a vistoria
 
-                    // Adicionando o novo item na listaItens
-                    listaItens.add(novoItem);
+            // Por exemplo, você pode iniciar uma nova atividade
+            Intent intent = new Intent(this, EditVistoriaActivity.class);
+            startActivity(intent);
 
-                    // Incrementa a contagem de itens
-                    itemCount++;
-
-                    // Atualiza o texto do TextView com a nova contagem
-                    itemCountTextView.setText("Itens adicionados: " + itemCount);
-
-                    // Exibindo o novo item no log para verificação
-                    Log.d("INFO", "Novo Item adicionado à listaItens: " + novoItem.toString());
-
-                    Toast.makeText(EditVistoriaActivity.this, "Novo item adicionado à vistoria existente!", Toast.LENGTH_SHORT).show();
-
-                    progressDialog.dismiss();
-                }
-            });
+            // Ou você pode finalizar a atividade atual
+            finish();
+        } else {
+            // Lógica de tratamento caso a vistoria seja nula
+            Toast.makeText(this, "Erro: Vistoria ou ID de Vistoria nulos.", Toast.LENGTH_SHORT).show();
         }
     }
+
+    // Método para salvar os itens no banco de dados
+    /**
+     * Salva os itens da vistoria no banco de dados Firebase.
+     *
+     * @param vistoria   A vistoria contendo os itens a serem salvos.
+     * @param listaItens Lista de itens a serem salvos.
+     *                   Comentado por Alexandre B. Menna
+     */
+    private void salvarItensNoBanco(Vistoria vistoria, List<Item> listaItens) {
+        // Verifica se a vistoria e o ID da vistoria não são nulos
+        if (vistoria != null && vistoria.getIdVistoria() != null) {
+            // Obtém a referência da vistoria no Firebase
+            DatabaseReference vistoriaRef = Vistoria.getVistoriaReference(vistoria.getIdVistoria());
+
+            // Verifica se a referência não é nula
+            if (vistoriaRef != null) {
+                // Define o caminho para os itens no banco de dados (Firebase)
+                String caminhoItens = "Itens";
+
+                // Verifica se a string de caminho é válida
+                if (isStringValid(caminhoItens)) {
+                    // Chama o método para salvar os itens no Firebase
+                    salvarItensFirebase(vistoriaRef.child(caminhoItens), vistoria.getItensMap());
+                } else {
+                    // Lógica de tratamento se a string de caminho não for válida
+                    Log.e("ERROR", "Caminho de itens inválido");
+                }
+            } else {
+                // Lógica de tratamento se a referência for nula
+                Log.e("ERROR", "Referência de vistoria nula");
+            }
+        } else {
+            // Lógica de tratamento se vistoria ou ID de vistoria forem nulos
+            Log.e("ERROR", "Vistoria ou ID de vistoria nulos");
+        }
+    }
+
+    /**
+     * Verifica se a string é válida (não nula e não vazia).
+     *
+     * @param str A string a ser verificada.
+     * @return True se a string for válida, False caso contrário.
+     *         Comentado por Alexandre B. Menna
+     */
+    private boolean isStringValid(String str) {
+        return str != null && !str.isEmpty();
+    }
+
+    /**
+     * Salva os itens no Firebase Database.
+     *
+     * @param itensRef Referência do Firebase onde os itens serão salvos.
+     * @param itensMap Mapa de itens a serem salvos.
+     *                 Comentado por Alexandre B. Menna
+     */
+    private void salvarItensFirebase(DatabaseReference itensRef, Map<String, Item> itensMap) {
+        // Verifica se a referência e o mapa de itens não são nulos
+        if (itensRef != null && itensMap != null) {
+            try {
+                // Tenta salvar os itens no Firebase
+                itensRef.setValue(itensMap)
+                        .addOnSuccessListener(aVoid -> Log.d("INFO", "Itens salvos no Firebase com sucesso"))
+                        .addOnFailureListener(e -> Log.e("ERROR", "Erro ao salvar itens no Firebase: " + e.getMessage()));
+            } catch (Exception e) {
+                // Lógica de tratamento se ocorrer uma exceção
+                Log.e("ERROR", "Erro ao salvar itens no Firebase: " + e.getMessage());
+            }
+        } else {
+            // Lógica de tratamento se a referência ou mapa de itens for nulo
+            Log.e("ERROR", "Referência ou mapa de itens nulos");
+        }
+    }
+
+
+
     private void IniciarComponentes() {
         CampoNomeItem = findViewById(R.id.NovoNome);
         campoPlaca = findViewById(R.id.NovaPlaca);
@@ -493,6 +546,7 @@ public class EditVistoriaActivity extends AppCompatActivity {
         imageCada1=findViewById(R.id.NovimageCada1);
         // Inicialize o TextView
         itemCountTextView = findViewById(R.id.NovoitemCountTextView);
+        updateItemCountText();
     }
 
 

@@ -10,6 +10,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -188,7 +189,7 @@ public class Vistoria implements Serializable {
         DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
 
         setIdVistoria(anuncioRefe.push().getKey()); // Gere um novo ID no construtor
-        itensMap = new HashMap<>();
+        itensMap = new LinkedHashMap<>();
     }
 
 
