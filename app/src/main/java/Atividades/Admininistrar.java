@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -69,7 +70,7 @@ public class Admininistrar extends AppCompatActivity {
         botaoAlterarCodigoEspecial = findViewById(R.id.updateCodigoEspecialButton);
         vistorias = new ArrayList<>();
         vistoriaAdapter = new VistoriaAdapter(this, R.layout.itensvistoria, vistorias);
-        listViewVistorias.setAdapter(vistoriaAdapter);
+        listViewVistorias.setAdapter((ListAdapter) vistoriaAdapter);
         editCompanyInfoButton = findViewById(R.id.edit_company_info_button);
         //Toast.makeText(this, "Atividade criada!", Toast.LENGTH_SHORT).show();
 

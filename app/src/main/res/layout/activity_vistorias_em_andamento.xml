@@ -9,9 +9,9 @@
     android:background="@android:color/background_light">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/vistorias_andamento_recyclerview"
+        android:id="@+id/recyclerViewItens"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="568dp" />
 
 
 </LinearLayout>

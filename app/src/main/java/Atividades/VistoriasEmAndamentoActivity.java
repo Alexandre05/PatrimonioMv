@@ -59,19 +59,20 @@ public class VistoriasEmAndamentoActivity extends AppCompatActivity implements O
 
         setContentView(R.layout.activity_vistorias_em_andamento);
         uniqueLicensePlates = new HashSet<>();
-
-        vistoriasAndamentoRecyclerView = findViewById(R.id.vistorias_andamento_recyclerview);
+       // @layout/activity_vistorias_em_andamento does not contain a declaration with id recyclerViewVistorias
+        RecyclerView recyclerView = findViewById(R.id.recyclerViewItens);;
         // Obtenha o ID da vistoria passado da activity anterior
         String idVistoria = getIntent().getStringExtra("idVistoria");
         checkUserAuthentication();
         vistoriasEmAndamento = new ArrayList<>();
         adapter = new VistoriaAndamentoAdapter(this, vistoriasEmAndamento, true);
+// @layout/activity_vistorias_em_andamento does not contain a declaration with id recyclerViewVistorias
 
-        vistoriasAndamentoRecyclerView.setAdapter(adapter);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        vistoriasAndamentoRecyclerView.setLayoutManager(layoutManager);
-        vistoriasAndamentoRecyclerView.setHasFixedSize(true);
-        //vistoriasAndamentoRecyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        List<Vistoria> listaVistorias = new ArrayList<>(); // Preencha com seus dados
+        VistoriaAndamentoAdapter adapter = new VistoriaAndamentoAdapter(this, listaVistorias, true);
+        recyclerView.setAdapter(adapter);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 

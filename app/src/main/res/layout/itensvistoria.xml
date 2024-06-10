@@ -10,7 +10,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="359dp"
         android:padding="16dp">
 
         <TextView
@@ -26,42 +26,41 @@
             android:id="@+id/dataTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/nomePerfilUTextView"
+            android:layout_below="@id/nomePerfilUTextView"
+            android:layout_marginTop="8dp"
             android:text="Data da Vistoria"
             android:textColor="@color/black"
-            android:textSize="16sp"
-            android:layout_marginTop="8dp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/localizacaoTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/dataTextView"
+            android:layout_below="@id/dataTextView"
+            android:layout_marginTop="8dp"
             android:text="Localização da Vistoria"
             android:textColor="@color/black"
-            android:textSize="16sp"
-            android:layout_marginTop="8dp" />
+            android:textSize="16sp" />
 
-        <LinearLayout
-            android:id="@+id/item_list_container"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewItensI"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/localizacaoTextView"
-            android:orientation="vertical"
+            android:layout_below="@id/localizacaoTextView"
             android:layout_marginTop="8dp" />
 
         <Button
             android:id="@+id/concluirVistoriaButton"
-            android:layout_width="wrap_content"
+            android:layout_width="227dp"
             android:layout_height="wrap_content"
+            android:layout_below="@id/recyclerViewItensI"
             android:layout_alignParentEnd="true"
-            android:layout_below="@+id/item_list_container"
+            android:layout_marginTop="-7dp"
+            android:layout_marginEnd="145dp"
             android:backgroundTint="@color/accentColor"
+            android:padding="8dp"
             android:text="Concluir Vistoria"
             android:textColor="@color/design_default_color_on_primary"
-            android:textSize="16sp"
-            android:padding="8dp"
-            android:layout_marginTop="12dp" />
+            android:textSize="16sp" />
     </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>
-

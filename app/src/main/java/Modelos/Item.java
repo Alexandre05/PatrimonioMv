@@ -22,6 +22,16 @@ import java.util.Map;
 
 public class Item implements Parcelable, Serializable {
     private String localizacao;
+    private String idVistoria;
+
+    public String getIdVistoria() {
+        return idVistoria;
+    }
+
+    public void setIdVistoria(String idVistoria) {
+        this.idVistoria = idVistoria;
+    }
+
     private String id;
     private String nome;
     private String placa;
@@ -200,16 +210,20 @@ public class Item implements Parcelable, Serializable {
 
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        result.put("id", id);
-        result.put("nome", nome);
-        result.put("placa", placa);
-        result.put("observacao", observacao);
-        result.put("fotos", fotos);
-        result.put("localizacao", localizacao);
-        result.put("latitude", latitude);
-        result.put("longitude", longitude);
+
+        if (id != null) result.put("id", id);
+        if (nome != null) result.put("nome", nome);
+        if (placa != null) result.put("placa", placa);
+        if (observacao != null) result.put("observacao", observacao);
+        if (fotos != null) result.put("fotos", fotos);
+        if (localizacao != null) result.put("localizacao", localizacao);
+        if (latitude != 0.0) result.put("latitude", latitude);
+        if (longitude != 0.0) result.put("longitude", longitude);
+        if (fotoURL != null) result.put("fotoURL", fotoURL);
+
         return result;
     }
+
 
     @Override
     public String toString() {

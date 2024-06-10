@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 // Importações do AndroidX para suporte a RecyclerView
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 // Importações de classes específicas do aplicativo
@@ -57,61 +58,32 @@ public class VistoriaAndamentoAdapter extends RecyclerView.Adapter<VistoriaAndam
     }
 
     // Método chamado para exibir dados na posição especificada
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // Obtém a vistoria atual
         Vistoria vistoriaAtual = vistorias.get(position);
 
-        // Define dados nos elementos visuais do ViewHolder
         holder.nomePerfil.setText(vistoriaAtual.getNomePerfilU());
         holder.dataTextView.setText(vistoriaAtual.getData());
         holder.localizacaoTextView.setText(vistoriaAtual.getLocalizacao());
 
-        // Remove todos os itens anteriores do itemListContainer
-        holder.itemListContainer.removeAllViews();
+        // Configurar RecyclerView de itens
+        List<Item> itemList = new ArrayList<>(vistoriaAtual.getItensMap().values());
+        // erro Cannot resolve symbol 'ItemAdapter'
+        ItemAdapter itemAdapter = new ItemAdapter(itemList, context);
+        holder.recyclerViewItens.setLayoutManager(new LinearLayoutManager(context));
+        holder.recyclerViewItens.setAdapter(itemAdapter);
 
-        // Verifica se há itens na vistoria atual
-        if (vistoriaAtual.getItensMap() != null) {
-            // Itera sobre os itens da vistoria e os exibe
-            for (Map.Entry<String, Item> entry : vistoriaAtual.getItensMap().entrySet()) {
-                Item item = entry.getValue();
-
-                // Infla o layout para o item
-                View itemView = LayoutInflater.from(context).inflate(R.layout.list_item_item, holder.itemListContainer, false);
-
-                // Define dados nos elementos visuais do item
-                TextView itemNameTextView = itemView.findViewById(R.id.item_name);
-                itemNameTextView.setText(item.getNome());
-
-                TextView itemPlacaTextView = itemView.findViewById(R.id.item_placa);
-                itemPlacaTextView.setText(item.getPlaca());
-
-                TextView itemOutrasInformacoesTextView = itemView.findViewById(R.id.item_outras_informacoes);
-                itemOutrasInformacoesTextView.setText(item.getObservacao());
-
-                // Adiciona o item ao itemListContainer
-                holder.itemListContainer.addView(itemView);
-            }
-        }
-
-        // Verifica se o botão "Concluir Vistoria" deve ser exibido
         if (showConcluirVistoriaButton) {
-            // Torna o botão visível e define um OnClickListener
             holder.concluirVistoriaButton.setVisibility(View.VISIBLE);
             holder.concluirVistoriaButton.setOnClickListener(view -> {
-                // Chama o método na atividade relacionada quando o botão é clicado
                 ((VistoriasEmAndamentoActivity) context).concluirVistoria(position);
             });
         } else {
-            // Torna o botão invisível se não for necessário
             holder.concluirVistoriaButton.setVisibility(View.GONE);
         }
-
-        // Adiciona o OnClickListener ao botão Concluir Vistoria
-        holder.concluirVistoriaButton.setOnClickListener(view -> {
-            ((VistoriasEmAndamentoActivity) context).concluirVistoria(position);
-        });
     }
+
 
     // Retorna o número total de itens na lista
     @Override
@@ -137,16 +109,16 @@ public class VistoriaAndamentoAdapter extends RecyclerView.Adapter<VistoriaAndam
     static class ViewHolder extends RecyclerView.ViewHolder {
         Button concluirVistoriaButton;
         TextView nomePerfil, dataTextView, localizacaoTextView;
-        LinearLayout itemListContainer;
+        RecyclerView recyclerViewItens;
 
-        // Construtor que inicializa os elementos visuais
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             concluirVistoriaButton = itemView.findViewById(R.id.concluirVistoriaButton);
             nomePerfil = itemView.findViewById(R.id.nomePerfilUTextView);
             dataTextView = itemView.findViewById(R.id.dataTextView);
             localizacaoTextView = itemView.findViewById(R.id.localizacaoTextView);
-            itemListContainer = itemView.findViewById(R.id.item_list_container);
+            recyclerViewItens = itemView.findViewById(R.id.recyclerViewItens);
         }
     }
+
 }

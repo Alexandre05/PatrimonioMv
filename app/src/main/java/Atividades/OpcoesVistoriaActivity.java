@@ -11,6 +11,7 @@ import android.widget.Button;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -29,7 +30,10 @@ public class OpcoesVistoriaActivity extends AppCompatActivity {
         Button btnAtualizarItens = findViewById(R.id.btnAtualizarItens);
         Button btnAdicionarNovoItem = findViewById(R.id.btnAdicionarNovoItem);
         Button btnExcluirItem = findViewById(R.id.btnExcluirItem);
-
+        // Ativar persistência do Firebase Database
+        if (FirebaseDatabase.getInstance().getApp() == null) {
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        }
         Intent intent = getIntent();
 // Receber a lista de itens da Intent
         ArrayList<Item> listaItens = getIntent().getParcelableArrayListExtra("listaItens");

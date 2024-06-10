@@ -19,7 +19,7 @@ import Ajuda.ConFirebase;
 public class Vistoria implements Serializable {
     private String idUsuario;
     private String idVistoriaAnexada;
-
+    private Map<String, Item> itensMap;
     public String getIdVistoriaAnexada() {
         return idVistoriaAnexada;
     }
@@ -54,7 +54,7 @@ public class Vistoria implements Serializable {
     }
 
 
-    private Map<String, Item> itensMap;
+
 
 
     public Map<String, Item> getItensMap() {
@@ -186,11 +186,19 @@ public class Vistoria implements Serializable {
 
 
     public Vistoria() {
-        DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
 
-        setIdVistoria(anuncioRefe.push().getKey()); // Gere um novo ID no construtor
+        // Este é o construtor existente com inicializações específicas
+        DatabaseReference anuncioRefe = ConFirebase.getFirebaseDatabase().child("vistorias");
+        setIdVistoria(anuncioRefe.push().getKey());
         itensMap = new LinkedHashMap<>();
     }
+
+    // Adicione este construtor sem argumentos para atender aos requisitos do Firebase
+    public Vistoria(String dummy) {
+        // Construtor sem argumentos para atender aos requisitos do Firebase
+    }
+
+
 
 
     public String getLocalizacao() {
@@ -325,6 +333,11 @@ public class Vistoria implements Serializable {
         result.put("itens", itemObjectsMap);
 
         return result;
+    }
+    public void adicionarItem(Item item) {
+        if (itensMap == null) {
+            itensMap = new HashMap<>();
+        }
     }
 
 }
